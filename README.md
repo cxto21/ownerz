@@ -1,22 +1,42 @@
-# DataVault: Marketplace Descentralizado de Datos Privados
+# Ownerz — Privacy-First Data Marketplace
 
-## Valor Core
-Un marketplace donde cualquiera puede monetizar datos privados en blockchain con transacciones anónimas, sin intermediarios ni costos ocultos.
+## Core Value
+A marketplace where anyone can monetize private data on blockchain with anonymous transactions, no intermediaries, no hidden costs.
 
-## Cómo Funciona
-Los usuarios vinculan su wallet Starknet (Braavos/Argent) y suben datos encriptados localmente a IPFS. El vendedor registra solo el CID y precio en el smart contract STRK20 (sin listar públicamente). El comprador accede mediante CID directo, realiza la compra anónima vía ZK-proofs, y recibe automáticamente la clave de desencriptación en el evento blockchain privado. Los datos quedan encriptados en IPFS, descifrables solo con la clave que el contrato entrega al comprador verificado.
+## How It Works
+Users connect their Starknet wallet (Braavos/Argent) and upload locally encrypted files to Fil One (Filecoin). The seller registers only the CID and price on the STRK20 smart contract (no public listing). The buyer accesses via direct CID, makes an anonymous purchase via ZK-proofs, and automatically receives the decryption key in a private blockchain event. Data stays encrypted on IPFS, decryptable only with the key the contract delivers to the verified buyer.
 
-## Tecnología
-- **Blockchain:** Starknet + STRK20 (pagos privados por ZK-proofs)
-- **Storage:** IPFS/Web3.Storage (datos encriptados end-to-end, permanentes)
-- **Encriptación:** AES-256-GCM (cliente-side)
+## Tech Stack
+- **Blockchain:** Starknet + STRK20 (private payments via ZK-proofs)
+- **Storage:** Fil One / Filecoin (encrypted end-to-end, permanent storage)
+- **Encryption:** ML-KEM768 + AES-256-GCM (post-quantum, client-side)
 - **Frontend:** Next.js + @starknet-react
-- **Smart Contract:** Cairo (registro por CID, compra anónima, entrega de claves)
-- **Privacidad:** 
-  - Vendedor: No aparece en listados (solo CID compartible)
-  - Comprador: Transacción oculta por ZK-proofs
-  - Datos: Encriptados en IPFS, descifrables solo con clave del contrato
+- **Smart Contract:** Cairo (CID registry, anonymous purchase, key delivery)
+- **Privacy:**
+  - Seller: No public listings (only CID shared privately)
+  - Buyer: Transaction hidden via ZK-proofs
+  - Data: Encrypted on IPFS, decryptable only with contract-delivered key
 
-## Roadmap Futuro
-Fase 1 (Actual): CID directo (máxima privacidad)
-Fase 2: Marketplace de listados con filtros por industria (menos privado, mayor descubrimiento)
+## Roadmap
+**Phase 1 (Current):** Direct CID — Maximum Privacy
+**Phase 2:** Marketplace listings with industry filters (less private, more discovery)
+
+## Getting Started
+
+```bash
+# Install dependencies
+npm install
+
+# Set up environment
+cp .env.example .env
+# Edit .env with your Fil One credentials
+
+# Run development server
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000)
+
+## License
+
+MIT
