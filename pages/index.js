@@ -3,6 +3,7 @@ import { encryptData, generateKeyPair, decryptData } from '../lib/encryption'
 import { getAvailableWallets, connectWallet, isStrk20Capable } from '../lib/starknet'
 import { 
   privateTransfer, 
+  shieldTokens,
   toSmallestUnit, 
   fromSmallestUnit,
   STRK_TOKEN_ADDRESS,
@@ -14,6 +15,7 @@ import { calculateUploadFee, getPricingInfo } from '../lib/fees'
 export default function DataVault() {
   const [mode, setMode] = useState('sell')
   const [copiedAddress, setCopiedAddress] = useState(false)
+  const [showShieldModal, setShowShieldModal] = useState(false)
   const [walletState, setWalletState] = useState({
     connected: false,
     account: null,
@@ -134,6 +136,22 @@ export default function DataVault() {
                 {copiedAddress ? '✓ Copied' : `${walletState.address.slice(0,6)}...${walletState.address.slice(-4)}`}
               </button>
               <button
+                onClick={() => setShowShieldModal(true)}
+                title="Shield STRK to pool"
+                style={{
+                  padding: '8px 12px',
+                  border: '1px solid rgba(220, 184, 255, 0.3)',
+                  background: 'rgba(220, 184, 255, 0.1)',
+                  color: 'var(--primary)',
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: '11px',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s'
+                }}
+              >
+                Shield
+              </button>
+              <button
                 onClick={handleDisconnect}
                 title="Disconnect wallet"
                 style={{
@@ -240,6 +258,153 @@ export default function DataVault() {
       <footer className="dv-footer">
         Phase 1: Direct CID — Maximum Privacy
       </footer>
+
+      {/* Shield Modal */}
+      {showShieldModal && (
+        <ShieldModal 
+          account={walletState.account}
+          onClose={() => setShowShieldModal(false)} 
+        />
+      )}
+    </div>
+  )
+}
+
+function ShieldModal({ account, onClose }) {
+  const [amount, setAmount] = useState('')
+  const [step, setStep] = useState(0)
+  const [error, setError] = useState(null)
+  const [txHash, setTxHash] = useState(null)
+
+  const handleShield = async () => {
+    if (!amount || !account) return
+    setStep(1)
+    setError(null)
+
+    try {
+      const amountNum = parseFloat(amount)
+      if (amountNum <= 0) throw new Error('Amount must be greater than 0')
+      
+      // Convert to hex (18 decimals)
+      const amountHex = '0x' + BigInt(Math.round(amountNum * 1e18)).toString(16)
+      
+      const result = await shieldTokens(account, STRK_TOKEN_ADDRESS, amountHex)
+      
+      if (result.success) {
+        setTxHash(result.transactionHash)
+        setStep(2)
+      } else {
+        throw new Error(result.error)
+      }
+    } catch (err) {
+      setError(err.message)
+      setStep(0)
+    }
+  }
+
+  return (
+    <div style={{
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      background: 'rgba(0,0,0,0.8)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      zIndex: 1000
+    }}>
+      <div className="dv-card" style={{ maxWidth: '400px', width: '100%' }}>
+        <div className="dv-card-content">
+          {step === 0 && (
+            <>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h3 className="dv-title">Shield STRK</h3>
+                <button 
+                  onClick={onClose}
+                  style={{ 
+                    background: 'none', 
+                    border: 'none', 
+                    color: 'rgba(255,255,255,0.5)',
+                    cursor: 'pointer',
+                    fontSize: '20px'
+                  }}
+                >
+                  ✕
+                </button>
+              </div>
+              
+              <p className="dv-hint">
+                Deposit STRK into the privacy pool. Once shielded, you can make private transfers.
+              </p>
+
+              <div className="dv-input-group">
+                <label>Amount (STRK)</label>
+                <input
+                  type="number"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                  placeholder="0.00"
+                  min="0"
+                  step="0.1"
+                />
+                <small>This will deposit STRK from your public balance to the pool</small>
+              </div>
+
+              {error && <div className="dv-error">{error}</div>}
+
+              <button
+                className="dv-btn-primary"
+                onClick={handleShield}
+                disabled={!amount}
+              >
+                Shield {amount || '0'} STRK
+              </button>
+            </>
+          )}
+
+          {step === 1 && (
+            <div className="dv-loading">
+              <div className="dv-spinner"></div>
+              <p>Depositing to privacy pool...</p>
+              <small style={{color: 'rgba(255,255,255,0.4)', marginTop: '8px'}}>
+                Please approve in your wallet. This requires two transactions.
+              </small>
+            </div>
+          )}
+
+          {step === 2 && (
+            <>
+              <h3 className="dv-title">Shielded!</h3>
+              
+              <div className="dv-success-box">
+                <p style={{color: 'var(--secondary-container)', marginBottom: '8px'}}>
+                  {amount} STRK deposited to privacy pool
+                </p>
+                {txHash && (
+                  <a 
+                    href={getExplorerUrl(txHash)} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    style={{color: 'var(--primary)', fontSize: '12px'}}
+                  >
+                    View on Explorer →
+                  </a>
+                )}
+              </div>
+
+              <p className="dv-hint">
+                You can now make private transfers and pay fees privately.
+              </p>
+
+              <button className="dv-btn-primary" onClick={onClose}>
+                Done
+              </button>
+            </>
+          )}
+        </div>
+      </div>
     </div>
   )
 }
