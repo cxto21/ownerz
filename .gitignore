@@ -35,3 +35,6 @@ dist/
 # Test files (may contain credentials)
 test-s3.js
 test-s3-v3.js
+
+# Temp
+.tmp/

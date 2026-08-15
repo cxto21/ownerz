@@ -16,13 +16,31 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { objectKey } = req.body
+    const { objectKey, metadataOnly } = req.body
 
     if (!objectKey) {
       return res.status(400).json({ error: 'Missing objectKey' })
     }
 
-    // Download from Fil One
+    // Metadata-only mode: fetch S3 head (no body download)
+    if (metadataOnly) {
+      const headResult = await s3.headObject({
+        Bucket: 'ownerz-v01',
+        Key: objectKey,
+      }).promise()
+
+      return res.status(200).json({
+        success: true,
+        metadata: {
+          sellerAddress: headResult.Metadata['seller-address'] || '',
+          price: headResult.Metadata['price'] || '0',
+          fileName: headResult.Metadata['original-name'] || '',
+          uploadedAt: headResult.Metadata['uploaded-at'] || '',
+        },
+      })
+    }
+
+    // Full download: encrypted data + metadata
     const result = await s3.getObject({
       Bucket: 'ownerz-v01',
       Key: objectKey,
@@ -34,7 +52,11 @@ export default async function handler(req, res) {
     return res.status(200).json({
       success: true,
       encryptedData,
-      metadata: result.Metadata,
+      metadata: {
+        sellerAddress: result.Metadata['seller-address'] || '',
+        price: result.Metadata['price'] || '0',
+        fileName: result.Metadata['original-name'] || '',
+      },
     })
     
   } catch (err) {

@@ -1,4 +1,4 @@
-# Ownerz — Privacy-First Data Marketplace
+# Ownerz — Sell Files. Post-Quantum Delivery.
 
 ## Core Value
 A marketplace where anyone can monetize private data on blockchain with anonymous transactions, no intermediaries, no hidden costs.

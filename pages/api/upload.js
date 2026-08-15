@@ -17,7 +17,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { encryptedData, fileName } = req.body
+    const { encryptedData, fileName, sellerAddress, price } = req.body
 
     if (!encryptedData || !fileName) {
       return res.status(400).json({ error: 'Missing encryptedData or fileName' })
@@ -26,7 +26,7 @@ export default async function handler(req, res) {
     // Generate unique key for Fil One
     const timestamp = Date.now()
     const randomId = crypto.randomBytes(8).toString('hex')
-    const objectKey = `datavault/${timestamp}-${randomId}.enc`
+    const objectKey = `ownerz/${timestamp}-${randomId}.enc`
 
     // Upload ONLY encrypted data to Fil One
     // Server never sees unencrypted content
@@ -38,6 +38,8 @@ export default async function handler(req, res) {
       Metadata: {
         'original-name': fileName,
         'uploaded-at': new Date().toISOString(),
+        'seller-address': sellerAddress || '',
+        'price': price || '0',
       },
     }).promise()
 
@@ -49,6 +51,8 @@ export default async function handler(req, res) {
       objectKey,
       s3Location: uploadResult.Location,
       fileName,
+      sellerAddress: sellerAddress || '',
+      price: price || '0',
       message: 'Encrypted file uploaded to Fil One',
     })
     

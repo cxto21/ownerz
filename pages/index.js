@@ -3,7 +3,9 @@ import { encryptData, generateKeyPair, decryptData } from '../lib/encryption'
 import { getAvailableWallets, connectWallet, isStrk20Capable } from '../lib/starknet'
 import { 
   privateTransfer, 
+  batchPrivateTransfer,
   shieldTokens,
+  getShieldedBalance,
   toSmallestUnit, 
   fromSmallestUnit,
   STRK_TOKEN_ADDRESS,
@@ -12,7 +14,7 @@ import {
 } from '../lib/strk20-payments'
 import { calculateUploadFee, getPricingInfo } from '../lib/fees'
 
-export default function DataVault() {
+export default function Ownerz() {
   const [mode, setMode] = useState('sell')
   const [copiedAddress, setCopiedAddress] = useState(false)
   const [showShieldModal, setShowShieldModal] = useState(false)
@@ -76,6 +78,26 @@ export default function DataVault() {
       loading: false,
       error: null
     })
+  }
+
+  // Re-connect wallet to get a fresh account (needed after STRK20 operations)
+  const refreshWallet = async () => {
+    try {
+      const wallets = await getAvailableWallets()
+      if (wallets.length === 0) return
+      const wallet = wallets[0]
+      const result = await connectWallet(wallet)
+      setWalletState(prev => ({
+        ...prev,
+        account: result.account,
+        address: result.address,
+        isStrk20: result.isStrk20,
+      }))
+      return result.account
+    } catch (err) {
+      console.warn('Wallet refresh failed:', err.message)
+      return null
+    }
   }
 
   return (
@@ -240,12 +262,14 @@ export default function DataVault() {
                     connected={walletState.connected} 
                     isStrk20={walletState.isStrk20}
                     account={walletState.account}
+                    refreshWallet={refreshWallet}
                   />
                 ) : (
                   <BuyFlow 
                     connected={walletState.connected}
                     isStrk20={walletState.isStrk20}
                     account={walletState.account}
+                    refreshWallet={refreshWallet}
                   />
                 )}
               </div>
@@ -275,15 +299,18 @@ function ShieldModal({ account, onClose }) {
   const [step, setStep] = useState(0)
   const [error, setError] = useState(null)
   const [txHash, setTxHash] = useState(null)
+  const [shieldedBalance, setShieldedBalance] = useState(null)
 
   const handleShield = async () => {
     if (!amount || !account) return
     setStep(1)
     setError(null)
+    setShieldedBalance(null)
 
     try {
       const amountNum = parseFloat(amount)
       if (amountNum <= 0) throw new Error('Amount must be greater than 0')
+      if (amountNum < 6) throw new Error('Minimum shield amount is 6 STRK')
       
       // Convert to hex (18 decimals)
       const amountHex = '0x' + BigInt(Math.round(amountNum * 1e18)).toString(16)
@@ -292,13 +319,39 @@ function ShieldModal({ account, onClose }) {
       
       if (result.success) {
         setTxHash(result.transactionHash)
-        setStep(2)
+        // If timeout, show "possibly completed" state
+        if (result.timeout) {
+          setStep(3)
+        } else {
+          setStep(2)
+        }
       } else {
         throw new Error(result.error)
       }
     } catch (err) {
-      setError(err.message)
-      setStep(0)
+      // If it's a timeout error, the shield may have worked anyway
+      if (err.message && err.message.includes('timeout')) {
+        console.log('Wallet timeout - shield may have succeeded, checking balance...')
+        setStep(3) // "possibly completed" state
+      } else {
+        setError(err.message)
+        setStep(0)
+      }
+    }
+  }
+
+  const checkShieldedBalance = async () => {
+    try {
+      const result = await getShieldedBalance(account, STRK_TOKEN_ADDRESS)
+      if (result.success) {
+        setShieldedBalance(result.message)
+        if (result.balance && result.balance !== '0') {
+          setStep(2) // Show success
+          setTxHash(null) // No tx hash available
+        }
+      }
+    } catch (err) {
+      console.error('Balance check failed:', err)
     }
   }
 
@@ -345,11 +398,27 @@ function ShieldModal({ account, onClose }) {
                   type="number"
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
-                  placeholder="0.00"
-                  min="0"
+                  placeholder="6.00"
+                  min="6"
                   step="0.1"
                 />
-                <small>This will deposit STRK from your public balance to the pool</small>
+                <small>Minimum 6 STRK. Your wallet must be verified (Settings → Verify Account).</small>
+              </div>
+
+              <div style={{
+                background: 'rgba(124, 58, 237, 0.1)',
+                border: '1px solid rgba(124, 58, 237, 0.3)',
+                borderRadius: '8px',
+                padding: '12px',
+                marginBottom: '16px'
+              }}>
+                <p style={{color: 'var(--primary)', fontSize: '13px', margin: 0}}>
+                  ⚠️ You will need to approve <strong>TWO transactions</strong> in your wallet:
+                </p>
+                <ol style={{color: 'rgba(255,255,255,0.7)', fontSize: '12px', margin: '8px 0 0 0', paddingLeft: '20px'}}>
+                  <li>First: Approve the token spend (ERC-20 approve)</li>
+                  <li>Second: Confirm the deposit to the pool</li>
+                </ol>
               </div>
 
               {error && <div className="dv-error">{error}</div>}
@@ -369,7 +438,7 @@ function ShieldModal({ account, onClose }) {
               <div className="dv-spinner"></div>
               <p>Depositing to privacy pool...</p>
               <small style={{color: 'rgba(255,255,255,0.4)', marginTop: '8px'}}>
-                Please approve in your wallet. This requires two transactions.
+                Please approve both transactions in your wallet. The second one may take ~30 seconds for proof generation.
               </small>
             </div>
           )}
@@ -392,15 +461,62 @@ function ShieldModal({ account, onClose }) {
                     View on Explorer →
                   </a>
                 )}
+                {shieldedBalance && (
+                  <p style={{color: 'var(--secondary-container)', marginTop: '8px', fontSize: '12px'}}>
+                    {shieldedBalance}
+                  </p>
+                )}
               </div>
 
               <p className="dv-hint">
                 You can now make private transfers and pay fees privately.
               </p>
 
+              <div style={{
+                background: 'rgba(0, 255, 136, 0.1)',
+                border: '1px solid rgba(0, 255, 136, 0.3)',
+                borderRadius: '8px',
+                padding: '12px',
+                marginTop: '12px'
+              }}>
+                <p style={{color: 'var(--secondary-container)', fontSize: '13px', margin: 0}}>
+                  ⏱️ Note: Shielded funds take ~10 blocks (~20 minutes) to mature before they can be used for transfers.
+                </p>
+              </div>
+
               <button className="dv-btn-primary" onClick={onClose}>
                 Done
               </button>
+            </>
+          )}
+
+          {step === 3 && (
+            <>
+              <h3 className="dv-title">Processing...</h3>
+              
+              <div className="dv-loading">
+                <p style={{color: 'var(--secondary-container)', marginBottom: '16px'}}>
+                  The wallet didn't confirm, but your shield may have succeeded.
+                </p>
+                
+                {shieldedBalance && (
+                  <p style={{color: 'var(--secondary-container)', marginBottom: '16px'}}>
+                    {shieldedBalance}
+                  </p>
+                )}
+                
+                <button 
+                  className="dv-btn-secondary"
+                  onClick={checkShieldedBalance}
+                  style={{marginBottom: '12px'}}
+                >
+                  Check Shielded Balance
+                </button>
+                
+                <button className="dv-btn-primary" onClick={onClose}>
+                  Close
+                </button>
+              </div>
             </>
           )}
         </div>
@@ -409,7 +525,7 @@ function ShieldModal({ account, onClose }) {
   )
 }
 
-function SellFlow({ connected, isStrk20, account }) {
+function SellFlow({ connected, isStrk20, account, refreshWallet }) {
   const [file, setFile] = useState(null)
   const [price, setPrice] = useState('')
   const [step, setStep] = useState(0)
@@ -417,6 +533,7 @@ function SellFlow({ connected, isStrk20, account }) {
   const [error, setError] = useState(null)
   const [copied, setCopied] = useState(null)
   const [feeInfo, setFeeInfo] = useState(null)
+  const [feeTxHash, setFeeTxHash] = useState(null)
 
   // Calculate fee when file changes
   useEffect(() => {
@@ -430,6 +547,12 @@ function SellFlow({ connected, isStrk20, account }) {
 
   const handleUpload = async () => {
     if (!file || !price) return
+    
+    // Auto-reset if stuck in a previous state
+    if (step > 0) {
+      setResult(null)
+      setError(null)
+    }
     
     // If STRK20 is available, pay fee first
     if (isStrk20 && account) {
@@ -459,14 +582,24 @@ function SellFlow({ connected, isStrk20, account }) {
           platformWallet
         )
         
-        if (!result.success) {
+        if (result.pending) {
+          // Wallet timeout — tx was likely submitted on-chain
+          // Proceed with upload anyway, user can verify on explorer
+          console.log('STRK20 tx pending (wallet timeout) — proceeding with upload')
+        } else if (!result.success) {
           throw new Error(result.error || 'Payment failed')
+        } else {
+          console.log('Private fee payment sent:', result.transactionHash)
         }
-        
-        console.log('Private fee payment sent:', result.transactionHash)
       } else {
         // Fallback: simulate payment for non-STRK20 wallets
         await new Promise(r => setTimeout(r, 2000))
+      }
+      
+      // Re-connect to get fresh account after STRK20 operation
+      if (refreshWallet) {
+        const freshAccount = await refreshWallet()
+        if (freshAccount) account = freshAccount
       }
       
       // After payment confirmed, proceed to upload
@@ -478,16 +611,19 @@ function SellFlow({ connected, isStrk20, account }) {
   }
 
   const doUpload = async () => {
+    console.log('[doUpload] Starting upload, file:', file?.name, 'price:', price, 'step:', step)
     setStep(2) // Show loading
     setError(null)
 
     try {
       const buffer = await file.arrayBuffer()
+      console.log('[doUpload] File buffer size:', buffer.byteLength)
       const keypair = generateKeyPair()
       const { encrypted, secretKey } = await encryptData(buffer, {
         name: file.name,
         type: file.type,
       }, keypair)
+      console.log('[doUpload] Encryption complete, calling API...')
 
       const res = await fetch('/api/upload', {
         method: 'POST',
@@ -496,15 +632,19 @@ function SellFlow({ connected, isStrk20, account }) {
           encryptedData: encrypted,
           fileName: file.name,
           fileType: file.type,
+          sellerAddress: account?.address || '',
+          price: price || '0',
         }),
       })
 
       const data = await res.json()
+      console.log('[doUpload] API response:', data)
       if (!data.success) throw new Error(data.error)
 
       setResult({ ...data, secretKey })
       setStep(3)
     } catch (err) {
+      console.error('[doUpload] Error:', err.message)
       setError(err.message)
       setStep(0)
     }
@@ -759,7 +899,7 @@ function SellFlow({ connected, isStrk20, account }) {
   )
 }
 
-function BuyFlow({ connected, isStrk20, account }) {
+function BuyFlow({ connected, isStrk20, account, refreshWallet }) {
   const [cid, setCid] = useState('')
   const [step, setStep] = useState(0)
   const [secretKey, setSecretKey] = useState('')
@@ -769,6 +909,9 @@ function BuyFlow({ connected, isStrk20, account }) {
   const [copied, setCopied] = useState(null)
   const [error, setError] = useState(null)
   const [txHash, setTxHash] = useState(null)
+  const [fileMetadata, setFileMetadata] = useState(null)
+
+  const PLATFORM_FEE = '0xde0b6b3a7640000' // 1 STRK in hex (1e18)
 
   const handlePurchase = async () => {
     if (!cid) return
@@ -776,8 +919,21 @@ function BuyFlow({ connected, isStrk20, account }) {
     setError(null)
 
     try {
-      // Simulate payment processing (will be real STRK20 in next step)
-      await new Promise(r => setTimeout(r, 2000))
+      // Fetch file metadata (seller address + price) from FilOne
+      const metaRes = await fetch('/api/download', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ objectKey: cid, metadataOnly: true }),
+      })
+      const metaData = await metaRes.json()
+      if (!metaData.success) throw new Error('File not found or invalid CID')
+
+      const { sellerAddress, price } = metaData.metadata
+      if (!sellerAddress || sellerAddress === '0x' || sellerAddress === '') {
+        throw new Error('This file has no seller information')
+      }
+
+      setFileMetadata(metaData.metadata)
       setObjectKey(cid)
       setStep(2)
     } catch (err) {
@@ -787,26 +943,55 @@ function BuyFlow({ connected, isStrk20, account }) {
   }
 
   const handleStrk20Payment = async () => {
-    if (!account || !isStrk20) return
+    if (!account || !isStrk20 || !fileMetadata) return
+    console.log('[handleStrk20Payment] Starting payment...')
     setStep(3)
     setError(null)
 
     try {
-      // In production: this would be a real private transfer
-      // For now, simulate the payment flow
-      const amount = '0x0' // Will be set from price
-      const result = await privateTransfer(
+      console.log('Payment metadata:', fileMetadata)
+      console.log('Account address:', account?.address)
+      console.log('Platform wallet:', process.env.NEXT_PUBLIC_PLATFORM_WALLET)
+      
+      const sellerAddress = fileMetadata.sellerAddress
+      const priceHex = '0x' + (BigInt(Math.round(parseFloat(fileMetadata.price) * 1e18))).toString(16)
+      const platformWallet = process.env.NEXT_PUBLIC_PLATFORM_WALLET
+
+      // Single batch transfer: seller payment + platform fee in ONE ZK proof
+      // This is much faster - one wallet confirmation instead of two
+      const transfers = [
+        { amount: priceHex, recipient: sellerAddress }
+      ]
+      if (platformWallet) {
+        transfers.push({ amount: PLATFORM_FEE, recipient: platformWallet })
+      }
+
+      const result = await batchPrivateTransfer(
         account,
         STRK_TOKEN_ADDRESS,
-        amount,
-        '0x0' // Seller address would come from contract
+        transfers
       )
-      
-      if (result.success) {
+
+      console.log('[handleStrk20Payment] Result:', result)
+
+      if (result.pending) {
+        // Wallet timeout — tx was likely submitted on-chain
+        // Proceed with download flow anyway
+        console.log('STRK20 tx pending (wallet timeout) — proceeding')
+        if (refreshWallet) {
+          await refreshWallet()
+        }
+        setTxHash(null)
+        setStep(4)
+      } else if (result.success) {
+        // Re-connect to get fresh account after STRK20 operation
+        if (refreshWallet) {
+          await refreshWallet()
+        }
         setTxHash(result.transactionHash)
         setStep(4)
       } else {
-        throw new Error(result.error)
+        throw new Error(result.error || 'Payment failed')
       }
     } catch (err) {
       setError(err.message)
@@ -896,7 +1081,7 @@ function BuyFlow({ connected, isStrk20, account }) {
               type="text"
               value={cid}
               onChange={(e) => setCid(e.target.value)}
-              placeholder="datavault/..."
+              placeholder="ownerz/..."
             />
           </div>
 
@@ -922,13 +1107,118 @@ function BuyFlow({ connected, isStrk20, account }) {
       {step === 2 && (
         <>
           <div>
-            <h3 className="dv-title">Access Unlocked</h3>
+            <h3 className="dv-title">File Found</h3>
             <p className="dv-hint">
-              {isStrk20 
-                ? 'Enter the secret key from the seller to decrypt the file.'
-                : 'Enter the secret key from the seller to decrypt the file.'}
+              Review the details and pay to access the encrypted file.
             </p>
           </div>
+
+          {fileMetadata && (
+            <div style={{
+              background: 'rgba(139,92,246,0.08)',
+              border: '1px solid rgba(139,92,246,0.2)',
+              borderRadius: '8px',
+              padding: '12px',
+              marginBottom: '16px'
+            }}>
+              <div style={{display:'flex',justifyContent:'space-between',marginBottom:'6px'}}>
+                <span style={{color:'rgba(255,255,255,0.5)',fontSize:'13px'}}>File</span>
+                <span style={{color:'#fff',fontSize:'13px'}}>{fileMetadata.fileName}</span>
+              </div>
+              <div style={{display:'flex',justifyContent:'space-between',marginBottom:'6px'}}>
+                <span style={{color:'rgba(255,255,255,0.5)',fontSize:'13px'}}>Price</span>
+                <span style={{color:'#8b5cf6',fontWeight:'600',fontSize:'14px'}}>{fileMetadata.price} STRK</span>
+              </div>
+              <div style={{display:'flex',justifyContent:'space-between',marginBottom:'6px'}}>
+                <span style={{color:'rgba(255,255,255,0.5)',fontSize:'13px'}}>Platform fee</span>
+                <span style={{color:'#06b6d4',fontSize:'13px'}}>1 STRK</span>
+              </div>
+              <div style={{display:'flex',justifyContent:'space-between'}}>
+                <span style={{color:'rgba(255,255,255,0.5)',fontSize:'13px'}}>Total to pay</span>
+                <span style={{color:'#10b981',fontWeight:'600',fontSize:'14px'}}>
+                  {parseFloat(fileMetadata.price || 0) + 1} STRK + gas
+                </span>
+              </div>
+            </div>
+          )}
+
+          <p className="dv-hint" style={{fontSize:'12px',marginBottom:'12px'}}>
+            You need at least {parseFloat(fileMetadata?.price || 0) + 6 + 1} STRK in your public balance 
+            (to shield and pay). Then pay privately from the pool.
+          </p>
+
+          {error && <div className="dv-error">{error}</div>}
+
+          <button
+            className="dv-btn-primary"
+            onClick={handleStrk20Payment}
+          >
+            Pay {parseFloat(fileMetadata?.price || 0) + 1} STRK Privately
+          </button>
+        </>
+      )}
+
+      {step === 3 && (
+        <div className="dv-loading">
+          <div className="dv-spinner"></div>
+          <p>Generating ZK proof and sending private payment...</p>
+          <small style={{color: 'rgba(255,255,255,0.4)', marginTop: '8px'}}>
+            This may take a moment. Please approve in your wallet.
+          </small>
+        </div>
+      )}
+
+      {step === 4 && (
+        <>
+          <div>
+            <h3 className="dv-title">Payment Sent</h3>
+            <p className="dv-hint">Private payment confirmed. Now download and decrypt.</p>
+          </div>
+
+          {txHash && (
+            <div className="dv-cid-box">
+              <div className="dv-cid-header">
+                <label>Transaction Hash</label>
+                <button className="dv-copy" onClick={() => copyToClipboard(txHash, 'tx')}>
+                  {copied === 'tx' ? '✓ Copied' : 'Copy'}
+                </button>
+              </div>
+              <code>{formatTxHash(txHash)}</code>
+              <a 
+                href={getExplorerUrl(txHash)} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                style={{color: 'var(--primary)', fontSize: '12px', marginTop: '8px', display: 'block'}}
+              >
+                View on Explorer →
+              </a>
+            </div>
+          )}
+
+          {!txHash && account?.address && (
+            <div style={{
+              background: 'rgba(251,191,36,0.1)',
+              border: '1px solid rgba(251,191,36,0.3)',
+              borderRadius: '8px',
+              padding: '12px',
+              marginBottom: '16px',
+              fontSize: '13px',
+              color: '#fbbf24'
+            }}>
+              Payment submitted via wallet. Your STRK20 transaction should appear here:
+              <a 
+                href={`https://sepolia.voyager.online/contract/${account.address}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{color: '#8b5cf6', marginLeft: '4px', textDecoration: 'underline'}}
+              >
+                View on Voyager →
+              </a>
+              <div style={{fontSize: '11px', color: 'rgba(251,191,36,0.6)', marginTop: '6px'}}>
+                Note: STRK20 privacy transactions show as pool interactions — amounts and recipients are hidden by design.
+              </div>
+            </div>
+          )}
 
           <div className="dv-input-group">
             <label>ML-KEM768 Secret Key</label>
@@ -944,66 +1234,12 @@ function BuyFlow({ connected, isStrk20, account }) {
 
           {error && <div className="dv-error">{error}</div>}
 
-          {isStrk20 ? (
-            <button
-              className="dv-btn-primary"
-              onClick={handleStrk20Payment}
-              disabled={!secretKey}
-            >
-              Pay with STRK20 Privately
-            </button>
-          ) : (
-            <button
-              className="dv-btn-primary"
-              onClick={handleDownload}
-              disabled={!secretKey}
-            >
-              Download Encrypted
-            </button>
-          )}
-        </>
-      )}
-
-      {step === 3 && (
-        <div className="dv-loading">
-          <div className="dv-spinner"></div>
-          <p>Generating ZK proof and sending private payment...</p>
-          <small style={{color: 'rgba(255,255,255,0.4)', marginTop: '8px'}}>
-            This may take a moment. Please approve in your wallet.
-          </small>
-        </div>
-      )}
-
-      {step === 4 && txHash && (
-        <>
-          <div>
-            <h3 className="dv-title">Payment Sent</h3>
-            <p className="dv-hint">Private payment confirmed. Now download and decrypt.</p>
-          </div>
-
-          <div className="dv-cid-box">
-            <div className="dv-cid-header">
-              <label>Transaction Hash</label>
-              <button className="dv-copy" onClick={() => copyToClipboard(txHash, 'tx')}>
-                {copied === 'tx' ? '✓ Copied' : 'Copy'}
-              </button>
-            </div>
-            <code>{formatTxHash(txHash)}</code>
-            <a 
-              href={getExplorerUrl(txHash)} 
-              target="_blank" 
-              rel="noopener noreferrer"
-              style={{color: 'var(--primary)', fontSize: '12px', marginTop: '8px', display: 'block'}}
-            >
-              View on Explorer →
-            </a>
-          </div>
-
           <button
             className="dv-btn-primary"
             onClick={handleDownload}
+            disabled={!secretKey}
           >
-            Download Encrypted
+            Download & Decrypt
           </button>
         </>
       )}
