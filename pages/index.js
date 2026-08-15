@@ -9,6 +9,7 @@ import {
   formatTxHash,
   getExplorerUrl
 } from '../lib/strk20-payments'
+import { calculateUploadFee, getPricingInfo } from '../lib/fees'
 
 export default function DataVault() {
   const [mode, setMode] = useState('sell')
@@ -211,10 +212,50 @@ function SellFlow({ connected, isStrk20, account }) {
   const [result, setResult] = useState(null)
   const [error, setError] = useState(null)
   const [copied, setCopied] = useState(null)
+  const [feeInfo, setFeeInfo] = useState(null)
+
+  // Calculate fee when file changes
+  useEffect(() => {
+    if (file) {
+      const fee = calculateUploadFee(file.size)
+      setFeeInfo(fee)
+    } else {
+      setFeeInfo(null)
+    }
+  }, [file])
 
   const handleUpload = async () => {
     if (!file || !price) return
-    setStep(1)
+    
+    // If STRK20 is available, pay fee first
+    if (isStrk20 && account) {
+      setStep(1) // Show fee payment step
+      return
+    }
+    
+    // Otherwise proceed directly to upload
+    await doUpload()
+  }
+
+  const handlePayFee = async () => {
+    if (!account || !feeInfo) return
+    setStep(2) // Show loading
+    
+    try {
+      // In production: call the fee collector contract
+      // For now, simulate payment
+      await new Promise(r => setTimeout(r, 2000))
+      
+      // After payment confirmed, proceed to upload
+      await doUpload()
+    } catch (err) {
+      setError(err.message)
+      setStep(1) // Back to fee step
+    }
+  }
+
+  const doUpload = async () => {
+    setStep(2) // Show loading
     setError(null)
 
     try {
@@ -239,7 +280,7 @@ function SellFlow({ connected, isStrk20, account }) {
       if (!data.success) throw new Error(data.error)
 
       setResult({ ...data, secretKey })
-      setStep(2)
+      setStep(3)
     } catch (err) {
       setError(err.message)
       setStep(0)
@@ -252,6 +293,7 @@ function SellFlow({ connected, isStrk20, account }) {
     setStep(0)
     setResult(null)
     setError(null)
+    setFeeInfo(null)
   }
 
   const copyToClipboard = (text, label) => {
@@ -306,8 +348,43 @@ function SellFlow({ connected, isStrk20, account }) {
             )}
           </div>
 
+          {/* Fee Display */}
+          {feeInfo && (
+            <div style={{
+              padding: '16px',
+              background: 'rgba(220, 184, 255, 0.1)',
+              border: '1px solid rgba(220, 184, 255, 0.3)'
+            }}>
+              <div style={{
+                fontFamily: 'var(--font-mono)',
+                fontSize: '12px',
+                color: 'var(--primary)',
+                marginBottom: '8px',
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em'
+              }}>
+                Upload Fee
+              </div>
+              <div style={{
+                fontSize: '24px',
+                fontWeight: 700,
+                color: 'white',
+                marginBottom: '8px'
+              }}>
+                {feeInfo.feeFormatted} STRK
+              </div>
+              <div style={{
+                fontFamily: 'var(--font-mono)',
+                fontSize: '11px',
+                color: 'rgba(255,255,255,0.5)'
+              }}>
+                Base: {feeInfo.baseFee} STRK + Storage: {feeInfo.storageFeeFormatted} STRK
+              </div>
+            </div>
+          )}
+
           <div className="dv-input-group">
-            <label>Price (STRK)</label>
+            <label>Your Selling Price (STRK)</label>
             <input
               type="number"
               value={price}
@@ -316,6 +393,7 @@ function SellFlow({ connected, isStrk20, account }) {
               min="0"
               step="0.01"
             />
+            <small>This is what buyers will pay you</small>
           </div>
 
           {error && <div className="dv-error">{error}</div>}
@@ -325,19 +403,90 @@ function SellFlow({ connected, isStrk20, account }) {
             onClick={handleUpload}
             disabled={!file || !price || !connected}
           >
-            {!connected ? 'Connect Wallet First' : 'Encrypt & Upload'}
+            {!connected ? 'Connect Wallet First' : 
+             isStrk20 ? `Pay ${feeInfo?.feeFormatted || '0.5'} STRK & Upload` : 
+             'Encrypt & Upload'}
           </button>
         </>
       )}
 
       {step === 1 && (
+        <>
+          <div>
+            <h3 className="dv-title">Confirm Payment</h3>
+            <p className="dv-hint">Pay the upload fee to proceed with file storage.</p>
+          </div>
+
+          {feeInfo && (
+            <div style={{
+              padding: '20px',
+              background: 'rgba(220, 184, 255, 0.1)',
+              border: '1px solid rgba(220, 184, 255, 0.3)'
+            }}>
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                marginBottom: '12px'
+              }}>
+                <span style={{ color: 'rgba(255,255,255,0.5)' }}>File size:</span>
+                <strong>{feeInfo.sizeFormatted}</strong>
+              </div>
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                marginBottom: '12px'
+              }}>
+                <span style={{ color: 'rgba(255,255,255,0.5)' }}>Base fee:</span>
+                <strong>{feeInfo.baseFee} STRK</strong>
+              </div>
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                marginBottom: '16px'
+              }}>
+                <span style={{ color: 'rgba(255,255,255,0.5)' }}>Storage fee:</span>
+                <strong>{feeInfo.storageFeeFormatted} STRK</strong>
+              </div>
+              <div style={{
+                borderTop: '1px solid rgba(255,255,255,0.2)',
+                paddingTop: '12px',
+                display: 'flex',
+                justifyContent: 'space-between'
+              }}>
+                <span style={{ fontWeight: 700 }}>Total Fee:</span>
+                <strong style={{ fontSize: '20px', color: 'var(--primary)' }}>
+                  {feeInfo.feeFormatted} STRK
+                </strong>
+              </div>
+            </div>
+          )}
+
+          {error && <div className="dv-error">{error}</div>}
+
+          <button
+            className="dv-btn-primary"
+            onClick={handlePayFee}
+          >
+            Pay {feeInfo?.feeFormatted || '0.5'} STRK & Upload
+          </button>
+
+          <button
+            className="dv-btn-secondary"
+            onClick={() => setStep(0)}
+          >
+            Cancel
+          </button>
+        </>
+      )}
+
+      {step === 2 && (
         <div className="dv-loading">
           <div className="dv-spinner"></div>
           <p>Encrypting and uploading to Fil One...</p>
         </div>
       )}
 
-      {step === 2 && result && (
+      {step === 3 && result && (
         <>
           <div>
             <h3 className="dv-title">File Uploaded</h3>
