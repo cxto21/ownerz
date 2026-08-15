@@ -10,10 +10,14 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1111.0",
     "@noble/post-quantum": "^0.7.0",
+    "@starknet-io/get-starknet-discovery": "^6.0.3",
+    "@starknet-io/get-starknet-wallet-standard": "^6.0.3",
+    "@starknet-io/types-js": "^0.10.3",
     "aws-sdk": "^2.1693.0",
     "next": "^14.0.0",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "starknet": "^10.4.0"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",

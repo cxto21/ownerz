@@ -1,15 +1,66 @@
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { encryptData, generateKeyPair, decryptData } from '../lib/encryption'
+import { getAvailableWallets, connectWallet, isStrk20Capable } from '../lib/starknet'
+import { 
+  privateTransfer, 
+  toSmallestUnit, 
+  fromSmallestUnit,
+  STRK_TOKEN_ADDRESS,
+  formatTxHash,
+  getExplorerUrl
+} from '../lib/strk20-payments'
 
 export default function DataVault() {
   const [mode, setMode] = useState('sell')
-  const [connected, setConnected] = useState(false)
-  const [wallet, setWallet] = useState('')
+  const [walletState, setWalletState] = useState({
+    connected: false,
+    account: null,
+    address: '',
+    isStrk20: false,
+    loading: false,
+    error: null
+  })
 
-  const connectWallet = () => {
-    const mock = '0x' + Array.from({length: 40}, () => Math.floor(Math.random() * 16).toString(16)).join('')
-    setWallet(mock)
-    setConnected(true)
+  // Check for wallet on mount
+  useEffect(() => {
+    const checkWallet = async () => {
+      const wallets = await getAvailableWallets()
+      if (wallets.length === 0) {
+        setWalletState(prev => ({ ...prev, error: 'No Starknet wallet detected' }))
+      }
+    }
+    checkWallet()
+  }, [])
+
+  const handleConnect = async () => {
+    setWalletState(prev => ({ ...prev, loading: true, error: null }))
+    
+    try {
+      const wallets = await getAvailableWallets()
+      
+      if (wallets.length === 0) {
+        throw new Error('No Starknet wallet found. Install Ready extension.')
+      }
+      
+      // Use first available wallet (in production, let user choose)
+      const wallet = wallets[0]
+      const result = await connectWallet(wallet)
+      
+      setWalletState({
+        connected: true,
+        account: result.account,
+        address: result.address,
+        isStrk20: result.isStrk20,
+        loading: false,
+        error: null
+      })
+    } catch (err) {
+      setWalletState(prev => ({
+        ...prev,
+        loading: false,
+        error: err.message
+      }))
+    }
   }
 
   return (
@@ -18,34 +69,66 @@ export default function DataVault() {
       <nav className="dv-nav">
         <div className="dv-nav-inner">
           <div className="dv-logo">OWNERZ</div>
-          {connected ? (
+          {walletState.connected ? (
             <div style={{
-              padding: '8px 16px',
-              border: '1px solid rgba(255,255,255,0.1)',
-              fontFamily: 'var(--font-mono)',
-              fontSize: '12px',
-              color: 'var(--secondary-container)'
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px'
             }}>
-              {wallet.slice(0,6)}...{wallet.slice(-4)}
+              {walletState.isStrk20 ? (
+                <span style={{
+                  padding: '4px 8px',
+                  background: 'rgba(4, 251, 251, 0.2)',
+                  color: 'var(--secondary-container)',
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: '10px',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.05em'
+                }}>
+                  STRK20 Ready
+                </span>
+              ) : (
+                <span style={{
+                  padding: '4px 8px',
+                  background: 'rgba(255, 180, 171, 0.2)',
+                  color: 'var(--error)',
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: '10px',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.05em'
+                }}>
+                  No STRK20
+                </span>
+              )}
+              <div style={{
+                padding: '8px 16px',
+                border: '1px solid rgba(255,255,255,0.1)',
+                fontFamily: 'var(--font-mono)',
+                fontSize: '12px',
+                color: 'var(--secondary-container)'
+              }}>
+                {walletState.address.slice(0,6)}...{walletState.address.slice(-4)}
+              </div>
             </div>
           ) : (
             <button 
-              onClick={connectWallet}
+              onClick={handleConnect}
+              disabled={walletState.loading}
               style={{
                 padding: '12px 32px',
                 border: '1px solid rgba(255,255,255,0.2)',
-                background: 'transparent',
+                background: walletState.loading ? 'rgba(255,255,255,0.1)' : 'transparent',
                 color: 'white',
                 fontFamily: 'var(--font-mono)',
                 fontSize: '12px',
                 fontWeight: 700,
                 textTransform: 'uppercase',
                 letterSpacing: '0.1em',
-                cursor: 'pointer',
+                cursor: walletState.loading ? 'wait' : 'pointer',
                 transition: 'all 0.3s'
               }}
             >
-              Connect Wallet ✦
+              {walletState.loading ? 'Connecting...' : 'Connect Wallet ✦'}
             </button>
           )}
         </div>
@@ -60,6 +143,21 @@ export default function DataVault() {
           </div>
           
           <div className="dv-hero-content">
+            {/* Error Banner */}
+            {walletState.error && (
+              <div className="dv-error" style={{ marginBottom: '24px' }}>
+                {walletState.error}
+              </div>
+            )}
+            
+            {/* STRK20 Warning */}
+            {walletState.connected && !walletState.isStrk20 && (
+              <div className="dv-info-box" style={{ marginBottom: '24px' }}>
+                <strong>STRK20 not supported.</strong> Install Ready extension for private payments. 
+                Current wallet: {walletState.address.slice(0,6)}...{walletState.address.slice(-4)}
+              </div>
+            )}
+            
             <div className="dv-card">
               {/* Tabs */}
               <div className="dv-tabs">
@@ -80,9 +178,17 @@ export default function DataVault() {
               {/* Card Content */}
               <div className="dv-card-content">
                 {mode === 'sell' ? (
-                  <SellFlow connected={connected} />
+                  <SellFlow 
+                    connected={walletState.connected} 
+                    isStrk20={walletState.isStrk20}
+                    account={walletState.account}
+                  />
                 ) : (
-                  <BuyFlow connected={connected} />
+                  <BuyFlow 
+                    connected={walletState.connected}
+                    isStrk20={walletState.isStrk20}
+                    account={walletState.account}
+                  />
                 )}
               </div>
             </div>
@@ -98,7 +204,7 @@ export default function DataVault() {
   )
 }
 
-function SellFlow({ connected }) {
+function SellFlow({ connected, isStrk20, account }) {
   const [file, setFile] = useState(null)
   const [price, setPrice] = useState('')
   const [step, setStep] = useState(0)
@@ -219,7 +325,7 @@ function SellFlow({ connected }) {
             onClick={handleUpload}
             disabled={!file || !price || !connected}
           >
-            Encrypt & Upload
+            {!connected ? 'Connect Wallet First' : 'Encrypt & Upload'}
           </button>
         </>
       )}
@@ -281,7 +387,7 @@ function SellFlow({ connected }) {
   )
 }
 
-function BuyFlow({ connected }) {
+function BuyFlow({ connected, isStrk20, account }) {
   const [cid, setCid] = useState('')
   const [step, setStep] = useState(0)
   const [secretKey, setSecretKey] = useState('')
@@ -290,6 +396,7 @@ function BuyFlow({ connected }) {
   const [decryptedFile, setDecryptedFile] = useState(null)
   const [copied, setCopied] = useState(null)
   const [error, setError] = useState(null)
+  const [txHash, setTxHash] = useState(null)
 
   const handlePurchase = async () => {
     if (!cid) return
@@ -297,6 +404,7 @@ function BuyFlow({ connected }) {
     setError(null)
 
     try {
+      // Simulate payment processing (will be real STRK20 in next step)
       await new Promise(r => setTimeout(r, 2000))
       setObjectKey(cid)
       setStep(2)
@@ -306,9 +414,37 @@ function BuyFlow({ connected }) {
     }
   }
 
+  const handleStrk20Payment = async () => {
+    if (!account || !isStrk20) return
+    setStep(3)
+    setError(null)
+
+    try {
+      // In production: this would be a real private transfer
+      // For now, simulate the payment flow
+      const amount = '0x0' // Will be set from price
+      const result = await privateTransfer(
+        account,
+        STRK_TOKEN_ADDRESS,
+        amount,
+        '0x0' // Seller address would come from contract
+      )
+      
+      if (result.success) {
+        setTxHash(result.transactionHash)
+        setStep(4)
+      } else {
+        throw new Error(result.error)
+      }
+    } catch (err) {
+      setError(err.message)
+      setStep(2)
+    }
+  }
+
   const handleDownload = async () => {
     if (!objectKey || !secretKey) return
-    setStep(3)
+    setStep(5)
     setError(null)
 
     try {
@@ -322,7 +458,7 @@ function BuyFlow({ connected }) {
       if (!data.success) throw new Error(data.error)
 
       setEncryptedData(data.encryptedData)
-      setStep(4)
+      setStep(6)
     } catch (err) {
       setError(err.message)
       setStep(2)
@@ -331,7 +467,7 @@ function BuyFlow({ connected }) {
 
   const handleDecrypt = async () => {
     if (!encryptedData || !secretKey) return
-    setStep(5)
+    setStep(7)
     setError(null)
 
     try {
@@ -341,10 +477,10 @@ function BuyFlow({ connected }) {
       const blob = new Blob([decrypted], { type: fileType })
       const url = URL.createObjectURL(blob)
       setDecryptedFile({ url, name: fileName })
-      setStep(6)
+      setStep(8)
     } catch (err) {
       setError('Decryption error: ' + err.message)
-      setStep(4)
+      setStep(6)
     }
   }
 
@@ -356,6 +492,7 @@ function BuyFlow({ connected }) {
     setEncryptedData(null)
     setDecryptedFile(null)
     setError(null)
+    setTxHash(null)
   }
 
   const copyToClipboard = (text, label) => {
@@ -398,7 +535,7 @@ function BuyFlow({ connected }) {
             onClick={handlePurchase}
             disabled={!cid || !connected}
           >
-            Purchase Access
+            {!connected ? 'Connect Wallet First' : 'Purchase Access'}
           </button>
         </>
       )}
@@ -406,7 +543,7 @@ function BuyFlow({ connected }) {
       {step === 1 && (
         <div className="dv-loading">
           <div className="dv-spinner"></div>
-          <p>Processing ZK payment...</p>
+          <p>Processing payment...</p>
         </div>
       )}
 
@@ -414,7 +551,11 @@ function BuyFlow({ connected }) {
         <>
           <div>
             <h3 className="dv-title">Access Unlocked</h3>
-            <p className="dv-hint">Enter the secret key from the seller to decrypt the file.</p>
+            <p className="dv-hint">
+              {isStrk20 
+                ? 'Enter the secret key from the seller to decrypt the file.'
+                : 'Enter the secret key from the seller to decrypt the file.'}
+            </p>
           </div>
 
           <div className="dv-input-group">
@@ -431,24 +572,78 @@ function BuyFlow({ connected }) {
 
           {error && <div className="dv-error">{error}</div>}
 
-          <button
-            className="dv-btn-primary"
-            onClick={handleDownload}
-            disabled={!secretKey}
-          >
-            Download Encrypted
-          </button>
+          {isStrk20 ? (
+            <button
+              className="dv-btn-primary"
+              onClick={handleStrk20Payment}
+              disabled={!secretKey}
+            >
+              Pay with STRK20 Privately
+            </button>
+          ) : (
+            <button
+              className="dv-btn-primary"
+              onClick={handleDownload}
+              disabled={!secretKey}
+            >
+              Download Encrypted
+            </button>
+          )}
         </>
       )}
 
       {step === 3 && (
         <div className="dv-loading">
           <div className="dv-spinner"></div>
+          <p>Generating ZK proof and sending private payment...</p>
+          <small style={{color: 'rgba(255,255,255,0.4)', marginTop: '8px'}}>
+            This may take a moment. Please approve in your wallet.
+          </small>
+        </div>
+      )}
+
+      {step === 4 && txHash && (
+        <>
+          <div>
+            <h3 className="dv-title">Payment Sent</h3>
+            <p className="dv-hint">Private payment confirmed. Now download and decrypt.</p>
+          </div>
+
+          <div className="dv-cid-box">
+            <div className="dv-cid-header">
+              <label>Transaction Hash</label>
+              <button className="dv-copy" onClick={() => copyToClipboard(txHash, 'tx')}>
+                {copied === 'tx' ? '✓ Copied' : 'Copy'}
+              </button>
+            </div>
+            <code>{formatTxHash(txHash)}</code>
+            <a 
+              href={getExplorerUrl(txHash)} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              style={{color: 'var(--primary)', fontSize: '12px', marginTop: '8px', display: 'block'}}
+            >
+              View on Explorer →
+            </a>
+          </div>
+
+          <button
+            className="dv-btn-primary"
+            onClick={handleDownload}
+          >
+            Download Encrypted
+          </button>
+        </>
+      )}
+
+      {step === 5 && (
+        <div className="dv-loading">
+          <div className="dv-spinner"></div>
           <p>Downloading from Fil One...</p>
         </div>
       )}
 
-      {step === 4 && encryptedData && (
+      {step === 6 && encryptedData && (
         <>
           <div>
             <h3 className="dv-title">File Downloaded</h3>
@@ -476,14 +671,14 @@ function BuyFlow({ connected }) {
         </>
       )}
 
-      {step === 5 && (
+      {step === 7 && (
         <div className="dv-loading">
           <div className="dv-spinner"></div>
           <p>Decrypting in browser...</p>
         </div>
       )}
 
-      {step === 6 && decryptedFile && (
+      {step === 8 && decryptedFile && (
         <>
           <div>
             <h3 className="dv-title">File Ready</h3>
