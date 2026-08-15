@@ -13,6 +13,7 @@ import { calculateUploadFee, getPricingInfo } from '../lib/fees'
 
 export default function DataVault() {
   const [mode, setMode] = useState('sell')
+  const [copiedAddress, setCopiedAddress] = useState(false)
   const [walletState, setWalletState] = useState({
     connected: false,
     account: null,
@@ -64,6 +65,17 @@ export default function DataVault() {
     }
   }
 
+  const handleDisconnect = () => {
+    setWalletState({
+      connected: false,
+      account: null,
+      address: '',
+      isStrk20: false,
+      loading: false,
+      error: null
+    })
+  }
+
   return (
     <div className="dv">
       {/* Navigation */}
@@ -101,15 +113,42 @@ export default function DataVault() {
                   No STRK20
                 </span>
               )}
-              <div style={{
-                padding: '8px 16px',
-                border: '1px solid rgba(255,255,255,0.1)',
-                fontFamily: 'var(--font-mono)',
-                fontSize: '12px',
-                color: 'var(--secondary-container)'
-              }}>
-                {walletState.address.slice(0,6)}...{walletState.address.slice(-4)}
-              </div>
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(walletState.address)
+                  setCopiedAddress(true)
+                  setTimeout(() => setCopiedAddress(false), 2000)
+                }}
+                title="Click to copy full address"
+                style={{
+                  padding: '8px 16px',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  background: copiedAddress ? 'rgba(4, 251, 251, 0.2)' : 'transparent',
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: '12px',
+                  color: copiedAddress ? 'var(--secondary-container)' : 'var(--secondary-container)',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s'
+                }}
+              >
+                {copiedAddress ? '✓ Copied' : `${walletState.address.slice(0,6)}...${walletState.address.slice(-4)}`}
+              </button>
+              <button
+                onClick={handleDisconnect}
+                title="Disconnect wallet"
+                style={{
+                  padding: '8px 12px',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  background: 'transparent',
+                  color: 'rgba(255,255,255,0.4)',
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: '11px',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s'
+                }}
+              >
+                ✕
+              </button>
             </div>
           ) : (
             <button 
