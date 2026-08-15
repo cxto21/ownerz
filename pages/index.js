@@ -242,9 +242,28 @@ function SellFlow({ connected, isStrk20, account }) {
     setStep(2) // Show loading
     
     try {
-      // In production: call the fee collector contract
-      // For now, simulate payment
-      await new Promise(r => setTimeout(r, 2000))
+      // Platform wallet address from env
+      const platformWallet = process.env.NEXT_PUBLIC_PLATFORM_WALLET
+      
+      if (isStrk20 && account) {
+        // Private transfer via STRK20 pool
+        const amountHex = feeInfo.feeHex
+        const result = await privateTransfer(
+          account,
+          STRK_TOKEN_ADDRESS,
+          amountHex,
+          platformWallet
+        )
+        
+        if (!result.success) {
+          throw new Error(result.error || 'Payment failed')
+        }
+        
+        console.log('Private fee payment sent:', result.transactionHash)
+      } else {
+        // Fallback: simulate payment for non-STRK20 wallets
+        await new Promise(r => setTimeout(r, 2000))
+      }
       
       // After payment confirmed, proceed to upload
       await doUpload()
