@@ -1,0 +1,36 @@
+name: Deploy to Cloudflare Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    name: Deploy
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      
+      - run: npm ci
+      
+      - name: Build for Cloudflare Pages
+        run: npm run pages:build
+        env:
+          NEXT_PUBLIC_FILEVAULT_ADDRESS: ${{ secrets.NEXT_PUBLIC_FILEVAULT_ADDRESS }}
+          NEXT_PUBLIC_STARKNET_RPC: ${{ secrets.NEXT_PUBLIC_STARKNET_RPC }}
+          NEXT_PUBLIC_PLATFORM_WALLET: ${{ secrets.NEXT_PUBLIC_PLATFORM_WALLET }}
+          FIL_ONE_ACCESS_KEY_ID: ${{ secrets.FIL_ONE_ACCESS_KEY_ID }}
+          FIL_ONE_SECRET_ACCESS_KEY: ${{ secrets.FIL_ONE_SECRET_ACCESS_KEY }}
+      
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy .vercel/output/static --project-name=ownerz

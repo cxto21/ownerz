@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { encryptData, generateKeyPair, decryptData } from '../lib/encryption'
-import { getAvailableWallets, connectWallet, isStrk20Capable } from '../lib/starknet'
+import { getAvailableWallets, connectWallet, isStrk20Capable, RpcProvider } from '../lib/starknet'
 import { 
   privateTransfer, 
   batchPrivateTransfer,
@@ -13,11 +13,16 @@ import {
   getExplorerUrl
 } from '../lib/strk20-payments'
 import { calculateUploadFee, getPricingInfo } from '../lib/fees'
+import { createVault, claimVault, getVault, getPrice, cidToFelt, deployContract } from '../lib/filevault'
+import { wrapKeySeed, unwrapKeySeed } from '../lib/encryption'
+import { hash as snHash } from 'starknet'
+const computePedersenHash = snHash.computePedersenHash
 
 export default function Ownerz() {
   const [mode, setMode] = useState('sell')
   const [copiedAddress, setCopiedAddress] = useState(false)
   const [showShieldModal, setShowShieldModal] = useState(false)
+  const [showHackathonPopup, setShowHackathonPopup] = useState(true)
   const [walletState, setWalletState] = useState({
     connected: false,
     account: null,
@@ -37,6 +42,23 @@ export default function Ownerz() {
     }
     checkWallet()
   }, [])
+
+  // Check network on connect
+  useEffect(() => {
+    if (!walletState.connected) return
+    const checkNetwork = async () => {
+      try {
+        const provider = new RpcProvider({ nodeUrl: process.env.NEXT_PUBLIC_STARKNET_RPC || 'https://starknet-sepolia.public.blastapi.io/rpc/v0_8' })
+        const chainId = await provider.getChainId()
+        if (!chainId.includes('5345504f4c4941')) {
+          setWalletState(prev => ({ ...prev, error: 'Please switch to Starknet Sepolia testnet' }))
+        }
+      } catch (e) {
+        console.warn('Network check failed:', e)
+      }
+    }
+    checkNetwork()
+  }, [walletState.connected])
 
   const handleConnect = async () => {
     setWalletState(prev => ({ ...prev, loading: true, error: null }))
@@ -102,6 +124,66 @@ export default function Ownerz() {
 
   return (
     <div className="dv">
+      {/* Hackathon Popup */}
+      {showHackathonPopup && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          background: 'rgba(0,0,0,0.7)',
+          backdropFilter: 'blur(20px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 9999,
+          padding: '20px'
+        }} onClick={() => setShowHackathonPopup(false)}>
+          <div style={{
+            background: 'rgba(14, 14, 14, 0.9)',
+            backdropFilter: 'blur(20px)',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
+            padding: '40px',
+            maxWidth: '480px',
+            width: '100%',
+            textAlign: 'center',
+            position: 'relative'
+          }} onClick={(e) => e.stopPropagation()}>
+            <div style={{
+              fontFamily: 'var(--font-display)',
+              fontSize: '20px',
+              fontWeight: 700,
+              color: 'var(--primary)',
+              textTransform: 'uppercase',
+              marginBottom: '16px'
+            }}>
+              Hackathon Build
+            </div>
+            <div style={{
+              fontFamily: 'var(--font-body)',
+              fontSize: '16px',
+              color: 'rgba(255,255,255,0.5)',
+              lineHeight: 1.6,
+              marginBottom: '8px'
+            }}>
+              Work in progress for the <span style={{color:'var(--secondary-container)'}}>STRK20 Private Sprint</span> hackathon.
+            </div>
+            <div style={{
+              fontFamily: 'var(--font-mono)',
+              fontSize: '12px',
+              color: 'rgba(255,255,255,0.3)',
+              marginBottom: '28px'
+            }}>
+              Starknet Sepolia Testnet · Do not use real funds
+            </div>
+            <button
+              className="dv-btn-primary"
+              onClick={() => setShowHackathonPopup(false)}
+            >
+              Enter
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Navigation */}
       <nav className="dv-nav">
         <div className="dv-nav-inner">
@@ -277,6 +359,11 @@ export default function Ownerz() {
           </div>
         </section>
       </main>
+
+      {/* Deploy Section - Admin */}
+      {walletState.connected && !process.env.NEXT_PUBLIC_FILEVAULT_ADDRESS && (
+        <DeploySection account={walletState.account} refreshWallet={refreshWallet} />
+      )}
 
       {/* Footer */}
       <footer className="dv-footer">
@@ -525,8 +612,100 @@ function ShieldModal({ account, onClose }) {
   )
 }
 
+function DeploySection({ account, refreshWallet }) {
+  const [deploying, setDeploying] = useState(false)
+  const [deployed, setDeployed] = useState(false)
+  const [error, setError] = useState(null)
+  const [contractAddress, setContractAddress] = useState('')
+
+  const handleDeploy = async () => {
+    setDeploying(true)
+    setError(null)
+
+    try {
+      const address = await deployContract(account)
+      setContractAddress(address)
+      setDeployed(true)
+      
+      // Show instructions to user
+      alert(`Contract deployed!\n\nAddress: ${address}\n\nAdd this to your .env:\nNEXT_PUBLIC_FILEVAULT_ADDRESS=${address}\n\nThen restart the dev server.`)
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setDeploying(false)
+    }
+  }
+
+  if (deployed) {
+    return (
+      <div style={{
+        padding: '20px',
+        margin: '20px auto',
+        maxWidth: '600px',
+        background: 'rgba(16, 185, 129, 0.1)',
+        border: '1px solid rgba(16, 185, 129, 0.3)',
+        borderRadius: '8px'
+      }}>
+        <h3 style={{color: '#10b981', margin: '0 0 10px 0', fontSize: '14px'}}>
+          ✅ Contract Deployed
+        </h3>
+        <code style={{
+          display: 'block',
+          padding: '10px',
+          background: 'rgba(0,0,0,0.3)',
+          borderRadius: '4px',
+          fontSize: '12px',
+          wordBreak: 'break-all'
+        }}>
+          {contractAddress}
+        </code>
+      </div>
+    )
+  }
+
+  return (
+    <div style={{
+      padding: '20px',
+      margin: '20px auto',
+      maxWidth: '600px',
+      background: 'rgba(139, 92, 246, 0.1)',
+      border: '1px dashed rgba(139, 92, 246, 0.3)',
+      borderRadius: '8px',
+      textAlign: 'center'
+    }}>
+      <p style={{color: 'rgba(255,255,255,0.6)', fontSize: '13px', margin: '0 0 12px 0'}}>
+        FileVault contract not deployed yet
+      </p>
+      
+      {error && (
+        <div style={{color: '#ef4444', fontSize: '12px', marginBottom: '12px'}}>
+          {error}
+        </div>
+      )}
+
+      <button
+        onClick={handleDeploy}
+        disabled={deploying}
+        style={{
+          padding: '10px 20px',
+          background: deploying ? 'rgba(139, 92, 246, 0.3)' : 'rgba(139, 92, 246, 0.8)',
+          color: 'white',
+          border: 'none',
+          borderRadius: '6px',
+          cursor: deploying ? 'wait' : 'pointer',
+          fontSize: '13px',
+          fontWeight: '600'
+        }}
+      >
+        {deploying ? 'Deploying...' : 'Deploy FileVault Contract'}
+      </button>
+    </div>
+  )
+}
+
 function SellFlow({ connected, isStrk20, account, refreshWallet }) {
   const [file, setFile] = useState(null)
+  const [isDragging, setIsDragging] = useState(false)
   const [price, setPrice] = useState('')
   const [step, setStep] = useState(0)
   const [result, setResult] = useState(null)
@@ -534,6 +713,7 @@ function SellFlow({ connected, isStrk20, account, refreshWallet }) {
   const [copied, setCopied] = useState(null)
   const [feeInfo, setFeeInfo] = useState(null)
   const [feeTxHash, setFeeTxHash] = useState(null)
+  const [cidFelt, setCidFelt] = useState(null)
 
   // Calculate fee when file changes
   useEffect(() => {
@@ -641,10 +821,86 @@ function SellFlow({ connected, isStrk20, account, refreshWallet }) {
       console.log('[doUpload] API response:', data)
       if (!data.success) throw new Error(data.error)
 
-      setResult({ ...data, secretKey })
-      setStep(3)
+      // Create FileVault vault
+      setStep(3) // Vault creation step
+      const cid = data.cid
+      console.log('[doUpload] step 3a: cid =', cid)
+      const cidFelt = await cidToFelt(cid)
+      console.log('[doUpload] step 3b: cidFelt =', cidFelt)
+      
+      // Generate claim secret (128-bit random)
+      const claimSecret = Array.from(crypto.getRandomValues(new Uint8Array(16)))
+        .map(b => b.toString(16).padStart(2, '0'))
+        .join('')
+      console.log('[doUpload] step 3c: claimSecret generated')
+      
+      // Wrap key seed
+      console.log('[doUpload] step 3d: secretKey type =', typeof secretKey, 'length =', secretKey?.length)
+      const keySeedCiphertext = await wrapKeySeed(secretKey, claimSecret)
+      console.log('[doUpload] step 3e: keySeedCiphertext length =', keySeedCiphertext?.length)
+      
+      // Compute commitment (must match contract: pedersen(pedersen(cid, high), low))
+      // SECURITY NOTE: The on-chain claim secret is a u16 (16 bits) — only 65K possible values.
+      // This is acceptable because:
+      // 1. The u16 is just a gate for the on-chain state transition (active → claimed)
+      // 2. The real encryption key is derived from the FULL 128-bit secret via PBKDF2
+      // 3. Even if an attacker brute-forces the u16, they still cannot unwrap the key seed
+      const claimSecretNum = parseInt(claimSecret.slice(0, 4), 16) // 16-bit value
+      const high = (claimSecretNum >> 8) & 0xFF
+      const low = claimSecretNum & 0xFF
+      const inner = computePedersenHash(cidFelt, '0x' + high.toString(16).padStart(2, '0'))
+      const commitment = computePedersenHash(inner, '0x' + low.toString(16).padStart(2, '0'))
+      console.log('[doUpload] step 3f: commitment computed =', commitment)
+      
+      // Create vault on-chain
+      // Store truncated hash of keySeedCiphertext on-chain (felt252 max = 31 bytes), full data on S3
+      const keySeedBytes = new TextEncoder().encode(keySeedCiphertext)
+      const keySeedHash = await crypto.subtle.digest('SHA-256', keySeedBytes)
+      const keySeedHashHex = '0x' + Array.from(new Uint8Array(keySeedHash)).slice(0, 31).map(b => b.toString(16).padStart(2, '0')).join('')
+      console.log('[doUpload] step 3g: keySeedCiphertext hash (31 bytes) =', keySeedHashHex)
+      
+      const priceWei = BigInt(Math.floor(parseFloat(price) * 1e18))
+      console.log('[doUpload] step 3h: calling createVault')
+      const vaultResult = await createVault(account, {
+        cid: cidFelt,
+        price: priceWei,
+        keySeedCiphertext: keySeedHashHex, // SHA-256 hash on-chain
+        commitment,
+        ttl: 2592000, // 30 days
+      })
+      console.log('[doUpload] step 3i: createVault tx submitted', vaultResult?.transaction_hash)
+      
+      // Upload full keySeedCiphertext to S3 as separate object
+      const keySeedS3Key = cid + '.key'
+      console.log('[doUpload] step 3j: uploading key seed to S3:', keySeedS3Key)
+      await fetch('/api/upload-key', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key: keySeedS3Key, data: keySeedCiphertext }),
+      })
+      console.log('[doUpload] step 3k: key seed uploaded to S3')
+      
+      // Wait for transaction confirmation
+      if (vaultResult?.transaction_hash) {
+        console.log('[doUpload] step 3l: waiting for tx confirmation...')
+        try {
+          await account.provider.waitForTransaction(vaultResult.transaction_hash, { timeout: 60000 })
+          console.log('[doUpload] step 3m: tx confirmed!')
+        } catch (waitErr) {
+          console.warn('[doUpload] waitForTransaction failed:', waitErr.message)
+          const verifyVault = await getVault(account, cidFelt)
+          if (!verifyVault) {
+            throw new Error('Transaction may have failed on-chain. Please try again.')
+          }
+          console.log('[doUpload] step 3m: vault verified on-chain despite wait timeout')
+        }
+      }
+
+      setCidFelt(cidFelt)
+      setResult({ ...data, claimSecret })
+      setStep(4)
     } catch (err) {
-      console.error('[doUpload] Error:', err.message)
+      console.error('[doUpload] Error:', err.message, err.stack?.split('\n').slice(0,5).join(' | '))
       setError(err.message)
       setStep(0)
     }
@@ -657,6 +913,7 @@ function SellFlow({ connected, isStrk20, account, refreshWallet }) {
     setResult(null)
     setError(null)
     setFeeInfo(null)
+    setCidFelt(null)
   }
 
   const copyToClipboard = (text, label) => {
@@ -691,7 +948,20 @@ function SellFlow({ connected, isStrk20, account, refreshWallet }) {
             <p className="dv-hint">Encrypted and uploaded to Fil One (Filecoin). Any file type works.</p>
           </div>
           
-          <div className="dv-upload" onClick={() => document.getElementById('file-input').click()}>
+          <div
+            className="dv-upload"
+            onClick={() => document.getElementById('file-input').click()}
+            onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); setIsDragging(true) }}
+            onDragLeave={(e) => { e.preventDefault(); e.stopPropagation(); setIsDragging(false) }}
+            onDrop={(e) => {
+              e.preventDefault()
+              e.stopPropagation()
+              setIsDragging(false)
+              const dropped = e.dataTransfer.files[0]
+              if (dropped) setFile(dropped)
+            }}
+            style={isDragging ? { borderColor: 'rgba(220, 184, 255, 0.8)', background: 'rgba(220, 184, 255, 0.05)' } : {}}
+          >
             <input
               id="file-input"
               type="file"
@@ -849,11 +1119,18 @@ function SellFlow({ connected, isStrk20, account, refreshWallet }) {
         </div>
       )}
 
-      {step === 3 && result && (
+      {step === 3 && (
+        <div className="dv-loading">
+          <div className="dv-spinner"></div>
+          <p>Creating vault on-chain...</p>
+        </div>
+      )}
+
+      {step === 4 && result && (
         <>
           <div>
-            <h3 className="dv-title">File Uploaded</h3>
-            <p className="dv-hint">Share this CID privately with your buyer. No public listing.</p>
+            <h3 className="dv-title">File Uploaded & Vault Created</h3>
+            <p className="dv-hint">Share this CID and claim secret privately with your buyer.</p>
           </div>
           
           <div className="dv-cid-box">
@@ -864,18 +1141,21 @@ function SellFlow({ connected, isStrk20, account, refreshWallet }) {
               </button>
             </div>
             <code>{result.cid}</code>
+            <small style={{color: 'rgba(255,255,255,0.3)', fontSize: '10px', display: 'block', marginTop: '4px'}}>
+              Felt: {cidFelt}
+            </small>
           </div>
 
           <div className="dv-cid-box">
             <div className="dv-cid-header">
-              <label>ML-KEM768 Secret Key (save this!)</label>
-              <button className="dv-copy" onClick={() => copyToClipboard(result.secretKey, 'key')}>
-                {copied === 'key' ? '✓ Copied' : 'Copy'}
+              <label>Claim Secret (share privately — needed to decrypt)</label>
+              <button className="dv-copy" onClick={() => copyToClipboard(result.claimSecret, 'secret')}>
+                {copied === 'secret' ? '✓ Copied' : 'Copy'}
               </button>
             </div>
-            <code className="dv-key">{result.secretKey}</code>
+            <code className="dv-key">{result.claimSecret}</code>
             <small style={{color: 'rgba(255,255,255,0.4)', marginTop: '8px', display: 'block'}}>
-              This key is needed to decrypt. Save it or send to smart contract.
+              The raw secret key is stored encrypted in the vault. Only the claim secret can recover it.
             </small>
           </div>
 
@@ -903,6 +1183,7 @@ function BuyFlow({ connected, isStrk20, account, refreshWallet }) {
   const [cid, setCid] = useState('')
   const [step, setStep] = useState(0)
   const [secretKey, setSecretKey] = useState('')
+  const [claimSecret, setClaimSecret] = useState('')
   const [objectKey, setObjectKey] = useState('')
   const [encryptedData, setEncryptedData] = useState(null)
   const [decryptedFile, setDecryptedFile] = useState(null)
@@ -919,21 +1200,24 @@ function BuyFlow({ connected, isStrk20, account, refreshWallet }) {
     setError(null)
 
     try {
-      // Fetch file metadata (seller address + price) from FilOne
-      const metaRes = await fetch('/api/download', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ objectKey: cid, metadataOnly: true }),
-      })
-      const metaData = await metaRes.json()
-      if (!metaData.success) throw new Error('File not found or invalid CID')
-
-      const { sellerAddress, price } = metaData.metadata
-      if (!sellerAddress || sellerAddress === '0x' || sellerAddress === '') {
-        throw new Error('This file has no seller information')
+      // Fetch vault data from on-chain (price authority)
+      const cidFelt = await cidToFelt(cid.trim())
+      console.log('[BuyFlow] Searching for CID:', cid.trim(), '-> cidFelt:', cidFelt)
+      const vault = await getVault(account, cidFelt) // pass account as provider
+      
+      if (!vault) {
+        throw new Error('No vault found for this CID. The file may not have been uploaded with FileVault.')
       }
 
-      setFileMetadata(metaData.metadata)
+      if (Number(vault.status) !== 0) {
+        throw new Error('This vault is no longer available (already claimed or refunded)')
+      }
+
+      const sellerAddress = vault.seller
+      const price = vault.price
+      const priceStr = (Number(price) / 1e18).toString()
+
+      setFileMetadata({ sellerAddress, price: priceStr })
       setObjectKey(cid)
       setStep(2)
     } catch (err) {
@@ -954,13 +1238,22 @@ function BuyFlow({ connected, isStrk20, account, refreshWallet }) {
       console.log('Platform wallet:', process.env.NEXT_PUBLIC_PLATFORM_WALLET)
       
       const sellerAddress = fileMetadata.sellerAddress
+      // Ensure sellerAddress is a 0x hex string (wallet API requires it)
+      let sellerHex
+      if (typeof sellerAddress === 'bigint') {
+        sellerHex = '0x' + sellerAddress.toString(16).padStart(64, '0')
+      } else if (typeof sellerAddress === 'string' && !sellerAddress.startsWith('0x')) {
+        sellerHex = '0x' + BigInt(sellerAddress).toString(16).padStart(64, '0')
+      } else {
+        sellerHex = sellerAddress
+      }
       const priceHex = '0x' + (BigInt(Math.round(parseFloat(fileMetadata.price) * 1e18))).toString(16)
       const platformWallet = process.env.NEXT_PUBLIC_PLATFORM_WALLET
 
       // Single batch transfer: seller payment + platform fee in ONE ZK proof
       // This is much faster - one wallet confirmation instead of two
       const transfers = [
-        { amount: priceHex, recipient: sellerAddress }
+        { amount: priceHex, recipient: sellerHex }
       ]
       if (platformWallet) {
         transfers.push({ amount: PLATFORM_FEE, recipient: platformWallet })
@@ -976,20 +1269,20 @@ function BuyFlow({ connected, isStrk20, account, refreshWallet }) {
 
       if (result.pending) {
         // Wallet timeout — tx was likely submitted on-chain
-        // Proceed with download flow anyway
+        // Proceed with claim flow anyway
         console.log('STRK20 tx pending (wallet timeout) — proceeding')
         if (refreshWallet) {
           await refreshWallet()
         }
         setTxHash(null)
-        setStep(4)
+        setStep(4) // Claim step
       } else if (result.success) {
         // Re-connect to get fresh account after STRK20 operation
         if (refreshWallet) {
           await refreshWallet()
         }
         setTxHash(result.transactionHash)
-        setStep(4)
+        setStep(4) // Claim step
       } else {
         throw new Error(result.error || 'Payment failed')
       }
@@ -1019,6 +1312,71 @@ function BuyFlow({ connected, isStrk20, account, refreshWallet }) {
     } catch (err) {
       setError(err.message)
       setStep(2)
+    }
+  }
+
+  const handleClaim = async () => {
+    if (!objectKey || !claimSecret) return
+    setStep(5) // Loading
+    setError(null)
+
+    try {
+      const cidFelt = await cidToFelt(objectKey)
+      
+      // Claim vault on-chain (contract expects u16 = first 4 hex chars)
+      const claimSecretU16 = parseInt(claimSecret.trim().slice(0, 4), 16)
+      console.log('[handleClaim] claimSecret U16:', claimSecretU16, 'hex:', claimSecret.trim().slice(0, 4))
+      await claimVault(account, cidFelt, claimSecretU16)
+      
+      // Get vault to retrieve on-chain hash for verification
+      const vault = await getVault(account, cidFelt)
+      if (!vault) {
+        throw new Error('Failed to retrieve vault')
+      }
+
+      // Download full keySeedCiphertext from S3
+      const keySeedS3Key = objectKey + '.key'
+      console.log('[handleClaim] Downloading key seed from S3:', keySeedS3Key)
+      const keyRes = await fetch('/api/download-key?key=' + encodeURIComponent(keySeedS3Key))
+      if (!keyRes.ok) throw new Error('Failed to download key seed from S3')
+      const keyData = await keyRes.json()
+      if (!keyData.success) throw new Error(keyData.error)
+      const keySeedCiphertext = keyData.data
+      console.log('[handleClaim] Key seed downloaded, length:', keySeedCiphertext.length)
+      
+      // Verify hash matches on-chain (truncate to 31 bytes to match felt252)
+      const keySeedBytes = new TextEncoder().encode(keySeedCiphertext)
+      const keySeedHash = await crypto.subtle.digest('SHA-256', keySeedBytes)
+      const keySeedHashHex = '0x' + Array.from(new Uint8Array(keySeedHash)).slice(0, 31).map(b => b.toString(16).padStart(2, '0')).join('')
+      // On-chain value may be decimal string — convert to hex for comparison
+      const onChainVal = String(vault.keySeedCiphertext)
+      const onChainHash = onChainVal.startsWith('0x') ? onChainVal : '0x' + BigInt(onChainVal).toString(16).padStart(62, '0')
+      console.log('[handleClaim] Computed hash:', keySeedHashHex)
+      console.log('[handleClaim] On-chain hash:', onChainHash)
+      if (keySeedHashHex.toLowerCase() !== onChainHash.toLowerCase()) {
+        throw new Error('Key seed hash mismatch — data may be tampered')
+      }
+      console.log('[handleClaim] Hash verified ✓')
+
+      // Unwrap key seed (uses full 32-char claim secret)
+      const secretKey = await unwrapKeySeed(keySeedCiphertext, claimSecret.trim())
+      setSecretKey(secretKey)
+      
+      // Download encrypted file from S3
+      console.log('[handleClaim] Downloading encrypted file from S3:', objectKey)
+      const downloadRes = await fetch('/api/download', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ objectKey }),
+      })
+      const downloadData = await downloadRes.json()
+      if (!downloadData.success) throw new Error(downloadData.error)
+      
+      setEncryptedData(downloadData.encryptedData)
+      setStep(6) // Show decrypt button
+    } catch (err) {
+      setError(err.message)
+      setStep(4) // Back to claim step
     }
   }
 
@@ -1100,7 +1458,7 @@ function BuyFlow({ connected, isStrk20, account, refreshWallet }) {
       {step === 1 && (
         <div className="dv-loading">
           <div className="dv-spinner"></div>
-          <p>Processing payment...</p>
+          <p>Fetching vault data...</p>
         </div>
       )}
 
@@ -1123,7 +1481,7 @@ function BuyFlow({ connected, isStrk20, account, refreshWallet }) {
             }}>
               <div style={{display:'flex',justifyContent:'space-between',marginBottom:'6px'}}>
                 <span style={{color:'rgba(255,255,255,0.5)',fontSize:'13px'}}>File</span>
-                <span style={{color:'#fff',fontSize:'13px'}}>{fileMetadata.fileName}</span>
+                <span style={{color:'#fff',fontSize:'13px'}}>{cid ? cid.slice(0, 20) + '...' : ''}</span>
               </div>
               <div style={{display:'flex',justifyContent:'space-between',marginBottom:'6px'}}>
                 <span style={{color:'rgba(255,255,255,0.5)',fontSize:'13px'}}>Price</span>
@@ -1172,7 +1530,7 @@ function BuyFlow({ connected, isStrk20, account, refreshWallet }) {
         <>
           <div>
             <h3 className="dv-title">Payment Sent</h3>
-            <p className="dv-hint">Private payment confirmed. Now download and decrypt.</p>
+            <p className="dv-hint">Enter the claim secret from the seller to recover the decryption key.</p>
           </div>
 
           {txHash && (
@@ -1221,25 +1579,25 @@ function BuyFlow({ connected, isStrk20, account, refreshWallet }) {
           )}
 
           <div className="dv-input-group">
-            <label>ML-KEM768 Secret Key</label>
+            <label>Claim Secret (from seller)</label>
             <input
               type="text"
-              value={secretKey}
-              onChange={(e) => setSecretKey(e.target.value)}
-              placeholder="Paste the full key from seller..."
+              value={claimSecret}
+              onChange={(e) => setClaimSecret(e.target.value)}
+              placeholder="Enter the claim secret..."
               style={{fontFamily: 'var(--font-mono)', fontSize: '12px'}}
             />
-            <small>The full key is generated on upload (~4800 hex chars)</small>
+            <small>The seller shared this secret privately with you</small>
           </div>
 
           {error && <div className="dv-error">{error}</div>}
 
           <button
             className="dv-btn-primary"
-            onClick={handleDownload}
-            disabled={!secretKey}
+            onClick={handleClaim}
+            disabled={!claimSecret}
           >
-            Download & Decrypt
+            Claim Key & Download
           </button>
         </>
       )}

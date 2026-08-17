@@ -1,14 +1,4 @@
-import AWS from 'aws-sdk'
-
-// Fil One S3 client
-const s3 = new AWS.S3({
-  endpoint: 'https://eu-west-1.s3.fil.one',
-  region: 'eu-west-1',
-  accessKeyId: process.env.FIL_ONE_ACCESS_KEY_ID,
-  secretAccessKey: process.env.FIL_ONE_SECRET_ACCESS_KEY,
-  s3ForcePathStyle: true,
-  signatureVersion: 'v4',
-})
+import s3, { BUCKET } from '../../lib/s3'
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -25,7 +15,7 @@ export default async function handler(req, res) {
     // Metadata-only mode: fetch S3 head (no body download)
     if (metadataOnly) {
       const headResult = await s3.headObject({
-        Bucket: 'ownerz-v01',
+        Bucket: BUCKET,
         Key: objectKey,
       }).promise()
 
@@ -42,7 +32,7 @@ export default async function handler(req, res) {
 
     // Full download: encrypted data + metadata
     const result = await s3.getObject({
-      Bucket: 'ownerz-v01',
+      Bucket: BUCKET,
       Key: objectKey,
     }).promise()
 

@@ -1,0 +1,4 @@
+[sncast.default]
+url = "https://starknet-sepolia.g.alchemy.com/starknet/version/rpc/v0_10/alch_rjRG2UrZXootnmaX8FVj0"
+account = "deploy-wallet"
+accounts-file = "~/.starknet_accounts/starknet_open_zeppelin_accounts.json"
