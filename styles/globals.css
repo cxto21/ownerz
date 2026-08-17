@@ -53,7 +53,7 @@
 }
 
 html, body {
-  overflow-y: hidden;
+  overflow-y: auto;
   scrollbar-width: none;
 }
 
