@@ -340,7 +340,8 @@ export default function Ownerz() {
       {showShieldModal && (
         <ShieldModal 
           account={walletState.account}
-          onClose={() => setShowShieldModal(false)} 
+          onClose={() => setShowShieldModal(false)}
+          onShieldComplete={() => { setShowShieldModal(false); fetchShieldedBalance() }}
         />
       )}
     </div>

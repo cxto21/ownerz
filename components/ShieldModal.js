@@ -1,7 +1,7 @@
 import { useState } from 'react'
-import { shieldTokens, getShieldedBalance, STRK_TOKEN_ADDRESS, getExplorerUrl } from '../lib/strk20-payments'
+import { shieldTokens, getShieldedBalance, STRK_TOKEN_ADDRESS } from '../lib/strk20-payments'
 
-export default function ShieldModal({ account, onClose }) {
+export default function ShieldModal({ account, onClose, onShieldComplete }) {
   const [amount, setAmount] = useState('')
   const [step, setStep] = useState(0)
   const [error, setError] = useState(null)
@@ -19,27 +19,44 @@ export default function ShieldModal({ account, onClose }) {
       if (amountNum <= 0) throw new Error('Amount must be greater than 0')
       if (amountNum < 6) throw new Error('Minimum shield amount is 6 STRK')
       
-      // Convert to hex (18 decimals)
       const amountHex = '0x' + BigInt(Math.round(amountNum * 1e18)).toString(16)
       
       const result = await shieldTokens(account, STRK_TOKEN_ADDRESS, amountHex)
       
       if (result.success) {
-        setTxHash(result.transactionHash)
-        // If timeout, show "possibly completed" state
         if (result.timeout) {
+          // Timeout — shield may have worked, auto-check balance
           setStep(3)
+          setTimeout(async () => {
+            try {
+              const bal = await getShieldedBalance(account, STRK_TOKEN_ADDRESS)
+              if (bal.success && bal.balance && bal.balance !== '0') {
+                onShieldComplete ? onShieldComplete() : onClose()
+              }
+            } catch {}
+          }, 6000)
         } else {
+          // Success with tx hash — show briefly then open balance panel
+          setTxHash(result.transactionHash)
           setStep(2)
+          setTimeout(() => {
+            onShieldComplete ? onShieldComplete() : onClose()
+          }, 2000)
         }
       } else {
         throw new Error(result.error)
       }
     } catch (err) {
-      // If it's a timeout error, the shield may have worked anyway
       if (err.message && err.message.includes('timeout')) {
-        console.log('Wallet timeout - shield may have succeeded, checking balance...')
-        setStep(3) // "possibly completed" state
+        setStep(3)
+        setTimeout(async () => {
+          try {
+            const bal = await getShieldedBalance(account, STRK_TOKEN_ADDRESS)
+            if (bal.success && bal.balance && bal.balance !== '0') {
+              onShieldComplete ? onShieldComplete() : onClose()
+            }
+          } catch {}
+        }, 6000)
       } else {
         setError(err.message)
         setStep(0)
@@ -145,74 +162,27 @@ export default function ShieldModal({ account, onClose }) {
           )}
 
           {step === 2 && (
-            <>
-              <h3 className="dv-title">Shielded!</h3>
-              
-              <div className="dv-success-box">
-                <p style={{color: 'var(--secondary-container)', marginBottom: '8px'}}>
-                  {amount} STRK deposited to privacy pool
-                </p>
-                {txHash && (
-                  <a 
-                    href={getExplorerUrl(txHash)} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    style={{color: 'var(--primary)', fontSize: '12px'}}
-                  >
-                    View on Explorer →
-                  </a>
-                )}
-                {shieldedBalance && (
-                  <p style={{color: 'var(--secondary-container)', marginTop: '8px', fontSize: '12px'}}>
-                    {shieldedBalance}
-                  </p>
-                )}
-              </div>
-
-              <p className="dv-hint">
-                You can now make private transfers and pay fees privately.
+            <div className="dv-loading">
+              <div className="dv-spinner"></div>
+              <p style={{color: 'var(--secondary-container)', marginBottom: '8px'}}>
+                Shielded {amount} STRK ✓
               </p>
-
-              <div className="dv-info-tip">
-                <p>
-                  ⏱️ Note: Shielded funds take ~10 blocks (~20 minutes) to mature before they can be used for transfers.
-                </p>
-              </div>
-
-              <button className="dv-btn-primary" onClick={onClose}>
-                Done
-              </button>
-            </>
+              <small style={{color: 'rgba(255,255,255,0.3)'}}>
+                Opening your shielded balance...
+              </small>
+            </div>
           )}
 
           {step === 3 && (
-            <>
-              <h3 className="dv-title">Processing...</h3>
-              
-              <div className="dv-loading">
-                <p style={{color: 'var(--secondary-container)', marginBottom: '16px'}}>
-                  The wallet didn't confirm, but your shield may have succeeded.
-                </p>
-                
-                {shieldedBalance && (
-                  <p style={{color: 'var(--secondary-container)', marginBottom: '16px'}}>
-                    {shieldedBalance}
-                  </p>
-                )}
-                
-                <button 
-                  className="dv-btn-secondary"
-                  onClick={checkShieldedBalance}
-                  style={{marginBottom: '12px'}}
-                >
-                  Check Shielded Balance
-                </button>
-                
-                <button className="dv-btn-primary" onClick={onClose}>
-                  Close
-                </button>
-              </div>
-            </>
+            <div className="dv-loading">
+              <div className="dv-spinner"></div>
+              <p style={{color: 'var(--secondary-container)', marginBottom: '8px'}}>
+                Shield submitted! Checking balance...
+              </p>
+              <small style={{color: 'rgba(255,255,255,0.3)'}}>
+                Your wallet confirmed but didn't respond. The deposit likely succeeded — we're verifying.
+              </small>
+            </div>
           )}
         </div>
       </div>
