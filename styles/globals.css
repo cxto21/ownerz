@@ -52,6 +52,16 @@
   box-sizing: border-box;
 }
 
+html, body {
+  overflow-y: hidden;
+  scrollbar-width: none;
+}
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  display: none;
+}
+
 body {
   font-family: var(--font-body);
   background-color: #000000;
@@ -94,6 +104,150 @@ body {
   letter-spacing: -0.05em;
   color: white;
   font-style: italic;
+}
+
+/* Desktop Nav Controls */
+.dv-nav-desktop {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+@media (max-width: 768px) {
+  .dv-nav-desktop {
+    display: none;
+  }
+}
+
+/* Nav Button Base */
+.dv-nav-btn {
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.dv-nav-btn-purple {
+  border: 1px solid rgba(220, 184, 255, 0.3);
+  background: rgba(220, 184, 255, 0.1);
+  color: var(--primary);
+}
+.dv-nav-btn-cyan {
+  border: 1px solid rgba(4, 251, 251, 0.3);
+  background: rgba(4, 251, 251, 0.05);
+  color: var(--secondary-container);
+}
+.dv-nav-btn-err {
+  border: 1px solid rgba(255,180,171,0.3);
+  background: rgba(255,180,171,0.08);
+  color: var(--error);
+}
+
+/* Badge */
+.dv-badge {
+  padding: 4px 8px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.dv-badge-ok {
+  background: rgba(4, 251, 251, 0.2);
+  color: var(--secondary-container);
+}
+.dv-badge-err {
+  background: rgba(255, 180, 171, 0.2);
+  color: var(--error);
+}
+
+/* Hamburger (mobile only) */
+.dv-hamburger {
+  display: none;
+  flex-direction: column;
+  gap: 5px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  z-index: 60;
+}
+.dv-hamburger span {
+  display: block;
+  width: 22px;
+  height: 2px;
+  background: rgba(255,255,255,0.7);
+  border-radius: 2px;
+  transition: all 0.3s;
+}
+
+@media (max-width: 768px) {
+  .dv-hamburger {
+    display: flex;
+  }
+  .dv-nav-inner {
+    padding: 16px 20px;
+  }
+}
+
+/* Top Bar (mobile dropdown) */
+.dv-topbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 49;
+  padding-top: 65px;
+  pointer-events: none;
+}
+.dv-topbar-inner {
+  background: rgba(14, 14, 14, 0.85);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  padding: 12px 20px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 420px;
+  margin: 0 auto;
+  pointer-events: auto;
+  animation: slideDown 0.2s ease-out;
+}
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.dv-topbar-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.dv-topbar-btn {
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.dv-topbar-btn-purple {
+  border: 1px solid rgba(220, 184, 255, 0.3);
+  background: rgba(220, 184, 255, 0.1);
+  color: var(--primary);
+}
+.dv-topbar-btn-cyan {
+  border: 1px solid rgba(4, 251, 251, 0.3);
+  background: rgba(4, 251, 251, 0.05);
+  color: var(--secondary-container);
+}
+.dv-topbar-btn-err {
+  border: 1px solid rgba(255,180,171,0.3);
+  background: rgba(255,180,171,0.08);
+  color: var(--error);
 }
 
 /* Main Content */
@@ -147,6 +301,15 @@ body {
   top: 120px;
 }
 
+@media (max-width: 767px) {
+  .dv-hero-image {
+    position: static;
+    max-width: 320px;
+    margin: 0 auto;
+    padding: 0;
+  }
+}
+
 @media (min-width: 768px) {
   .dv-hero-image {
     padding-right: 48px;
@@ -156,6 +319,13 @@ body {
 .dv-hero-image img {
   width: 100%;
   height: auto;
+}
+
+@media (max-width: 767px) {
+  .dv-hero-image img {
+    max-height: 220px;
+    object-fit: contain;
+  }
 }
 
 .dv-hero-content {
@@ -859,17 +1029,46 @@ body {
 /* Mobile */
 @media (max-width: 768px) {
   .dv-main {
-    padding-top: 128px;
-    padding-bottom: 64px;
-    gap: 48px;
+    padding-top: 80px;
+    padding-bottom: 48px;
+    gap: 24px;
+  }
+  
+  .dv-card {
+    min-height: auto;
+    max-width: 100%;
   }
   
   .dv-card-content {
-    padding: 24px;
+    padding: 16px;
+    gap: 16px;
   }
   
-  .dv-hero-image {
-    display: none;
+  .dv-tabs {
+    flex-direction: row;
+  }
+  
+  .dv-tab {
+    padding: 12px 8px;
+    font-size: 11px;
+    letter-spacing: 0.05em;
+  }
+  
+  .dv-title {
+    font-size: 20px;
+    line-height: 26px;
+  }
+  
+  .dv-input-group input,
+  .dv-input-group textarea,
+  .dv-input-group select {
+    padding: 12px;
+    font-size: 13px;
+  }
+  
+  .dv-btn-primary {
+    padding: 12px;
+    font-size: 11px;
   }
   
   .dv-popup-card {
