@@ -1,7 +1,6 @@
 export const runtime = 'edge'
 
 import s3, { BUCKET, PutObjectCommand } from '../../lib/s3'
-import crypto from 'crypto'
 
 export default async function handler(req) {
   if (req.method !== 'POST') {
@@ -16,7 +15,9 @@ export default async function handler(req) {
     }
 
     const timestamp = Date.now()
-    const randomId = crypto.randomBytes(8).toString('hex')
+    const randomBytes = new Uint8Array(8)
+    crypto.getRandomValues(randomBytes)
+    const randomId = Array.from(randomBytes).map(b => b.toString(16).padStart(2, '0')).join('')
     const objectKey = `ownerz/${timestamp}-${randomId}.enc`
 
     const result = await s3.send(new PutObjectCommand({
