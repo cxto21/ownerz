@@ -1,18 +1,15 @@
 import { useState } from 'react'
-import { shieldTokens, getShieldedBalance, STRK_TOKEN_ADDRESS } from '../lib/strk20-payments'
+import { shieldTokens, STRK_TOKEN_ADDRESS } from '../lib/strk20-payments'
 
 export default function ShieldModal({ account, onClose, onShieldComplete }) {
   const [amount, setAmount] = useState('')
   const [step, setStep] = useState(0)
   const [error, setError] = useState(null)
-  const [txHash, setTxHash] = useState(null)
-  const [shieldedBalance, setShieldedBalance] = useState(null)
 
   const handleShield = async () => {
     if (!amount || !account) return
     setStep(1)
     setError(null)
-    setShieldedBalance(null)
 
     try {
       const amountNum = parseFloat(amount)
@@ -25,57 +22,26 @@ export default function ShieldModal({ account, onClose, onShieldComplete }) {
       
       if (result.success) {
         if (result.timeout) {
-          // Timeout — shield may have worked, auto-check balance
-          setStep(3)
-          setTimeout(async () => {
-            try {
-              const bal = await getShieldedBalance(account, STRK_TOKEN_ADDRESS)
-              if (bal.success && bal.balance && bal.balance !== '0') {
-                onShieldComplete ? onShieldComplete() : onClose()
-              }
-            } catch {}
-          }, 6000)
+          // Timeout — tx likely submitted, open balance panel (it will poll)
+          onShieldComplete ? onShieldComplete() : onClose()
         } else {
-          // Success with tx hash — show briefly then open balance panel
-          setTxHash(result.transactionHash)
+          // Success — open balance panel (it will poll)
           setStep(2)
           setTimeout(() => {
             onShieldComplete ? onShieldComplete() : onClose()
-          }, 2000)
+          }, 1500)
         }
       } else {
         throw new Error(result.error)
       }
     } catch (err) {
       if (err.message && err.message.includes('timeout')) {
-        setStep(3)
-        setTimeout(async () => {
-          try {
-            const bal = await getShieldedBalance(account, STRK_TOKEN_ADDRESS)
-            if (bal.success && bal.balance && bal.balance !== '0') {
-              onShieldComplete ? onShieldComplete() : onClose()
-            }
-          } catch {}
-        }, 6000)
+        // Timeout in catch — same behavior
+        onShieldComplete ? onShieldComplete() : onClose()
       } else {
         setError(err.message)
         setStep(0)
       }
-    }
-  }
-
-  const checkShieldedBalance = async () => {
-    try {
-      const result = await getShieldedBalance(account, STRK_TOKEN_ADDRESS)
-      if (result.success) {
-        setShieldedBalance(result.message)
-        if (result.balance && result.balance !== '0') {
-          setStep(2) // Show success
-          setTxHash(null) // No tx hash available
-        }
-      }
-    } catch (err) {
-      console.error('Balance check failed:', err)
     }
   }
 
@@ -164,26 +130,12 @@ export default function ShieldModal({ account, onClose, onShieldComplete }) {
           {step === 2 && (
             <div className="dv-loading">
               <div className="dv-spinner"></div>
-              <p style={{color: 'var(--secondary-container)', marginBottom: '8px'}}>
-                Shielded {amount} STRK ✓
+              <p style={{color: 'var(--secondary-container)'}}>
+                Shielded! Opening balance...
               </p>
-              <small style={{color: 'rgba(255,255,255,0.3)'}}>
-                Opening your shielded balance...
-              </small>
             </div>
           )}
 
-          {step === 3 && (
-            <div className="dv-loading">
-              <div className="dv-spinner"></div>
-              <p style={{color: 'var(--secondary-container)', marginBottom: '8px'}}>
-                Shield submitted! Checking balance...
-              </p>
-              <small style={{color: 'rgba(255,255,255,0.3)'}}>
-                Your wallet confirmed but didn't respond. The deposit likely succeeded — we're verifying.
-              </small>
-            </div>
-          )}
         </div>
       </div>
     </div>

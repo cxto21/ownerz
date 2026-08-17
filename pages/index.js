@@ -114,7 +114,7 @@ export default function Ownerz() {
     }
   }
 
-  const fetchShieldedBalance = async () => {
+  const fetchShieldedBalance = async (retries = 0) => {
     if (!walletState.account) return
     setLoadingBalance(true)
     setShowShieldedBalance(true)
@@ -122,13 +122,23 @@ export default function Ownerz() {
       const result = await getShieldedBalance(walletState.account, STRK_TOKEN_ADDRESS)
       if (result.success) {
         setShieldedBalance(result.message)
+        setLoadingBalance(false)
+      } else if (retries < 5) {
+        // Tx might still be pending, retry after delay
+        setShieldedBalance(`Shielding in progress... checking in 8s (attempt ${retries + 1}/5)`)
+        setTimeout(() => fetchShieldedBalance(retries + 1), 8000)
       } else {
-        setShieldedBalance('Could not fetch balance')
+        setShieldedBalance('Could not fetch balance after multiple attempts')
+        setLoadingBalance(false)
       }
     } catch (err) {
-      setShieldedBalance('Error: ' + err.message)
-    } finally {
-      setLoadingBalance(false)
+      if (retries < 5) {
+        setShieldedBalance(`Shielding in progress... checking in 8s (attempt ${retries + 1}/5)`)
+        setTimeout(() => fetchShieldedBalance(retries + 1), 8000)
+      } else {
+        setShieldedBalance('Error: ' + err.message)
+        setLoadingBalance(false)
+      }
     }
   }
 
