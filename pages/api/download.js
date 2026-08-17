@@ -1,25 +1,34 @@
-import s3, { BUCKET } from '../../lib/s3'
+export const runtime = 'edge'
 
-export default async function handler(req, res) {
+import s3, { BUCKET, GetObjectCommand, HeadObjectCommand } from '../../lib/s3'
+
+async function streamToString(stream) {
+  const chunks = []
+  for await (const chunk of stream) {
+    chunks.push(typeof chunk === 'string' ? chunk : new TextDecoder().decode(chunk))
+  }
+  return chunks.join('')
+}
+
+export default async function handler(req) {
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' })
+    return new Response(JSON.stringify({ error: 'Method not allowed' }), { status: 405 })
   }
 
   try {
-    const { objectKey, metadataOnly } = req.body
+    const { objectKey, metadataOnly } = await req.json()
 
     if (!objectKey) {
-      return res.status(400).json({ error: 'Missing objectKey' })
+      return new Response(JSON.stringify({ error: 'Missing objectKey' }), { status: 400 })
     }
 
-    // Metadata-only mode: fetch S3 head (no body download)
     if (metadataOnly) {
-      const headResult = await s3.headObject({
+      const headResult = await s3.send(new HeadObjectCommand({
         Bucket: BUCKET,
         Key: objectKey,
-      }).promise()
+      }))
 
-      return res.status(200).json({
+      return new Response(JSON.stringify({
         success: true,
         metadata: {
           sellerAddress: headResult.Metadata['seller-address'] || '',
@@ -27,19 +36,18 @@ export default async function handler(req, res) {
           fileName: headResult.Metadata['original-name'] || '',
           uploadedAt: headResult.Metadata['uploaded-at'] || '',
         },
-      })
+      }), { status: 200 })
     }
 
-    // Full download: encrypted data + metadata
-    const result = await s3.getObject({
+    const result = await s3.send(new GetObjectCommand({
       Bucket: BUCKET,
       Key: objectKey,
-    }).promise()
+    }))
 
-    // Parse the encrypted data
-    const encryptedData = JSON.parse(result.Body.toString())
+    const body = await streamToString(result.Body)
+    const encryptedData = JSON.parse(body)
 
-    return res.status(200).json({
+    return new Response(JSON.stringify({
       success: true,
       encryptedData,
       metadata: {
@@ -47,10 +55,9 @@ export default async function handler(req, res) {
         price: result.Metadata['price'] || '0',
         fileName: result.Metadata['original-name'] || '',
       },
-    })
-    
+    }), { status: 200 })
   } catch (err) {
     console.error('[download] Error:', err.message)
-    return res.status(500).json({ error: err.message })
+    return new Response(JSON.stringify({ error: err.message }), { status: 500 })
   }
 }

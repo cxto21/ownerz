@@ -1,26 +1,25 @@
-import s3, { BUCKET } from '../../lib/s3'
+export const runtime = 'edge'
+
+import s3, { BUCKET, PutObjectCommand } from '../../lib/s3'
 import crypto from 'crypto'
 
-export default async function handler(req, res) {
+export default async function handler(req) {
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' })
+    return new Response(JSON.stringify({ error: 'Method not allowed' }), { status: 405 })
   }
 
   try {
-    const { encryptedData, fileName, sellerAddress, price } = req.body
+    const { encryptedData, fileName, sellerAddress, price } = await req.json()
 
     if (!encryptedData || !fileName) {
-      return res.status(400).json({ error: 'Missing encryptedData or fileName' })
+      return new Response(JSON.stringify({ error: 'Missing encryptedData or fileName' }), { status: 400 })
     }
 
-    // Generate unique key for Fil One
     const timestamp = Date.now()
     const randomId = crypto.randomBytes(8).toString('hex')
     const objectKey = `ownerz/${timestamp}-${randomId}.enc`
 
-    // Upload ONLY encrypted data to Fil One
-    // Server never sees unencrypted content
-    const uploadResult = await s3.upload({
+    const result = await s3.send(new PutObjectCommand({
       Bucket: BUCKET,
       Key: objectKey,
       Body: JSON.stringify(encryptedData),
@@ -31,23 +30,22 @@ export default async function handler(req, res) {
         'seller-address': sellerAddress || '',
         'price': price || '0',
       },
-    }).promise()
+    }))
 
-    const cid = objectKey // Use objectKey as CID so they match
+    const cid = objectKey
 
-    return res.status(200).json({
+    return new Response(JSON.stringify({
       success: true,
       cid,
       objectKey,
-      s3Location: uploadResult.Location,
+      etag: result.ETag,
       fileName,
       sellerAddress: sellerAddress || '',
       price: price || '0',
       message: 'Encrypted file uploaded to Fil One',
-    })
-    
+    }), { status: 200 })
   } catch (err) {
     console.error('[upload] Error:', err.message)
-    return res.status(500).json({ error: err.message })
+    return new Response(JSON.stringify({ error: err.message }), { status: 500 })
   }
 }

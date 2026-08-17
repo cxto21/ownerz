@@ -1,27 +1,38 @@
-import s3, { BUCKET } from '../../lib/s3'
+export const runtime = 'edge'
 
-export default async function handler(req, res) {
+import s3, { BUCKET, GetObjectCommand } from '../../lib/s3'
+
+async function streamToString(stream) {
+  const chunks = []
+  for await (const chunk of stream) {
+    chunks.push(typeof chunk === 'string' ? chunk : new TextDecoder().decode(chunk))
+  }
+  return chunks.join('')
+}
+
+export default async function handler(req) {
   if (req.method !== 'GET') {
-    return res.status(405).json({ error: 'Method not allowed' })
+    return new Response(JSON.stringify({ error: 'Method not allowed' }), { status: 405 })
   }
 
   try {
-    const { key } = req.query
+    const { searchParams } = new URL(req.url)
+    const key = searchParams.get('key')
 
     if (!key) {
-      return res.status(400).json({ error: 'Missing key parameter' })
+      return new Response(JSON.stringify({ error: 'Missing key parameter' }), { status: 400 })
     }
 
-    const result = await s3.getObject({
+    const result = await s3.send(new GetObjectCommand({
       Bucket: BUCKET,
       Key: key,
-    }).promise()
+    }))
 
-    const data = result.Body.toString('utf-8')
+    const data = await streamToString(result.Body)
 
-    return res.status(200).json({ success: true, data, key })
+    return new Response(JSON.stringify({ success: true, data, key }), { status: 200 })
   } catch (err) {
     console.error('[download-key] Error:', err.message)
-    return res.status(500).json({ error: err.message })
+    return new Response(JSON.stringify({ error: err.message }), { status: 500 })
   }
 }
