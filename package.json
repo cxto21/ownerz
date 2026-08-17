@@ -30,6 +30,6 @@
     "wrangler": "^4.123.0"
   },
   "optionalDependencies": {
-    "@next/swc-linux-x64-gnu": "14.2.35"
+    "@next/swc-linux-x64-gnu": "^14.2.33"
   }
 }
