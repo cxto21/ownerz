@@ -126,52 +126,14 @@ export default function Ownerz() {
     <div className="dv">
       {/* Hackathon Popup */}
       {showHackathonPopup && (
-        <div style={{
-          position: 'fixed',
-          inset: 0,
-          background: 'rgba(0,0,0,0.7)',
-          backdropFilter: 'blur(20px)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 9999,
-          padding: '20px'
-        }} onClick={() => setShowHackathonPopup(false)}>
-          <div style={{
-            background: 'rgba(14, 14, 14, 0.9)',
-            backdropFilter: 'blur(20px)',
-            border: '1px solid rgba(255, 255, 255, 0.1)',
-            padding: '40px',
-            maxWidth: '480px',
-            width: '100%',
-            textAlign: 'center',
-            position: 'relative'
-          }} onClick={(e) => e.stopPropagation()}>
-            <div style={{
-              fontFamily: 'var(--font-display)',
-              fontSize: '20px',
-              fontWeight: 700,
-              color: 'var(--primary)',
-              textTransform: 'uppercase',
-              marginBottom: '16px'
-            }}>
-              Hackathon Build
-            </div>
-            <div style={{
-              fontFamily: 'var(--font-body)',
-              fontSize: '16px',
-              color: 'rgba(255,255,255,0.5)',
-              lineHeight: 1.6,
-              marginBottom: '8px'
-            }}>
+        <div className="dv-popup-overlay" onClick={() => setShowHackathonPopup(false)}>
+          <div className="dv-popup-card" onClick={(e) => e.stopPropagation()}>
+            <button className="dv-popup-close" onClick={() => setShowHackathonPopup(false)}>✕</button>
+            <div className="dv-popup-title">Hackathon Build</div>
+            <div className="dv-popup-text">
               Work in progress for the <span style={{color:'var(--secondary-container)'}}>STRK20 Private Sprint</span> hackathon.
             </div>
-            <div style={{
-              fontFamily: 'var(--font-mono)',
-              fontSize: '12px',
-              color: 'rgba(255,255,255,0.3)',
-              marginBottom: '28px'
-            }}>
+            <div className="dv-popup-subtitle">
               Starknet Sepolia Testnet · Do not use real funds
             </div>
             <button
@@ -226,12 +188,11 @@ export default function Ownerz() {
                   setTimeout(() => setCopiedAddress(false), 2000)
                 }}
                 title="Click to copy full address"
+                className="dv-nav-address"
                 style={{
                   padding: '8px 16px',
                   border: '1px solid rgba(255,255,255,0.1)',
                   background: copiedAddress ? 'rgba(4, 251, 251, 0.2)' : 'transparent',
-                  fontFamily: 'var(--font-mono)',
-                  fontSize: '12px',
                   color: copiedAddress ? 'var(--secondary-container)' : 'var(--secondary-container)',
                   cursor: 'pointer',
                   transition: 'all 0.2s'
@@ -492,17 +453,11 @@ function ShieldModal({ account, onClose }) {
                 <small>Minimum 6 STRK. Your wallet must be verified (Settings → Verify Account).</small>
               </div>
 
-              <div style={{
-                background: 'rgba(124, 58, 237, 0.1)',
-                border: '1px solid rgba(124, 58, 237, 0.3)',
-                borderRadius: '8px',
-                padding: '12px',
-                marginBottom: '16px'
-              }}>
-                <p style={{color: 'var(--primary)', fontSize: '13px', margin: 0}}>
+              <div className="dv-warning-box">
+                <p>
                   ⚠️ You will need to approve <strong>TWO transactions</strong> in your wallet:
                 </p>
-                <ol style={{color: 'rgba(255,255,255,0.7)', fontSize: '12px', margin: '8px 0 0 0', paddingLeft: '20px'}}>
+                <ol>
                   <li>First: Approve the token spend (ERC-20 approve)</li>
                   <li>Second: Confirm the deposit to the pool</li>
                 </ol>
@@ -559,14 +514,8 @@ function ShieldModal({ account, onClose }) {
                 You can now make private transfers and pay fees privately.
               </p>
 
-              <div style={{
-                background: 'rgba(0, 255, 136, 0.1)',
-                border: '1px solid rgba(0, 255, 136, 0.3)',
-                borderRadius: '8px',
-                padding: '12px',
-                marginTop: '12px'
-              }}>
-                <p style={{color: 'var(--secondary-container)', fontSize: '13px', margin: 0}}>
+              <div className="dv-info-tip">
+                <p>
                   ⏱️ Note: Shielded funds take ~10 blocks (~20 minutes) to mature before they can be used for transfers.
                 </p>
               </div>
@@ -941,6 +890,17 @@ function SellFlow({ connected, isStrk20, account, refreshWallet }) {
 
   return (
     <>
+      {/* Progress */}
+      {step > 0 && step < 5 && (
+        <div className="dv-progress">
+          <div className={`dv-progress-step ${step >= 1 ? 'done' : ''}`}></div>
+          <div className={`dv-progress-step ${step >= 2 ? 'done' : step === 1 ? 'active' : ''}`}></div>
+          <div className={`dv-progress-step ${step >= 3 ? 'done' : step === 2 ? 'active' : ''}`}></div>
+          <div className={`dv-progress-step ${step >= 4 ? 'done' : step === 3 ? 'active' : ''}`}></div>
+          <span className="dv-progress-label">Step {Math.min(step, 4)} of 4</span>
+        </div>
+      )}
+
       {step === 0 && (
         <>
           <div>
@@ -949,7 +909,7 @@ function SellFlow({ connected, isStrk20, account, refreshWallet }) {
           </div>
           
           <div
-            className="dv-upload"
+            className={`dv-upload ${isDragging ? 'dragging' : ''}`}
             onClick={() => document.getElementById('file-input').click()}
             onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); setIsDragging(true) }}
             onDragLeave={(e) => { e.preventDefault(); e.stopPropagation(); setIsDragging(false) }}
@@ -960,7 +920,6 @@ function SellFlow({ connected, isStrk20, account, refreshWallet }) {
               const dropped = e.dataTransfer.files[0]
               if (dropped) setFile(dropped)
             }}
-            style={isDragging ? { borderColor: 'rgba(220, 184, 255, 0.8)', background: 'rgba(220, 184, 255, 0.05)' } : {}}
           >
             <input
               id="file-input"
@@ -969,48 +928,29 @@ function SellFlow({ connected, isStrk20, account, refreshWallet }) {
               style={{display: 'none'}}
             />
             {file ? (
-              <div className="dv-file-info">
-                <span className="dv-file-icon">{getFileIcon(file.type)}</span>
-                <div>
-                  <div className="dv-file-name">{file.name}</div>
-                  <div className="dv-file-meta">{formatSize(file.size)} · {file.type || 'unknown'}</div>
+              <div className="dv-file-card">
+                <div className="dv-file-info">
+                  <span className="dv-file-icon">{getFileIcon(file.type)}</span>
+                  <div>
+                    <div className="dv-file-name">{file.name}</div>
+                    <div className="dv-file-meta">{formatSize(file.size)} · {file.type || 'unknown'}</div>
+                  </div>
                 </div>
               </div>
             ) : (
-              <p className="dv-hint">Drag a file or click to upload</p>
+              <>
+                <div className="dv-upload-icon">↑</div>
+                <p className="dv-hint">Drag a file or click to upload</p>
+              </>
             )}
           </div>
 
           {/* Fee Display */}
           {feeInfo && (
-            <div style={{
-              padding: '16px',
-              background: 'rgba(220, 184, 255, 0.1)',
-              border: '1px solid rgba(220, 184, 255, 0.3)'
-            }}>
-              <div style={{
-                fontFamily: 'var(--font-mono)',
-                fontSize: '12px',
-                color: 'var(--primary)',
-                marginBottom: '8px',
-                textTransform: 'uppercase',
-                letterSpacing: '0.05em'
-              }}>
-                Upload Fee
-              </div>
-              <div style={{
-                fontSize: '24px',
-                fontWeight: 700,
-                color: 'white',
-                marginBottom: '8px'
-              }}>
-                {feeInfo.feeFormatted} STRK
-              </div>
-              <div style={{
-                fontFamily: 'var(--font-mono)',
-                fontSize: '11px',
-                color: 'rgba(255,255,255,0.5)'
-              }}>
+            <div className="dv-fee-display">
+              <div className="dv-fee-label">Upload Fee</div>
+              <div className="dv-fee-amount">{feeInfo.feeFormatted} STRK</div>
+              <div className="dv-fee-breakdown">
                 Base: {feeInfo.baseFee} STRK + Storage: {feeInfo.storageFeeFormatted} STRK
               </div>
             </div>
@@ -1426,6 +1366,19 @@ function BuyFlow({ connected, isStrk20, account, refreshWallet }) {
 
   return (
     <>
+      {/* Progress */}
+      {step > 0 && step < 8 && (
+        <div className="dv-progress">
+          <div className={`dv-progress-step ${step >= 2 ? 'done' : ''}`}></div>
+          <div className={`dv-progress-step ${step >= 3 ? 'done' : step === 2 ? 'active' : ''}`}></div>
+          <div className={`dv-progress-step ${step >= 4 ? 'done' : step === 3 ? 'active' : ''}`}></div>
+          <div className={`dv-progress-step ${step >= 6 ? 'done' : step >= 4 ? 'active' : ''}`}></div>
+          <span className="dv-progress-label">
+            {step <= 2 ? 'Verify' : step === 3 ? 'Paying' : step === 4 ? 'Claim' : step <= 6 ? 'Download' : 'Decrypt'}
+          </span>
+        </div>
+      )}
+
       {step === 0 && (
         <>
           <div>
@@ -1472,28 +1425,22 @@ function BuyFlow({ connected, isStrk20, account, refreshWallet }) {
           </div>
 
           {fileMetadata && (
-            <div style={{
-              background: 'rgba(139,92,246,0.08)',
-              border: '1px solid rgba(139,92,246,0.2)',
-              borderRadius: '8px',
-              padding: '12px',
-              marginBottom: '16px'
-            }}>
-              <div style={{display:'flex',justifyContent:'space-between',marginBottom:'6px'}}>
-                <span style={{color:'rgba(255,255,255,0.5)',fontSize:'13px'}}>File</span>
-                <span style={{color:'#fff',fontSize:'13px'}}>{cid ? cid.slice(0, 20) + '...' : ''}</span>
+            <div className="dv-metadata-card">
+              <div className="dv-metadata-row">
+                <span className="dv-metadata-label">File</span>
+                <span className="dv-metadata-value">{cid ? cid.slice(0, 20) + '...' : ''}</span>
               </div>
-              <div style={{display:'flex',justifyContent:'space-between',marginBottom:'6px'}}>
-                <span style={{color:'rgba(255,255,255,0.5)',fontSize:'13px'}}>Price</span>
-                <span style={{color:'#8b5cf6',fontWeight:'600',fontSize:'14px'}}>{fileMetadata.price} STRK</span>
+              <div className="dv-metadata-row">
+                <span className="dv-metadata-label">Price</span>
+                <span className="dv-metadata-value price">{fileMetadata.price} STRK</span>
               </div>
-              <div style={{display:'flex',justifyContent:'space-between',marginBottom:'6px'}}>
-                <span style={{color:'rgba(255,255,255,0.5)',fontSize:'13px'}}>Platform fee</span>
-                <span style={{color:'#06b6d4',fontSize:'13px'}}>1 STRK</span>
+              <div className="dv-metadata-row">
+                <span className="dv-metadata-label">Platform fee</span>
+                <span className="dv-metadata-value fee">1 STRK</span>
               </div>
-              <div style={{display:'flex',justifyContent:'space-between'}}>
-                <span style={{color:'rgba(255,255,255,0.5)',fontSize:'13px'}}>Total to pay</span>
-                <span style={{color:'#10b981',fontWeight:'600',fontSize:'14px'}}>
+              <div className="dv-metadata-row">
+                <span className="dv-metadata-label">Total to pay</span>
+                <span className="dv-metadata-value total">
                   {parseFloat(fileMetadata.price || 0) + 1} STRK + gas
                 </span>
               </div>
@@ -1554,27 +1501,18 @@ function BuyFlow({ connected, isStrk20, account, refreshWallet }) {
           )}
 
           {!txHash && account?.address && (
-            <div style={{
-              background: 'rgba(251,191,36,0.1)',
-              border: '1px solid rgba(251,191,36,0.3)',
-              borderRadius: '8px',
-              padding: '12px',
-              marginBottom: '16px',
-              fontSize: '13px',
-              color: '#fbbf24'
-            }}>
+            <div className="dv-pending-box">
               Payment submitted via wallet. Your STRK20 transaction should appear here:
               <a 
                 href={`https://sepolia.voyager.online/contract/${account.address}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                style={{color: '#8b5cf6', marginLeft: '4px', textDecoration: 'underline'}}
               >
                 View on Voyager →
               </a>
-              <div style={{fontSize: '11px', color: 'rgba(251,191,36,0.6)', marginTop: '6px'}}>
+              <small>
                 Note: STRK20 privacy transactions show as pool interactions — amounts and recipients are hidden by design.
-              </div>
+              </small>
             </div>
           )}
 
