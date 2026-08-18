@@ -4,7 +4,7 @@ import { batchPrivateTransfer, STRK_TOKEN_ADDRESS, formatTxHash, getExplorerUrl 
 import { cidToFelt, getVault, claimVault } from '../lib/filevault'
 import { copyToClipboard } from './utils'
 
-export default function BuyFlow({ connected, isStrk20, account, refreshWallet }) {
+export default function BuyFlow({ connected, isStrk20, account, refreshWallet, onConnect }) {
   const [cid, setCid] = useState('')
   const [step, setStep] = useState(0)
   const [secretKey, setSecretKey] = useState('')
@@ -271,10 +271,10 @@ export default function BuyFlow({ connected, isStrk20, account, refreshWallet })
 
           <button
             className="dv-btn-primary"
-            onClick={handlePurchase}
-            disabled={!cid || !connected}
+            onClick={!connected ? onConnect : handlePurchase}
+            disabled={connected && !cid}
           >
-            {!connected ? 'Connect Wallet First' : 'Purchase Access'}
+            {!connected ? 'Connect Wallet' : 'Purchase Access'}
           </button>
         </>
       )}

@@ -7,10 +7,26 @@ mod FileVault {
     use starknet::get_caller_address;
     use core::pedersen::pedersen;
 
+    // ─── IERC20 (STRK token) ────────────────────────────────
+    #[starknet::interface]
+    trait IERC20<TContractState> {
+        fn transfer_from(
+            ref self: TContractState,
+            sender: ContractAddress,
+            recipient: ContractAddress,
+            amount: u256,
+        ) -> bool;
+        fn balance_of(self: @TContractState, account: ContractAddress) -> u256;
+    }
+
     // ─── Storage ────────────────────────────────────────────
     #[storage]
     struct Storage {
         vaults: LegacyMap::<felt252, Vault>,
+        platform_fee: u256,
+        platform_wallet: ContractAddress,
+        strk_token: ContractAddress,
+        total_fees: u256,
     }
 
     #[derive(Drop, Copy, Serde, starknet::Store)]
@@ -71,14 +87,25 @@ mod FileVault {
     const ERR_REFUND_TOO_EARLY: felt252 = 'REFUND_TOO_EARLY';
     const ERR_INVALID_PRICE: felt252 = 'INVALID_PRICE';
     const ERR_INVALID_TTL: felt252 = 'INVALID_TTL';
+    const ERR_FEE_TRANSFER_FAILED: felt252 = 'FEE_TRANSFER_FAILED';
 
     // ─── Constructor ────────────────────────────────────────
     #[constructor]
-    fn constructor(ref self: ContractState) {}
+    fn constructor(
+        ref self: ContractState,
+        platform_wallet: ContractAddress,
+        platform_fee: u256,
+        strk_token: ContractAddress,
+    ) {
+        self.platform_wallet.write(platform_wallet);
+        self.platform_fee.write(platform_fee);
+        self.strk_token.write(strk_token);
+    }
 
     // ─── External Functions ─────────────────────────────────
 
-    /// Create a new vault mapping a CID to encrypted key seed + commitment.
+    /// Create a new vault. Pulls platform_fee STRK from caller via ERC20 transferFrom.
+    /// Frontend batches approve + create_vault in one multicall = one wallet popup.
     #[external(v0)]
     fn create_vault(
         ref self: ContractState,
@@ -95,7 +122,18 @@ mod FileVault {
         let zero_addr: ContractAddress = starknet::contract_address_const::<0>();
         assert(existing.seller == zero_addr, ERR_VAULT_EXISTS);
 
+        // Pull fee from caller via ERC20 transferFrom
         let caller = get_caller_address();
+        let fee = self.platform_fee.read();
+        let token_addr = self.strk_token.read();
+        let token = IERC20Dispatcher { contract_address: token_addr };
+        let ok = token.transfer_from(caller, self.platform_wallet.read(), fee);
+        assert(ok, ERR_FEE_TRANSFER_FAILED);
+
+        // Track accumulated fees
+        let current_total = self.total_fees.read();
+        self.total_fees.write(current_total + fee);
+
         let now = starknet::get_block_timestamp();
 
         let vault = Vault {
@@ -186,6 +224,18 @@ mod FileVault {
         let zero_addr: ContractAddress = starknet::contract_address_const::<0>();
         assert(vault.seller != zero_addr, ERR_VAULT_NOT_FOUND);
         vault.price
+    }
+
+    /// Get platform fee
+    #[external(v0)]
+    fn get_platform_fee(self: @ContractState) -> u256 {
+        self.platform_fee.read()
+    }
+
+    /// Get accumulated fees
+    #[external(v0)]
+    fn get_total_fees(self: @ContractState) -> u256 {
+        self.total_fees.read()
     }
 
     // ─── Internal Helpers ───────────────────────────────────

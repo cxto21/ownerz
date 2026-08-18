@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { shieldTokens, STRK_TOKEN_ADDRESS } from '../lib/strk20-payments'
 
-export default function ShieldModal({ account, onClose, onShieldComplete }) {
+export default function ShieldModal({ account, onClose }) {
   const [amount, setAmount] = useState('')
   const [step, setStep] = useState(0)
   const [error, setError] = useState(null)
@@ -21,23 +21,15 @@ export default function ShieldModal({ account, onClose, onShieldComplete }) {
       const result = await shieldTokens(account, STRK_TOKEN_ADDRESS, amountHex)
       
       if (result.success) {
-        if (result.timeout) {
-          // Timeout — tx likely submitted, open balance panel (it will poll)
-          onShieldComplete ? onShieldComplete() : onClose()
-        } else {
-          // Success — open balance panel (it will poll)
-          setStep(2)
-          setTimeout(() => {
-            onShieldComplete ? onShieldComplete() : onClose()
-          }, 1500)
-        }
+        // Done — close modal, user checks balance manually
+        onClose()
       } else {
         throw new Error(result.error)
       }
     } catch (err) {
       if (err.message && err.message.includes('timeout')) {
-        // Timeout in catch — same behavior
-        onShieldComplete ? onShieldComplete() : onClose()
+        // Timeout — tx likely submitted, close anyway
+        onClose()
       } else {
         setError(err.message)
         setStep(0)
@@ -122,17 +114,8 @@ export default function ShieldModal({ account, onClose, onShieldComplete }) {
               <div className="dv-spinner"></div>
               <p>Depositing to privacy pool...</p>
               <small style={{color: 'rgba(255,255,255,0.4)', marginTop: '8px'}}>
-                Please approve both transactions in your wallet. The second one may take ~30 seconds for proof generation.
+                Please approve both transactions in your wallet.
               </small>
-            </div>
-          )}
-
-          {step === 2 && (
-            <div className="dv-loading">
-              <div className="dv-spinner"></div>
-              <p style={{color: 'var(--secondary-container)'}}>
-                Shielded! Opening balance...
-              </p>
             </div>
           )}
 

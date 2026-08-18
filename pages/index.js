@@ -114,7 +114,7 @@ export default function Ownerz() {
     }
   }
 
-  const fetchShieldedBalance = async (retries = 0) => {
+  const fetchShieldedBalance = async () => {
     if (!walletState.account) return
     setLoadingBalance(true)
     setShowShieldedBalance(true)
@@ -122,23 +122,13 @@ export default function Ownerz() {
       const result = await getShieldedBalance(walletState.account, STRK_TOKEN_ADDRESS)
       if (result.success) {
         setShieldedBalance(result.message)
-        setLoadingBalance(false)
-      } else if (retries < 5) {
-        // Tx might still be pending, retry after delay
-        setShieldedBalance(`Shielding in progress... checking in 8s (attempt ${retries + 1}/5)`)
-        setTimeout(() => fetchShieldedBalance(retries + 1), 8000)
       } else {
-        setShieldedBalance('Could not fetch balance after multiple attempts')
-        setLoadingBalance(false)
+        setShieldedBalance('Could not fetch balance')
       }
     } catch (err) {
-      if (retries < 5) {
-        setShieldedBalance(`Shielding in progress... checking in 8s (attempt ${retries + 1}/5)`)
-        setTimeout(() => fetchShieldedBalance(retries + 1), 8000)
-      } else {
-        setShieldedBalance('Error: ' + err.message)
-        setLoadingBalance(false)
-      }
+      setShieldedBalance('Error: ' + err.message)
+    } finally {
+      setLoadingBalance(false)
     }
   }
 
@@ -326,6 +316,7 @@ export default function Ownerz() {
                     isStrk20={walletState.isStrk20}
                     account={walletState.account}
                     refreshWallet={refreshWallet}
+                    onConnect={handleConnect}
                   />
                 ) : (
                   <BuyFlow 
@@ -333,6 +324,7 @@ export default function Ownerz() {
                     isStrk20={walletState.isStrk20}
                     account={walletState.account}
                     refreshWallet={refreshWallet}
+                    onConnect={handleConnect}
                   />
                 )}
               </div>
@@ -351,7 +343,6 @@ export default function Ownerz() {
         <ShieldModal 
           account={walletState.account}
           onClose={() => setShowShieldModal(false)}
-          onShieldComplete={() => { setShowShieldModal(false); fetchShieldedBalance() }}
         />
       )}
     </div>
