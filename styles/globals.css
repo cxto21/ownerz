@@ -1,49 +1,56 @@
-/* Ownerz Design System */
-@import url('https://fonts.googleapis.com/css2?family=Hanken+Grotesk:ital,wght@0,100..900;1,100..900&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&family=Sora:wght@100..800&display=swap');
+/* STRK20 Design System */
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&family=Space+Mono:wght@400;700&display=swap');
 
 :root {
-  /* OWNERZ Colors */
-  --primary: #dcb8ff;
-  --primary-container: #755695;
-  --on-primary: #3f225e;
-  --on-primary-container: #eed9ff;
-  
-  --secondary: #ffffff;
-  --secondary-container: #04fbfb;
-  --on-secondary: #003737;
-  --on-secondary-container: #007070;
-  
-  --surface: #131313;
-  --surface-container: #201f1f;
-  --surface-container-low: #1c1b1b;
-  --surface-container-lowest: #0e0e0e;
-  --surface-container-high: #2a2a2a;
-  --surface-container-highest: #353534;
-  --surface-dim: #131313;
-  --surface-bright: #393939;
-  --surface-variant: #353534;
-  --surface-tint: #dcb8ff;
-  
-  --on-surface: #e5e2e1;
-  --on-surface-variant: #cfc2d7;
-  --on-background: #e5e2e1;
-  
-  --outline: #988ca0;
-  --outline-variant: #4c4354;
-  
+  /* STRK20 Tokens */
+  --canvas: #000000;
+  --raised: #141414;
+  --raised-higher: #1a1a1a;
+  --hairline: #262626;
+  --text-primary: #fafafa;
+  --text-secondary: rgba(250, 250, 250, 0.65);
+  --text-muted: #616161;
+  --accent: #c53400;
+  --accent-pressed: #a02a00;
+  --accent-glow: rgba(197, 52, 0, 0.55);
+  --selection-bg: #c53400;
+  --selection-text: #1a0a04;
+
+  /* Legacy aliases for component compat */
+  --primary: #c53400;
+  --primary-container: #c53400;
+  --on-primary: #ffffff;
+  --on-primary-container: #ffffff;
+  --secondary: #fafafa;
+  --secondary-container: #c53400;
+  --on-secondary: #0d0d0d;
+  --on-secondary-container: #ffffff;
+  --surface: #000000;
+  --surface-container: #141414;
+  --surface-container-low: #141414;
+  --surface-container-lowest: #000000;
+  --surface-container-high: #1a1a1a;
+  --surface-container-highest: #1a1a1a;
+  --surface-dim: #000000;
+  --surface-bright: #262626;
+  --surface-variant: #1a1a1a;
+  --surface-tint: #c53400;
+  --on-surface: #fafafa;
+  --on-surface-variant: rgba(250, 250, 250, 0.65);
+  --on-background: #fafafa;
+  --outline: #616161;
+  --outline-variant: #262626;
   --error: #ffb4ab;
   --error-container: #93000a;
   --on-error: #690005;
   --on-error-container: #ffdad6;
-  
-  --glow-purple: rgba(138, 43, 226, 0.4);
-  --glow-cyan: rgba(0, 251, 251, 0.5);
-  --input-bg: rgba(0, 0, 0, 0.4);
-  
+  --glow-orange: rgba(197, 52, 0, 0.55);
+  --input-bg: rgba(0, 0, 0, 0.5);
+
   /* Fonts */
-  --font-display: 'Sora', sans-serif;
-  --font-body: 'Hanken Grotesk', sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
+  --font-display: 'Space Grotesk', 'Helvetica Neue', sans-serif;
+  --font-body: 'Space Grotesk', 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: 'Space Mono', ui-monospace, monospace;
 }
 
 * {
@@ -64,10 +71,36 @@ body::-webkit-scrollbar {
 
 body {
   font-family: var(--font-body);
-  background-color: #000000;
-  color: #ffffff;
+  background-color: var(--canvas);
+  color: var(--text-primary);
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
+  position: relative;
+}
+
+/* Film Grain Overlay */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 9998;
+  pointer-events: none;
+  opacity: 0.04;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 300px 300px;
+}
+
+/* Scanlines Overlay */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 9997;
+  pointer-events: none;
+  opacity: 0.35;
+  mix-blend-mode: multiply;
+  background: repeating-linear-gradient(0deg, transparent 0 3px, rgba(0, 0, 0, 0.18) 3px 4px);
 }
 
 /* Layout */
@@ -75,17 +108,18 @@ body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  position: relative;
 }
 
 /* Navigation */
 .dv-nav {
-  background: rgba(0, 0, 0, 0.8);
+  background: rgba(0, 0, 0, 0.85);
   backdrop-filter: blur(20px);
   position: fixed;
   top: 0;
   width: 100%;
   z-index: 50;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid var(--hairline);
 }
 
 .dv-nav-inner {
@@ -101,9 +135,9 @@ body {
   font-family: var(--font-display);
   font-size: 32px;
   font-weight: 700;
-  letter-spacing: -0.05em;
-  color: white;
-  font-style: italic;
+  letter-spacing: -0.025em;
+  color: var(--text-primary);
+  text-transform: uppercase;
 }
 
 /* Desktop Nav Controls */
@@ -122,26 +156,40 @@ body {
 /* Nav Button Base */
 .dv-nav-btn {
   padding: 8px 14px;
-  border-radius: 6px;
+  border-radius: 2px;
   font-family: var(--font-mono);
   font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.22em;
   cursor: pointer;
   transition: all 0.2s;
   white-space: nowrap;
 }
 .dv-nav-btn-purple {
-  border: 1px solid rgba(220, 184, 255, 0.3);
-  background: rgba(220, 184, 255, 0.1);
-  color: var(--primary);
+  border: 1px solid var(--hairline);
+  background: transparent;
+  color: var(--text-secondary);
+}
+.dv-nav-btn-purple:hover {
+  border-color: var(--accent);
+  color: var(--accent);
 }
 .dv-nav-btn-cyan {
-  border: 1px solid rgba(4, 251, 251, 0.3);
-  background: rgba(4, 251, 251, 0.05);
-  color: var(--secondary-container);
+  border: 1px solid var(--hairline);
+  background: transparent;
+  color: var(--text-secondary);
+}
+.dv-nav-btn-cyan:hover {
+  border-color: var(--accent);
+  color: var(--accent);
 }
 .dv-nav-btn-err {
-  border: 1px solid rgba(255,180,171,0.3);
-  background: rgba(255,180,171,0.08);
+  border: 1px solid var(--hairline);
+  background: transparent;
+  color: var(--text-muted);
+}
+.dv-nav-btn-err:hover {
+  border-color: var(--error);
   color: var(--error);
 }
 
@@ -151,11 +199,11 @@ body {
   font-family: var(--font-mono);
   font-size: 10px;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.22em;
 }
 .dv-badge-ok {
-  background: rgba(4, 251, 251, 0.2);
-  color: var(--secondary-container);
+  background: rgba(197, 52, 0, 0.2);
+  color: var(--accent);
 }
 .dv-badge-err {
   background: rgba(255, 180, 171, 0.2);
@@ -177,8 +225,8 @@ body {
   display: block;
   width: 22px;
   height: 2px;
-  background: rgba(255,255,255,0.7);
-  border-radius: 2px;
+  background: var(--text-secondary);
+  border-radius: 0;
   transition: all 0.3s;
 }
 
@@ -202,10 +250,10 @@ body {
   pointer-events: none;
 }
 .dv-topbar-inner {
-  background: rgba(14, 14, 14, 0.85);
+  background: rgba(0, 0, 0, 0.92);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
-  border-bottom: 1px solid rgba(255,255,255,0.06);
+  border-bottom: 1px solid var(--hairline);
   padding: 12px 20px 16px;
   display: flex;
   flex-direction: column;
@@ -227,27 +275,29 @@ body {
 }
 .dv-topbar-btn {
   padding: 8px 14px;
-  border-radius: 6px;
+  border-radius: 2px;
   font-family: var(--font-mono);
   font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.22em;
   cursor: pointer;
   transition: all 0.2s;
   white-space: nowrap;
 }
 .dv-topbar-btn-purple {
-  border: 1px solid rgba(220, 184, 255, 0.3);
-  background: rgba(220, 184, 255, 0.1);
-  color: var(--primary);
+  border: 1px solid var(--hairline);
+  background: transparent;
+  color: var(--text-secondary);
 }
 .dv-topbar-btn-cyan {
-  border: 1px solid rgba(4, 251, 251, 0.3);
-  background: rgba(4, 251, 251, 0.05);
-  color: var(--secondary-container);
+  border: 1px solid var(--hairline);
+  background: transparent;
+  color: var(--text-secondary);
 }
 .dv-topbar-btn-err {
-  border: 1px solid rgba(255,180,171,0.3);
-  background: rgba(255,180,171,0.08);
-  color: var(--error);
+  border: 1px solid var(--hairline);
+  background: transparent;
+  color: var(--text-muted);
 }
 
 /* Main Content */
@@ -294,6 +344,7 @@ body {
 
 .dv-hero-image {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   padding-right: 0;
@@ -336,6 +387,17 @@ body {
   align-self: center;
 }
 
+.dv-hero-tagline {
+  font-family: var(--font-display);
+  font-size: 32px;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  text-transform: uppercase;
+  color: var(--text-primary);
+  margin-top: 16px;
+  text-align: center;
+}
+
 @media (min-width: 768px) {
   .dv-hero-content {
     justify-self: center;
@@ -347,44 +409,45 @@ body {
   width: 100%;
   max-width: 600px;
   min-height: 500px;
-  background: rgba(14, 14, 14, 0.6);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: radial-gradient(ellipse 70% 80% at 12% 0%, rgba(197, 52, 0, 0.13), transparent 60%),
+              linear-gradient(165deg, #181818 0%, #141414 48%, #100c0a 100%);
+  border: 1px solid var(--hairline);
+  border-radius: 0;
 }
 
 /* Tabs */
 .dv-tabs {
   display: flex;
   width: 100%;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid var(--hairline);
 }
 
 .dv-tab {
   flex: 1;
   padding: 16px;
   background: transparent;
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--text-muted);
   border: none;
   font-family: var(--font-mono);
   font-size: 12px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.22em;
   cursor: pointer;
   transition: all 0.3s;
 }
 
 .dv-tab:hover {
-  color: white;
+  color: var(--text-primary);
 }
 
 .dv-tab.active {
-  background: var(--primary);
-  color: black;
+  background: var(--accent);
+  color: #fff;
 }
 
 .dv-tab:not(.active) + .dv-tab {
-  border-left: 1px solid rgba(255, 255, 255, 0.1);
+  border-left: 1px solid var(--hairline);
 }
 
 /* Card Content */
@@ -402,19 +465,20 @@ body {
   font-size: 24px;
   line-height: 32px;
   font-weight: 700;
-  color: white;
+  color: var(--text-primary);
   text-transform: uppercase;
+  letter-spacing: -0.025em;
 }
 
 .dv-hint {
-  color: rgba(255, 255, 255, 0.4);
+  color: var(--text-muted);
   font-size: 16px;
   line-height: 24px;
 }
 
 /* Upload Zone */
 .dv-upload {
-  border: 2px dashed rgba(255, 255, 255, 0.1);
+  border: 2px dashed var(--hairline);
   padding: 48px;
   text-align: center;
   cursor: pointer;
@@ -422,7 +486,7 @@ body {
 }
 
 .dv-upload:hover {
-  border-color: rgba(220, 184, 255, 0.5);
+  border-color: var(--accent);
 }
 
 /* File Info */
@@ -439,13 +503,13 @@ body {
 .dv-file-name {
   font-weight: 500;
   word-break: break-all;
-  color: white;
+  color: var(--text-primary);
 }
 
 .dv-file-meta {
   font-family: var(--font-mono);
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.4);
+  color: var(--text-muted);
   margin-top: 4px;
 }
 
@@ -459,8 +523,9 @@ body {
 .dv-input-group label {
   font-family: var(--font-mono);
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.4);
+  color: var(--text-muted);
   text-transform: uppercase;
+  letter-spacing: 0.22em;
 }
 
 .dv-input-group input,
@@ -469,29 +534,30 @@ body {
   width: 100%;
   padding: 16px;
   background: var(--input-bg);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: white;
+  border: 1px solid var(--hairline);
+  color: var(--text-primary);
   font-family: var(--font-mono);
   font-size: 14px;
   transition: all 0.3s;
+  border-radius: 0;
 }
 
 .dv-input-group input:focus,
 .dv-input-group textarea:focus,
 .dv-input-group select:focus {
   outline: none;
-  border-color: var(--primary);
+  border-color: var(--accent);
 }
 
 .dv-input-group input::placeholder,
 .dv-input-group textarea::placeholder {
-  color: rgba(255, 255, 255, 0.3);
+  color: var(--text-muted);
 }
 
 .dv-input-group small {
   font-family: var(--font-mono);
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.4);
+  color: var(--text-muted);
   margin-top: 4px;
   display: block;
 }
@@ -500,21 +566,21 @@ body {
 .dv-btn-primary {
   width: 100%;
   padding: 16px;
-  background: rgba(220, 184, 255, 0.2);
-  border: 1px solid rgba(220, 184, 255, 0.4);
-  color: var(--primary);
+  background: var(--accent);
+  border: 1px solid var(--accent);
+  color: #fff;
   font-family: var(--font-mono);
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.22em;
   cursor: pointer;
   transition: all 0.3s;
+  border-radius: 2px;
 }
 
 .dv-btn-primary:hover:not(:disabled) {
-  background: var(--primary);
-  color: black;
+  box-shadow: 0 0 28px rgba(197, 52, 0, 0.5);
 }
 
 .dv-btn-primary:disabled {
@@ -526,20 +592,21 @@ body {
   width: 100%;
   padding: 16px;
   background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: white;
+  border: 1px solid transparent;
+  color: var(--text-primary);
   font-family: var(--font-mono);
   font-size: 12px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.22em;
   cursor: pointer;
   transition: all 0.3s;
+  border-radius: 2px;
 }
 
 .dv-btn-secondary:hover {
-  border-color: var(--secondary-container);
-  color: var(--secondary-container);
+  border-color: var(--accent);
+  color: var(--accent);
 }
 
 /* Download Button */
@@ -547,41 +614,42 @@ body {
   display: block;
   width: 100%;
   padding: 16px;
-  background: var(--secondary-container);
-  color: black;
-  border: none;
+  background: var(--accent);
+  color: #fff;
+  border: 1px solid var(--accent);
   font-family: var(--font-mono);
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.22em;
   cursor: pointer;
   text-align: center;
   text-decoration: none;
   transition: all 0.3s;
+  border-radius: 2px;
 }
 
 .dv-btn-download:hover {
-  opacity: 0.9;
+  box-shadow: 0 0 28px rgba(197, 52, 0, 0.5);
 }
 
 /* Info/Success Boxes */
 .dv-info-box {
   padding: 16px 20px;
-  background: rgba(220, 184, 255, 0.1);
-  border-left: 4px solid var(--primary);
+  background: rgba(197, 52, 0, 0.1);
+  border-left: 4px solid var(--accent);
   font-size: 14px;
   line-height: 24px;
 }
 
 .dv-success-box {
   padding: 24px;
-  background: rgba(4, 251, 251, 0.1);
-  border-left: 4px solid var(--secondary-container);
+  background: rgba(197, 52, 0, 0.1);
+  border-left: 4px solid var(--accent);
 }
 
 .dv-success-box h3 {
-  color: var(--secondary-container);
+  color: var(--accent);
   font-family: var(--font-display);
   font-size: 18px;
   margin-bottom: 16px;
@@ -590,7 +658,7 @@ body {
 /* CID Box */
 .dv-cid-box {
   background: rgba(0, 0, 0, 0.4);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--hairline);
   padding: 16px;
 }
 
@@ -604,9 +672,9 @@ body {
 .dv-cid-box label {
   font-family: var(--font-mono);
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.4);
+  color: var(--text-muted);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.22em;
 }
 
 .dv-cid-box code {
@@ -614,30 +682,31 @@ body {
   word-break: break-all;
   font-family: var(--font-mono);
   font-size: 14px;
-  color: var(--primary);
+  color: var(--accent);
   line-height: 1.6;
 }
 
 .dv-key {
-  color: var(--secondary-container) !important;
+  color: var(--accent) !important;
 }
 
 .dv-copy {
   background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: rgba(255, 255, 255, 0.5);
+  border: 1px solid var(--hairline);
+  color: var(--text-muted);
   padding: 4px 12px;
   font-family: var(--font-mono);
   font-size: 11px;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.22em;
   cursor: pointer;
   transition: all 0.2s;
+  border-radius: 2px;
 }
 
 .dv-copy:hover {
-  border-color: var(--primary);
-  color: var(--primary);
+  border-color: var(--accent);
+  color: var(--accent);
 }
 
 /* Info Row */
@@ -646,13 +715,13 @@ body {
   justify-content: space-between;
   align-items: center;
   padding: 12px 0;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 1px solid var(--hairline);
   font-size: 14px;
-  color: rgba(255, 255, 255, 0.4);
+  color: var(--text-muted);
 }
 
 .dv-info-row strong {
-  color: white;
+  color: var(--text-primary);
   font-weight: 500;
 }
 
@@ -665,9 +734,9 @@ body {
 .dv-spinner {
   width: 32px;
   height: 32px;
-  border: 3px solid rgba(255, 255, 255, 0.1);
-  border-top-color: var(--primary);
-  border-radius: 50%;
+  border: 3px solid var(--hairline);
+  border-top-color: var(--accent);
+  border-radius: 0;
   animation: spin 0.8s linear infinite;
   margin: 0 auto 16px;
 }
@@ -677,7 +746,7 @@ body {
 }
 
 .dv-loading p {
-  color: rgba(255, 255, 255, 0.4);
+  color: var(--text-muted);
   font-size: 14px;
 }
 
@@ -694,7 +763,7 @@ body {
   align-items: start;
   gap: 12px;
   font-size: 14px;
-  color: rgba(255, 255, 255, 0.4);
+  color: var(--text-muted);
 }
 
 .dv-step-num {
@@ -704,8 +773,8 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(220, 184, 255, 0.2);
-  color: var(--primary);
+  background: rgba(197, 52, 0, 0.2);
+  color: var(--accent);
   font-family: var(--font-mono);
   font-size: 12px;
   font-weight: 700;
@@ -724,7 +793,7 @@ body {
 .dv-footer {
   padding: 24px;
   text-align: center;
-  color: rgba(255, 255, 255, 0.3);
+  color: var(--text-muted);
   font-family: var(--font-mono);
   font-size: 12px;
 }
@@ -733,7 +802,7 @@ body {
 .dv-popup-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.7);
+  background: rgba(0, 0, 0, 0.8);
   backdrop-filter: blur(20px);
   display: flex;
   align-items: center;
@@ -754,10 +823,10 @@ body {
 }
 
 .dv-popup-card {
-  background: rgba(14, 14, 14, 0.9);
+  background: var(--raised);
   backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 16px;
+  border: 1px solid var(--hairline);
+  border-radius: 0;
   padding: 40px;
   max-width: 480px;
   width: 100%;
@@ -772,7 +841,7 @@ body {
   right: 16px;
   background: none;
   border: none;
-  color: rgba(255,255,255,0.3);
+  color: var(--text-muted);
   font-size: 20px;
   cursor: pointer;
   width: 32px;
@@ -780,28 +849,29 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 50%;
+  border-radius: 0;
   transition: all 0.2s;
 }
 
 .dv-popup-close:hover {
-  color: white;
-  background: rgba(255,255,255,0.1);
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .dv-popup-title {
   font-family: var(--font-display);
   font-size: 20px;
   font-weight: 700;
-  color: var(--primary);
+  color: var(--accent);
   text-transform: uppercase;
   margin-bottom: 16px;
+  letter-spacing: -0.025em;
 }
 
 .dv-popup-text {
   font-family: var(--font-body);
   font-size: 16px;
-  color: rgba(255,255,255,0.5);
+  color: var(--text-secondary);
   line-height: 1.6;
   margin-bottom: 8px;
 }
@@ -809,7 +879,7 @@ body {
 .dv-popup-subtitle {
   font-family: var(--font-mono);
   font-size: 12px;
-  color: rgba(255,255,255,0.3);
+  color: var(--text-muted);
   margin-bottom: 28px;
 }
 
@@ -824,31 +894,31 @@ body {
 .dv-progress-step {
   flex: 1;
   height: 3px;
-  background: rgba(255,255,255,0.1);
-  border-radius: 2px;
+  background: var(--hairline);
+  border-radius: 0;
   transition: background 0.3s;
 }
 
 .dv-progress-step.active {
-  background: var(--primary);
+  background: var(--accent);
 }
 
 .dv-progress-step.done {
-  background: var(--secondary-container);
+  background: var(--accent);
 }
 
 .dv-progress-label {
   font-family: var(--font-mono);
   font-size: 11px;
-  color: rgba(255,255,255,0.3);
+  color: var(--text-muted);
   white-space: nowrap;
 }
 
 /* Drag and Drop Zone */
 .dv-upload.dragging {
-  border-color: var(--primary);
-  background: rgba(220, 184, 255, 0.05);
-  box-shadow: inset 0 0 40px rgba(220, 184, 255, 0.05);
+  border-color: var(--accent);
+  background: rgba(197, 52, 0, 0.05);
+  box-shadow: inset 0 0 40px rgba(197, 52, 0, 0.05);
 }
 
 .dv-upload-icon {
@@ -865,18 +935,18 @@ body {
 
 /* File Info Card */
 .dv-file-card {
-  background: rgba(220, 184, 255, 0.06);
-  border: 1px solid rgba(220, 184, 255, 0.15);
-  border-radius: 12px;
+  background: rgba(197, 52, 0, 0.06);
+  border: 1px solid rgba(197, 52, 0, 0.15);
+  border-radius: 0;
   padding: 16px;
   animation: slideUp 0.2s ease-out;
 }
 
 /* BuyFlow Metadata Card */
 .dv-metadata-card {
-  background: rgba(139, 92, 246, 0.08);
-  border: 1px solid rgba(139, 92, 246, 0.2);
-  border-radius: 12px;
+  background: rgba(197, 52, 0, 0.08);
+  border: 1px solid rgba(197, 52, 0, 0.2);
+  border-radius: 0;
   padding: 16px;
   margin-bottom: 16px;
 }
@@ -892,49 +962,49 @@ body {
 }
 
 .dv-metadata-label {
-  color: rgba(255,255,255,0.5);
+  color: var(--text-secondary);
   font-size: 13px;
 }
 
 .dv-metadata-value {
-  color: #fff;
+  color: var(--text-primary);
   font-size: 13px;
 }
 
 .dv-metadata-value.price {
-  color: var(--primary);
+  color: var(--accent);
   font-weight: 600;
   font-size: 14px;
 }
 
 .dv-metadata-value.fee {
-  color: var(--secondary-container);
+  color: var(--text-secondary);
   font-size: 13px;
 }
 
 .dv-metadata-value.total {
-  color: #10b981;
+  color: var(--accent);
   font-weight: 600;
   font-size: 14px;
 }
 
-/* Warning Box (consistent) */
+/* Warning Box */
 .dv-warning-box {
-  background: rgba(220, 184, 255, 0.1);
-  border: 1px solid rgba(220, 184, 255, 0.3);
-  border-radius: 8px;
+  background: rgba(197, 52, 0, 0.1);
+  border: 1px solid rgba(197, 52, 0, 0.3);
+  border-radius: 0;
   padding: 12px;
   margin-bottom: 16px;
 }
 
 .dv-warning-box p {
-  color: var(--primary);
+  color: var(--accent);
   font-size: 13px;
   margin: 0;
 }
 
 .dv-warning-box ol {
-  color: rgba(255,255,255,0.7);
+  color: var(--text-secondary);
   font-size: 12px;
   margin: 8px 0 0 0;
   padding-left: 20px;
@@ -942,15 +1012,15 @@ body {
 
 /* Info Tip Box */
 .dv-info-tip {
-  background: rgba(4, 251, 251, 0.1);
-  border: 1px solid rgba(4, 251, 251, 0.3);
-  border-radius: 8px;
+  background: rgba(197, 52, 0, 0.1);
+  border: 1px solid rgba(197, 52, 0, 0.3);
+  border-radius: 0;
   padding: 12px;
   margin-top: 12px;
 }
 
 .dv-info-tip p {
-  color: var(--secondary-container);
+  color: var(--accent);
   font-size: 13px;
   margin: 0;
 }
@@ -958,38 +1028,38 @@ body {
 /* Fee Display */
 .dv-fee-display {
   padding: 16px;
-  background: rgba(220, 184, 255, 0.1);
-  border: 1px solid rgba(220, 184, 255, 0.3);
-  border-radius: 8px;
+  background: rgba(197, 52, 0, 0.1);
+  border: 1px solid rgba(197, 52, 0, 0.3);
+  border-radius: 0;
 }
 
 .dv-fee-label {
   font-family: var(--font-mono);
   font-size: 12px;
-  color: var(--primary);
+  color: var(--accent);
   margin-bottom: 8px;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.22em;
 }
 
 .dv-fee-amount {
   font-size: 24px;
   font-weight: 700;
-  color: white;
+  color: var(--text-primary);
   margin-bottom: 8px;
 }
 
 .dv-fee-breakdown {
   font-family: var(--font-mono);
   font-size: 11px;
-  color: rgba(255,255,255,0.5);
+  color: var(--text-secondary);
 }
 
 /* Pending Warning Box */
 .dv-pending-box {
   background: rgba(251, 191, 36, 0.1);
   border: 1px solid rgba(251, 191, 36, 0.3);
-  border-radius: 8px;
+  border-radius: 0;
   padding: 12px;
   margin-bottom: 16px;
   font-size: 13px;
@@ -997,7 +1067,7 @@ body {
 }
 
 .dv-pending-box a {
-  color: var(--primary);
+  color: var(--accent);
   margin-left: 4px;
   text-decoration: underline;
 }
@@ -1017,7 +1087,7 @@ body {
   white-space: nowrap;
   font-family: var(--font-mono);
   font-size: 12px;
-  color: rgba(255,255,255,0.5);
+  color: var(--text-secondary);
 }
 
 @media (max-width: 768px) {
@@ -1051,7 +1121,7 @@ body {
   .dv-tab {
     padding: 12px 8px;
     font-size: 11px;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.1em;
   }
   
   .dv-title {
@@ -1070,9 +1140,14 @@ body {
     padding: 12px;
     font-size: 11px;
   }
+
+  .dv-nav-connect {
+    padding: 6px 12px;
+    font-size: 10px;
+  }
   
   .dv-popup-card {
     padding: 28px 20px;
-    border-radius: 12px;
+    border-radius: 0;
   }
 }

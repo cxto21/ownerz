@@ -6,7 +6,7 @@ export default function App({ Component, pageProps }) {
     <>
       <Head>
         <link rel="icon" href="/images/favicon.ico" sizes="any" />
-        <title>Ownerz — Private Data Marketplace</title>
+        <title>Ownerz — Private Data Vault</title>
       </Head>
       <Component {...pageProps} />
     </>

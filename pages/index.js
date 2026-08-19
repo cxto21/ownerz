@@ -139,9 +139,9 @@ export default function Ownerz() {
         <div className="dv-popup-overlay" onClick={() => setShowHackathonPopup(false)}>
           <div className="dv-popup-card" onClick={(e) => e.stopPropagation()}>
             <button className="dv-popup-close" onClick={() => setShowHackathonPopup(false)}>✕</button>
-            <div className="dv-popup-title">Hackathon Build</div>
+            <div className="dv-popup-title">STRK20 Hackathon</div>
             <div className="dv-popup-text">
-              Work in progress for the <span style={{color:'var(--secondary-container)'}}>STRK20 Private Sprint</span> hackathon.
+              Work in progress for the <span style={{color:'var(--accent)'}}>STRK20 Private Sprint</span> hackathon.
             </div>
             <div className="dv-popup-subtitle">
               Starknet Sepolia Testnet · Do not use real funds
@@ -169,7 +169,7 @@ export default function Ownerz() {
               <button
                 onClick={() => { navigator.clipboard.writeText(walletState.address); setCopiedAddress(true); setTimeout(() => setCopiedAddress(false), 2000) }}
                 className="dv-nav-address"
-                style={{ padding: '8px 16px', border: '1px solid rgba(255,255,255,0.1)', background: copiedAddress ? 'rgba(4, 251, 251, 0.2)' : 'transparent', color: 'var(--secondary-container)', cursor: 'pointer', transition: 'all 0.2s' }}
+                style={{ padding: '8px 16px', border: '1px solid var(--hairline)', background: copiedAddress ? 'rgba(197, 52, 0, 0.2)' : 'transparent', color: 'var(--accent)', cursor: 'pointer', transition: 'all 0.2s' }}
               >
                 {copiedAddress ? '✓ Copied' : `${walletState.address.slice(0,6)}...${walletState.address.slice(-4)}`}
               </button>
@@ -180,8 +180,8 @@ export default function Ownerz() {
               <button onClick={handleDisconnect} className="dv-nav-btn dv-nav-btn-err">Disconnect</button>
             </div>
           ) : (
-            <button onClick={handleConnect} disabled={walletState.loading} className="dv-btn-primary" style={{ width: 'auto', padding: '10px 24px', fontSize: '11px' }}>
-              {walletState.loading ? 'Connecting...' : 'Connect Wallet ✦'}
+            <button onClick={handleConnect} disabled={walletState.loading} className="dv-btn-primary dv-nav-connect" style={{ width: 'auto' }}>
+              {walletState.loading ? 'Connecting...' : 'CONNECT ↓'}
             </button>
           )}
           {/* Mobile hamburger */}
@@ -204,7 +204,7 @@ export default function Ownerz() {
                   <button
                     onClick={() => { navigator.clipboard.writeText(walletState.address); setCopiedAddress(true); setTimeout(() => setCopiedAddress(false), 2000); setMenuOpen(false) }}
                     className="dv-nav-address"
-                    style={{ color: 'var(--secondary-container)', fontSize: '11px', background: copiedAddress ? 'rgba(4, 251, 251, 0.15)' : 'rgba(0,0,0,0.5)', padding: '6px 10px', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.08)' }}
+                    style={{ color: 'var(--accent)', fontSize: '11px', background: copiedAddress ? 'rgba(197, 52, 0, 0.15)' : 'rgba(0,0,0,0.5)', padding: '6px 10px', borderRadius: '2px', border: '1px solid var(--hairline)' }}
                   >
                     {copiedAddress ? '✓ Copied' : `${walletState.address.slice(0,10)}...${walletState.address.slice(-6)}`}
                   </button>
@@ -219,7 +219,7 @@ export default function Ownerz() {
               </>
             ) : (
               <button onClick={() => { handleConnect(); setMenuOpen(false) }} disabled={walletState.loading} className="dv-topbar-btn dv-topbar-btn-purple" style={{ width: '100%' }}>
-                {walletState.loading ? 'Connecting...' : 'Connect Wallet ✦'}
+                {walletState.loading ? 'Connecting...' : 'CONNECT ↓'}
               </button>
             )}
           </div>
@@ -234,8 +234,8 @@ export default function Ownerz() {
           right: '20px',
           zIndex: 50,
           background: 'var(--surface-container-high)',
-          border: '1px solid rgba(4, 251, 251, 0.2)',
-          borderRadius: '8px',
+          border: '1px solid var(--hairline)',
+          borderRadius: '0',
           padding: '16px 20px',
           minWidth: '280px',
           maxWidth: '340px',
@@ -244,24 +244,24 @@ export default function Ownerz() {
           color: 'var(--on-surface)'
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-            <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--secondary-container)' }}>
+            <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.22em', color: 'var(--accent)' }}>
               Shielded Balance
             </span>
             <button
               onClick={() => setShowShieldedBalance(false)}
-              style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.4)', cursor: 'pointer', fontSize: '16px', padding: '0' }}
+              style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '16px', padding: '0' }}
             >
               ✕
             </button>
           </div>
           {loadingBalance ? (
-            <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: '13px' }}>Loading...</div>
+            <div style={{ color: 'var(--text-secondary)', fontSize: '13px' }}>Loading...</div>
           ) : (
             <div style={{ fontSize: '13px', lineHeight: '1.6', whiteSpace: 'pre-wrap' }}>
               {shieldedBalance || 'No balance data'}
             </div>
           )}
-          <div style={{ marginTop: '12px', fontSize: '11px', color: 'rgba(255,255,255,0.3)' }}>
+          <div style={{ marginTop: '12px', fontSize: '11px', color: 'var(--text-muted)' }}>
             Funds shielded via STRK20 privacy pool
           </div>
         </div>
@@ -272,7 +272,8 @@ export default function Ownerz() {
         {/* Hero Section */}
         <section className="dv-hero">
           <div className="dv-hero-image">
-            <img src="/images/brand-asset.png" alt="Ownerz Brand Asset" />
+            <img src="/images/brand-asset-orange.png" alt="Ownerz Brand Asset" />
+            <div className="dv-hero-tagline">SELL FILES. POST-QUANTUM DELIVERY.</div>
           </div>
           
           <div className="dv-hero-content">
