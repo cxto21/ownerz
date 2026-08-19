@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { getAvailableWallets, connectWallet, RpcProvider } from '../lib/starknet'
+import { getAvailableWallets, waitForWallets, onWalletInjected, connectWallet, RpcProvider } from '../lib/starknet'
 import { getShieldedBalance, STRK_TOKEN_ADDRESS } from '../lib/strk20-payments'
 import SellFlow from '../components/SellFlow'
 import BuyFlow from '../components/BuyFlow'
@@ -24,15 +24,42 @@ export default function Ownerz() {
     error: null
   })
 
-  // Check for wallet on mount
+  // Check for wallet on mount (mobile-friendly with retry)
   useEffect(() => {
+    let cleanup = () => {}
+    
     const checkWallet = async () => {
-      const wallets = await getAvailableWallets()
+      // First try immediate detection
+      let wallets = await getAvailableWallets()
+      
+      // If no wallets, wait with retry (mobile wallets inject later)
       if (wallets.length === 0) {
-        setWalletState(prev => ({ ...prev, error: 'No Starknet wallet detected' }))
+        console.log('No wallets on first check, waiting for mobile injection...')
+        wallets = await waitForWallets(5, 500)
+      }
+      
+      if (wallets.length === 0) {
+        // Set up listener for late wallet injection
+        cleanup = onWalletInjected((wallet) => {
+          console.log('Wallet detected via injection listener')
+          setWalletState(prev => ({ ...prev, error: null }))
+        })
+        
+        // Only show error after all retries and listeners are exhausted
+        setTimeout(() => {
+          setWalletState(prev => ({ 
+            ...prev, 
+            error: 'No Starknet wallet detected. Install Ready or Argent X.' 
+          }))
+        }, 15000)
+      } else {
+        setWalletState(prev => ({ ...prev, error: null }))
       }
     }
+    
     checkWallet()
+    
+    return () => cleanup()
   }, [])
 
   // Check network on connect
