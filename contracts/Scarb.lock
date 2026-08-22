@@ -2,9 +2,14 @@
 version = 1
 
 [[package]]
+name = "key_onchain"
+version = "0.1.0"
+
+[[package]]
 name = "ownerz_filevault"
 version = "0.1.0"
 dependencies = [
+ "key_onchain",
  "snforge_std",
 ]
 

@@ -1,16 +1,17 @@
 [package]
-name = "ownerz_filevault"
+name = "key_onchain"
 version = "0.1.0"
 cairo-version = "2.18.0"
 edition = "2024_07"
 
 [dependencies]
 starknet = "2.18.0"
-key_onchain = { path = "../lib/key-onchain" }
 
-[dev-dependencies]
-snforge_std = "0.61.0"
+[lib]
+name = "key_onchain"
+path = "src/lib.cairo"
 
 [[target.starknet-contract]]
+name = "keyexchangemockup"
 sierra = true
 casm = true

@@ -8,10 +8,15 @@ export default async function handler(req) {
   }
 
   try {
-    const { encryptedData, fileName, sellerAddress, price } = await req.json()
+    const body = await req.json()
+    // Tolerant: accept {data, encryptedData} and {fileName, fileName fallback}
+    const encryptedData = body.encryptedData || body.data || body.encrypted
+    const fileName = body.fileName || body.filename || body.originalName || 'unnamed.enc'
+    const sellerAddress = body.sellerAddress || ''
+    const price = body.price || '0'
 
-    if (!encryptedData || !fileName) {
-      return new Response(JSON.stringify({ error: 'Missing encryptedData or fileName' }), { status: 400 })
+    if (!encryptedData) {
+      return new Response(JSON.stringify({ error: 'Missing encryptedData or data' }), { status: 400 })
     }
 
     const timestamp = Date.now()
@@ -38,7 +43,9 @@ export default async function handler(req) {
     return new Response(JSON.stringify({
       success: true,
       cid,
+      key: objectKey,
       objectKey,
+      url: `https://eu-west-1.s3.fil.one/${BUCKET}/${objectKey}`,
       etag: result.ETag,
       fileName,
       sellerAddress: sellerAddress || '',

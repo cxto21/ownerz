@@ -32,9 +32,9 @@ export default function Ownerz() {
       // First try immediate detection
       let wallets = await getAvailableWallets()
       
-      // If no wallets, wait with retry (mobile wallets inject later)
+      // If no wallets, wait with retry (mobile wallets inject later) — debug only
       if (wallets.length === 0) {
-        console.log('No wallets on first check, waiting for mobile injection...')
+        // silent wait — wallets inject a bit after load on mobile
         wallets = await waitForWallets(5, 500)
       }
       

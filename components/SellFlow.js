@@ -1,11 +1,8 @@
 import { useState, useEffect } from 'react'
-import { encryptData, generateKeyPair, wrapKeySeed } from '../lib/encryption'
+import { generateListing, lock, readLock, getFee, identifierToFelt, computeCommitment } from '../lib/key-onchain/index.js'
+import { uploadEncryptedFile, uploadKeySeed } from '../lib/storage/index.js'
 import { calculateUploadFee } from '../lib/fees'
-import { createVault, getVault, cidToFelt, getPlatformFee } from '../lib/filevault'
-import { hash as snHash } from 'starknet'
 import { getFileIcon, formatSize, copyToClipboard } from './utils'
-
-const computePedersenHash = snHash.computePedersenHash
 
 export default function SellFlow({ connected, isStrk20, account, refreshWallet, onConnect }) {
   const [file, setFile] = useState(null)
@@ -34,93 +31,74 @@ export default function SellFlow({ connected, isStrk20, account, refreshWallet, 
       setError(null)
     }
 
-    // One unified flow: encrypt → upload to S3 → create vault (fee pulled by contract)
-    setStep(1) // Encrypting & uploading
+    setStep(1)
     setError(null)
 
     try {
-      // Step 1: Encrypt and upload to S3
-      const buffer = await file.arrayBuffer()
-      const keypair = generateKeyPair()
-      const { encrypted, secretKey } = await encryptData(buffer, {
-        name: file.name,
-        type: file.type,
-      }, keypair)
-
-      const res = await fetch('/api/upload', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          encryptedData: encrypted,
-          fileName: file.name,
-          fileType: file.type,
-          sellerAddress: account?.address || '',
-          price: price || '0',
-        }),
-      })
-
-      const data = await res.json()
-      if (!data.success) throw new Error(data.error)
-
-      // Step 2: Create vault on-chain (single tx = approve fee + create vault)
-      setStep(2)
-      const cid = data.cid
-      const cidF = await cidToFelt(cid)
-
+      // Step 1: Generate claim secret
       const claimSecret = Array.from(crypto.getRandomValues(new Uint8Array(16)))
         .map(b => b.toString(16).padStart(2, '0'))
         .join('')
 
-      const keySeedCiphertext = await wrapKeySeed(secretKey, claimSecret)
+      // Step 2: Generate listing payload (encrypt + wrap key — single keypair!)
+      // We generate once with pending CID, then recompute commitment for actual CID
+      // to avoid double-keypair bug (previous version generated 2 different keypairs)
+      const listing = await generateListing({
+        file,
+        fileName: file.name,
+        fileType: file.type,
+        cid: 'pending',
+        claimSecret,
+      })
 
-      const claimSecretNum = parseInt(claimSecret.slice(0, 4), 16)
-      const high = (claimSecretNum >> 8) & 0xFF
-      const low = claimSecretNum & 0xFF
-      const inner = computePedersenHash(cidF, '0x' + high.toString(16).padStart(2, '0'))
-      const commitment = computePedersenHash(inner, '0x' + low.toString(16).padStart(2, '0'))
+      // Step 3: Upload encrypted file (server generates final CID)
+      const uploadResult = await uploadEncryptedFile('pending', listing.encrypted, file.name)
+      const cid = uploadResult.cid || uploadResult.key
+      if (!cid || cid === 'pending') throw new Error('Upload failed to return CID')
 
-      const keySeedBytes = new TextEncoder().encode(keySeedCiphertext)
-      const keySeedHash = await crypto.subtle.digest('SHA-256', keySeedBytes)
-      const keySeedHashHex = '0x' + Array.from(new Uint8Array(keySeedHash)).slice(0, 31).map(b => b.toString(16).padStart(2, '0')).join('')
+      // Step 4: Recompute commitment for actual CID — REUSE same encrypted/keySeed!
+      // Do NOT call generateListing again (that would create new keypair and break decrypt)
+      const identifier = await identifierToFelt(cid)
+      const commitment = computeCommitment(identifier, claimSecret)
+      const integrityHash = listing.integrityHash
+      const keySeedCiphertext = listing.keySeedCiphertext
 
+      // Step 5: Lock on-chain with recomputed commitment
+      setStep(2)
       const priceWei = BigInt(Math.floor(parseFloat(price) * 1e18))
+      const fee = await getFee()
 
-      // Get platform fee from contract
-      const platformFee = await getPlatformFee()
-
-      // Single multicall: STRK approve + create_vault (one wallet popup)
-      const vaultResult = await createVault(account, {
-        cid: cidF,
-        price: priceWei,
-        keySeedCiphertext: keySeedHashHex,
+      const lockResult = await lock({
+        account,
+        identifier,
         commitment,
-        ttl: 2592000,
-        fee: platformFee,
+        integrityHash,
+        meta: { price: priceWei, ttl: 2592000, fee },
       })
 
-      // Upload full key seed to S3
-      const keySeedS3Key = cid + '.key'
-      await fetch('/api/upload-key', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ key: keySeedS3Key, data: keySeedCiphertext }),
-      })
+      // Step 6: Upload key seed (same wrapped key as step 2)
+      await uploadKeySeed(cid, keySeedCiphertext)
 
-      // Wait for tx confirmation
-      if (vaultResult?.transaction_hash) {
+      // Step 7: Wait for tx confirmation
+      if (lockResult?.transaction_hash) {
         try {
-          await account.provider.waitForTransaction(vaultResult.transaction_hash, { timeout: 60000 })
+          await account.provider.waitForTransaction(lockResult.transaction_hash, { timeout: 60000 })
         } catch (waitErr) {
           console.warn('waitForTransaction failed:', waitErr.message)
-          const verifyVault = await getVault(account, cidF)
-          if (!verifyVault) {
+          const verifyLock = await readLock(identifier)
+          if (!verifyLock) {
             throw new Error('Transaction may have failed on-chain. Please try again.')
           }
         }
+      } else if (lockResult?.transaction_hash === null && lockResult?.pending) {
+        // STRK20-like timeout or wallet pending — verify via readLock
+        await new Promise(r => setTimeout(r, 3000))
+        const verifyLock = await readLock(identifier)
+        if (!verifyLock) console.warn('Vault not yet visible on-chain, may need a few seconds')
       }
 
-      setCidFelt(cidF)
-      setResult({ ...data, claimSecret })
+      setCidFelt(identifier)
+      setResult({ cid, claimSecret, fileName: file.name, fileSize: file.size })
       setStep(3)
     } catch (err) {
       console.error('[SellFlow] Error:', err.message)
@@ -141,7 +119,6 @@ export default function SellFlow({ connected, isStrk20, account, refreshWallet, 
 
   return (
     <>
-      {/* Progress */}
       {step > 0 && step < 4 && (
         <div className="dv-progress">
           <div className={`dv-progress-step ${step >= 1 ? 'done' : ''}`}></div>

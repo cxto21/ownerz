@@ -1,16 +1,12 @@
 import { useState } from 'react'
-import { decryptData, unwrapKeySeed, hexToArray } from '../lib/encryption'
+import { recoverListing, identifierToFelt, readLock } from '../lib/key-onchain/index.js'
 import { batchPrivateTransfer, STRK_TOKEN_ADDRESS, formatTxHash, getExplorerUrl } from '../lib/strk20-payments'
-import { cidToFelt, getVault, claimVault } from '../lib/filevault'
 import { copyToClipboard } from './utils'
 
 export default function BuyFlow({ connected, isStrk20, account, refreshWallet, onConnect }) {
   const [cid, setCid] = useState('')
   const [step, setStep] = useState(0)
-  const [secretKey, setSecretKey] = useState('')
   const [claimSecret, setClaimSecret] = useState('')
-  const [objectKey, setObjectKey] = useState('')
-  const [encryptedData, setEncryptedData] = useState(null)
   const [decryptedFile, setDecryptedFile] = useState(null)
   const [copied, setCopied] = useState(null)
   const [error, setError] = useState(null)
@@ -25,25 +21,35 @@ export default function BuyFlow({ connected, isStrk20, account, refreshWallet, o
     setError(null)
 
     try {
-      // Fetch vault data from on-chain (price authority)
-      const cidFelt = await cidToFelt(cid.trim())
-      console.log('[BuyFlow] Searching for CID:', cid.trim(), '-> cidFelt:', cidFelt)
-      const vault = await getVault(account, cidFelt) // pass account as provider
-      
-      if (!vault) {
+      const identifier = await identifierToFelt(cid.trim())
+      // FileVault v2: readLock returns (Vault, LockState) tuple via FileVault.get_vault
+      // Normalized shape: { issuer, meta:{price,status}, isClaimed, is_claimed, commitment, integrityHash }
+      const locked = await readLock(identifier)
+
+      if (!locked) {
         throw new Error('No vault found for this CID. The file may not have been uploaded with FileVault.')
       }
 
-      if (Number(vault.status) !== 0) {
-        throw new Error('This vault is no longer available (already claimed or refunded)')
+      // Check both Vault.status and LockState.is_claimed (v2 dual state)
+      const status = Number(locked.meta?.status ?? locked.vault?.status ?? 0)
+      const isClaimed = locked.isClaimed ?? locked.is_claimed ?? locked.lock?.is_claimed ?? false
+      if (status !== 0 || isClaimed) {
+        // Show lock details for debugging
+        const commitment = locked.commitment ?? locked.lock?.commitment ?? 'unknown'
+        throw new Error(
+          `This vault is no longer available (status=${status}, isClaimed=${isClaimed}, commitment=${String(commitment).slice(0, 10)}...)`
+        )
       }
 
-      const sellerAddress = vault.seller
-      const price = vault.price
+      const sellerAddress = locked.issuer ?? locked.seller ?? locked.vault?.seller
+      const price = locked.meta?.price ?? locked.vault?.price ?? BigInt(0)
       const priceStr = (Number(price) / 1e18).toString()
 
-      setFileMetadata({ sellerAddress, price: priceStr })
-      setObjectKey(cid)
+      // Keep lock reference for claim step to show commitment/integrity
+      const commitment = locked.commitment ?? locked.lock?.commitment
+      const integrityHash = locked.integrityHash ?? locked.integrity_hash ?? locked.lock?.integrity_hash
+
+      setFileMetadata({ sellerAddress, price: priceStr, commitment, integrityHash, isClaimed, status })
       setStep(2)
     } catch (err) {
       setError(err.message)
@@ -53,17 +59,11 @@ export default function BuyFlow({ connected, isStrk20, account, refreshWallet, o
 
   const handleStrk20Payment = async () => {
     if (!account || !isStrk20 || !fileMetadata) return
-    console.log('[handleStrk20Payment] Starting payment...')
     setStep(3)
     setError(null)
 
     try {
-      console.log('Payment metadata:', fileMetadata)
-      console.log('Account address:', account?.address)
-      console.log('Platform wallet:', process.env.NEXT_PUBLIC_PLATFORM_WALLET)
-      
       const sellerAddress = fileMetadata.sellerAddress
-      // Ensure sellerAddress is a 0x hex string (wallet API requires it)
       let sellerHex
       if (typeof sellerAddress === 'bigint') {
         sellerHex = '0x' + sellerAddress.toString(16).padStart(64, '0')
@@ -75,8 +75,6 @@ export default function BuyFlow({ connected, isStrk20, account, refreshWallet, o
       const priceHex = '0x' + (BigInt(Math.round(parseFloat(fileMetadata.price) * 1e18))).toString(16)
       const platformWallet = process.env.NEXT_PUBLIC_PLATFORM_WALLET
 
-      // Single batch transfer: seller payment + platform fee in ONE ZK proof
-      // This is much faster - one wallet confirmation instead of two
       const transfers = [
         { amount: priceHex, recipient: sellerHex }
       ]
@@ -90,24 +88,14 @@ export default function BuyFlow({ connected, isStrk20, account, refreshWallet, o
         transfers
       )
 
-      console.log('[handleStrk20Payment] Result:', result)
-
       if (result.pending) {
-        // Wallet timeout — tx was likely submitted on-chain
-        // Proceed with claim flow anyway
-        console.log('STRK20 tx pending (wallet timeout) — proceeding')
-        if (refreshWallet) {
-          await refreshWallet()
-        }
+        if (refreshWallet) await refreshWallet()
         setTxHash(null)
-        setStep(4) // Claim step
+        setStep(4)
       } else if (result.success) {
-        // Re-connect to get fresh account after STRK20 operation
-        if (refreshWallet) {
-          await refreshWallet()
-        }
+        if (refreshWallet) await refreshWallet()
         setTxHash(result.transactionHash)
-        setStep(4) // Claim step
+        setStep(4)
       } else {
         throw new Error(result.error || 'Payment failed')
       }
@@ -117,127 +105,47 @@ export default function BuyFlow({ connected, isStrk20, account, refreshWallet, o
     }
   }
 
-  const handleDownload = async () => {
-    if (!objectKey || !secretKey) return
+  const handleClaim = async () => {
+    if (!cid || !claimSecret) return
     setStep(5)
     setError(null)
 
     try {
-      const res = await fetch('/api/download', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ objectKey }),
+      const { data, fileName, fileType } = await recoverListing({
+        cid: cid.trim(),
+        claimSecret: claimSecret.trim(),
+        account,
       })
 
-      const data = await res.json()
-      if (!data.success) throw new Error(data.error)
-
-      setEncryptedData(data.encryptedData)
-      setStep(6)
-    } catch (err) {
-      setError(err.message)
-      setStep(2)
-    }
-  }
-
-  const handleClaim = async () => {
-    if (!objectKey || !claimSecret) return
-    setStep(5) // Loading
-    setError(null)
-
-    try {
-      const cidFelt = await cidToFelt(objectKey)
-      
-      // Claim vault on-chain (contract expects u16 = first 4 hex chars)
-      const claimSecretU16 = parseInt(claimSecret.trim().slice(0, 4), 16)
-      console.log('[handleClaim] claimSecret U16:', claimSecretU16, 'hex:', claimSecret.trim().slice(0, 4))
-      await claimVault(account, cidFelt, claimSecretU16)
-      
-      // Get vault to retrieve on-chain hash for verification
-      const vault = await getVault(account, cidFelt)
-      if (!vault) {
-        throw new Error('Failed to retrieve vault')
-      }
-
-      // Download full keySeedCiphertext from S3
-      const keySeedS3Key = objectKey + '.key'
-      console.log('[handleClaim] Downloading key seed from S3:', keySeedS3Key)
-      const keyRes = await fetch('/api/download-key?key=' + encodeURIComponent(keySeedS3Key))
-      if (!keyRes.ok) throw new Error('Failed to download key seed from S3')
-      const keyData = await keyRes.json()
-      if (!keyData.success) throw new Error(keyData.error)
-      const keySeedCiphertext = keyData.data
-      console.log('[handleClaim] Key seed downloaded, length:', keySeedCiphertext.length)
-      
-      // Verify hash matches on-chain (truncate to 31 bytes to match felt252)
-      const keySeedBytes = new TextEncoder().encode(keySeedCiphertext)
-      const keySeedHash = await crypto.subtle.digest('SHA-256', keySeedBytes)
-      const keySeedHashHex = '0x' + Array.from(new Uint8Array(keySeedHash)).slice(0, 31).map(b => b.toString(16).padStart(2, '0')).join('')
-      // On-chain value may be decimal string — convert to hex for comparison
-      const onChainVal = String(vault.keySeedCiphertext)
-      const onChainHash = onChainVal.startsWith('0x') ? onChainVal : '0x' + BigInt(onChainVal).toString(16).padStart(62, '0')
-      console.log('[handleClaim] Computed hash:', keySeedHashHex)
-      console.log('[handleClaim] On-chain hash:', onChainHash)
-      if (keySeedHashHex.toLowerCase() !== onChainHash.toLowerCase()) {
-        throw new Error('Key seed hash mismatch — data may be tampered')
-      }
-      console.log('[handleClaim] Hash verified ✓')
-
-      // Unwrap key seed (uses full 32-char claim secret)
-      const secretKey = await unwrapKeySeed(keySeedCiphertext, claimSecret.trim())
-      setSecretKey(secretKey)
-      
-      // Download encrypted file from S3
-      console.log('[handleClaim] Downloading encrypted file from S3:', objectKey)
-      const downloadRes = await fetch('/api/download', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ objectKey }),
-      })
-      const downloadData = await downloadRes.json()
-      if (!downloadData.success) throw new Error(downloadData.error)
-      
-      setEncryptedData(downloadData.encryptedData)
-      setStep(6) // Show decrypt button
-    } catch (err) {
-      setError(err.message)
-      setStep(4) // Back to claim step
-    }
-  }
-
-  const handleDecrypt = async () => {
-    if (!encryptedData || !secretKey) return
-    setStep(7)
-    setError(null)
-
-    try {
-      const keyBytes = hexToArray(secretKey)
-      const { data: decrypted, fileName, fileType } = await decryptData(encryptedData, keyBytes)
-
-      const blob = new Blob([decrypted], { type: fileType })
+      const blob = new Blob([data], { type: fileType })
       const url = URL.createObjectURL(blob)
       setDecryptedFile({ url, name: fileName })
       setStep(8)
     } catch (err) {
-      setError('Decryption error: ' + err.message)
-      setStep(6)
+      // Handle FileVault v2 delegation error: INVALID_PROOF from KeyExchangeMockup
+      let msg = err.message || String(err)
+      if (msg.includes('INVALID_PROOF') || msg.includes('0x494e56414c49445f50524f4f46')) {
+        msg = 'Invalid claim secret — INVALID_PROOF. Check the secret from the seller and try again.'
+      } else if (msg.includes('ALREADY_CLAIMED')) {
+        msg = 'Vault already claimed.'
+      }
+      setError(msg)
+      setStep(4)
     }
   }
 
   const reset = () => {
     setCid('')
     setStep(0)
-    setSecretKey('')
-    setObjectKey('')
-    setEncryptedData(null)
+    setClaimSecret('')
     setDecryptedFile(null)
     setError(null)
     setTxHash(null)
+    setFileMetadata(null)
   }
 
   return (
     <>
-      {/* Progress */}
       {step > 0 && step < 8 && (
         <div className="dv-progress">
           <div className={`dv-progress-step ${step >= 2 ? 'done' : ''}`}></div>
@@ -315,6 +223,24 @@ export default function BuyFlow({ connected, isStrk20, account, refreshWallet, o
                   {parseFloat(fileMetadata.price || 0) + 1} STRK + gas
                 </span>
               </div>
+              {fileMetadata.commitment && (
+                <>
+                  <div className="dv-metadata-row">
+                    <span className="dv-metadata-label">Lock</span>
+                    <span className="dv-metadata-value" style={{ fontSize: '10px', fontFamily: 'var(--font-mono)' }}>
+                      {fileMetadata.isClaimed ? 'claimed' : 'active'} · {String(fileMetadata.commitment).slice(0, 12)}...
+                    </span>
+                  </div>
+                  {fileMetadata.integrityHash && (
+                    <div className="dv-metadata-row">
+                      <span className="dv-metadata-label">Integrity</span>
+                      <span className="dv-metadata-value" style={{ fontSize: '10px', fontFamily: 'var(--font-mono)' }}>
+                        {String(fileMetadata.integrityHash).slice(0, 12)}...
+                      </span>
+                    </div>
+                  )}
+                </>
+              )}
             </div>
           )}
 
@@ -371,18 +297,12 @@ export default function BuyFlow({ connected, isStrk20, account, refreshWallet, o
             </div>
           )}
 
-          {!txHash && account?.address && (
+          {!txHash && (
             <div className="dv-pending-box">
-              Payment submitted via wallet. Your STRK20 transaction should appear here:
-              <a 
-                href={`https://sepolia.voyager.online/contract/${account.address}`}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                View on Voyager →
-              </a>
-              <small>
-                Note: STRK20 privacy transactions show as pool interactions — amounts and recipients are hidden by design.
+              Payment submitted via STRK20 privacy pool.
+              <small style={{display:'block', marginTop:'8px', color:'rgba(255,255,255,0.6)'}}>
+                Private transactions are hidden from public explorers by design.
+                {/* TODO (tech debt): STRK20 txs are invisible on Voyager. Need alternative confirmation: poll shielded balance, check FileVault payment event, or STRK20 receipt via wallet API. */}
               </small>
             </div>
           )}
@@ -406,7 +326,7 @@ export default function BuyFlow({ connected, isStrk20, account, refreshWallet, o
             onClick={handleClaim}
             disabled={!claimSecret}
           >
-            Claim Key & Download
+            Claim Key & Decrypt
           </button>
         </>
       )}
@@ -414,42 +334,7 @@ export default function BuyFlow({ connected, isStrk20, account, refreshWallet, o
       {step === 5 && (
         <div className="dv-loading">
           <div className="dv-spinner"></div>
-          <p>Downloading from Fil One...</p>
-        </div>
-      )}
-
-      {step === 6 && encryptedData && (
-        <>
-          <div>
-            <h3 className="dv-title">File Downloaded</h3>
-            <p className="dv-hint">Encrypted file downloaded. Now decrypt with your secret key.</p>
-          </div>
-
-          <div className="dv-info-row">
-            <span>Original file:</span>
-            <strong>{encryptedData.fileName || 'unknown'}</strong>
-          </div>
-          <div className="dv-info-row">
-            <span>Type:</span>
-            <strong>{encryptedData.fileType || 'unknown'}</strong>
-          </div>
-          <div className="dv-info-row">
-            <span>Encrypted size:</span>
-            <strong>{encryptedData.data ? Math.round(encryptedData.data.length / 2) : 0} bytes</strong>
-          </div>
-
-          {error && <div className="dv-error">{error}</div>}
-
-          <button className="dv-btn-primary" onClick={handleDecrypt}>
-            Decrypt
-          </button>
-        </>
-      )}
-
-      {step === 7 && (
-        <div className="dv-loading">
-          <div className="dv-spinner"></div>
-          <p>Decrypting in browser...</p>
+          <p>Claiming vault and downloading file...</p>
         </div>
       )}
 

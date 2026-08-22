@@ -38,3 +38,12 @@ test-s3-v3.js
 
 # Temp
 .tmp/
+
+# Cairo / Scarb
+contracts/target/
+contracts/.snfoundry_cache/
+lib/key-onchain/target/
+lib/crypto/target/
+lib/storage/target/
+lib/ownerz/target/
+

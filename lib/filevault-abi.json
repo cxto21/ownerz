@@ -1,5 +1,10 @@
 [
   {
+    "type": "impl",
+    "name": "IFileVaultImpl",
+    "interface_name": "ownerz_filevault::filevault::FileVault::IFileVault"
+  },
+  {
     "type": "struct",
     "name": "core::integer::u256",
     "members": [
@@ -10,6 +15,196 @@
       {
         "name": "high",
         "type": "core::integer::u128"
+      }
+    ]
+  },
+  {
+    "type": "struct",
+    "name": "ownerz_filevault::filevault::FileVault::Vault",
+    "members": [
+      {
+        "name": "seller",
+        "type": "core::starknet::contract_address::ContractAddress"
+      },
+      {
+        "name": "price",
+        "type": "core::integer::u256"
+      },
+      {
+        "name": "status",
+        "type": "core::felt252"
+      },
+      {
+        "name": "created_at",
+        "type": "core::integer::u64"
+      },
+      {
+        "name": "ttl",
+        "type": "core::integer::u64"
+      }
+    ]
+  },
+  {
+    "type": "enum",
+    "name": "core::bool",
+    "variants": [
+      {
+        "name": "False",
+        "type": "()"
+      },
+      {
+        "name": "True",
+        "type": "()"
+      }
+    ]
+  },
+  {
+    "type": "struct",
+    "name": "ownerz_filevault::filevault::FileVault::LockState",
+    "members": [
+      {
+        "name": "commitment",
+        "type": "core::felt252"
+      },
+      {
+        "name": "integrity_hash",
+        "type": "core::felt252"
+      },
+      {
+        "name": "is_claimed",
+        "type": "core::bool"
+      }
+    ]
+  },
+  {
+    "type": "interface",
+    "name": "ownerz_filevault::filevault::FileVault::IFileVault",
+    "items": [
+      {
+        "type": "function",
+        "name": "create_vault",
+        "inputs": [
+          {
+            "name": "cid",
+            "type": "core::felt252"
+          },
+          {
+            "name": "price",
+            "type": "core::integer::u256"
+          },
+          {
+            "name": "integrity_hash",
+            "type": "core::felt252"
+          },
+          {
+            "name": "commitment",
+            "type": "core::felt252"
+          },
+          {
+            "name": "ttl",
+            "type": "core::integer::u64"
+          }
+        ],
+        "outputs": [],
+        "state_mutability": "external"
+      },
+      {
+        "type": "function",
+        "name": "claim_vault",
+        "inputs": [
+          {
+            "name": "cid",
+            "type": "core::felt252"
+          },
+          {
+            "name": "claim_secret",
+            "type": "core::integer::u16"
+          }
+        ],
+        "outputs": [],
+        "state_mutability": "external"
+      },
+      {
+        "type": "function",
+        "name": "refund_vault",
+        "inputs": [
+          {
+            "name": "cid",
+            "type": "core::felt252"
+          }
+        ],
+        "outputs": [],
+        "state_mutability": "external"
+      },
+      {
+        "type": "function",
+        "name": "get_vault",
+        "inputs": [
+          {
+            "name": "cid",
+            "type": "core::felt252"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "(ownerz_filevault::filevault::FileVault::Vault, ownerz_filevault::filevault::FileVault::LockState)"
+          }
+        ],
+        "state_mutability": "view"
+      },
+      {
+        "type": "function",
+        "name": "get_status",
+        "inputs": [
+          {
+            "name": "cid",
+            "type": "core::felt252"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "core::felt252"
+          }
+        ],
+        "state_mutability": "view"
+      },
+      {
+        "type": "function",
+        "name": "get_price",
+        "inputs": [
+          {
+            "name": "cid",
+            "type": "core::felt252"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "core::integer::u256"
+          }
+        ],
+        "state_mutability": "view"
+      },
+      {
+        "type": "function",
+        "name": "get_platform_fee",
+        "inputs": [],
+        "outputs": [
+          {
+            "type": "core::integer::u256"
+          }
+        ],
+        "state_mutability": "view"
+      },
+      {
+        "type": "function",
+        "name": "get_total_fees",
+        "inputs": [],
+        "outputs": [
+          {
+            "type": "core::integer::u256"
+          }
+        ],
+        "state_mutability": "view"
       }
     ]
   },
@@ -28,168 +223,12 @@
       {
         "name": "strk_token",
         "type": "core::starknet::contract_address::ContractAddress"
-      }
-    ]
-  },
-  {
-    "type": "function",
-    "name": "create_vault",
-    "inputs": [
-      {
-        "name": "cid",
-        "type": "core::felt252"
       },
       {
-        "name": "price",
-        "type": "core::integer::u256"
-      },
-      {
-        "name": "key_seed_ciphertext",
-        "type": "core::felt252"
-      },
-      {
-        "name": "commitment",
-        "type": "core::felt252"
-      },
-      {
-        "name": "ttl",
-        "type": "core::integer::u64"
-      }
-    ],
-    "outputs": [],
-    "state_mutability": "external"
-  },
-  {
-    "type": "function",
-    "name": "claim_vault",
-    "inputs": [
-      {
-        "name": "cid",
-        "type": "core::felt252"
-      },
-      {
-        "name": "claim_secret",
-        "type": "core::integer::u16"
-      }
-    ],
-    "outputs": [],
-    "state_mutability": "external"
-  },
-  {
-    "type": "function",
-    "name": "refund_vault",
-    "inputs": [
-      {
-        "name": "cid",
-        "type": "core::felt252"
-      }
-    ],
-    "outputs": [],
-    "state_mutability": "external"
-  },
-  {
-    "type": "struct",
-    "name": "ownerz_filevault::filevault::FileVault::Vault",
-    "members": [
-      {
-        "name": "seller",
+        "name": "key_exchange",
         "type": "core::starknet::contract_address::ContractAddress"
-      },
-      {
-        "name": "price",
-        "type": "core::integer::u256"
-      },
-      {
-        "name": "key_seed_ciphertext",
-        "type": "core::felt252"
-      },
-      {
-        "name": "commitment",
-        "type": "core::felt252"
-      },
-      {
-        "name": "status",
-        "type": "core::felt252"
-      },
-      {
-        "name": "created_at",
-        "type": "core::integer::u64"
-      },
-      {
-        "name": "ttl",
-        "type": "core::integer::u64"
       }
     ]
-  },
-  {
-    "type": "function",
-    "name": "get_vault",
-    "inputs": [
-      {
-        "name": "cid",
-        "type": "core::felt252"
-      }
-    ],
-    "outputs": [
-      {
-        "type": "ownerz_filevault::filevault::FileVault::Vault"
-      }
-    ],
-    "state_mutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "get_status",
-    "inputs": [
-      {
-        "name": "cid",
-        "type": "core::felt252"
-      }
-    ],
-    "outputs": [
-      {
-        "type": "core::felt252"
-      }
-    ],
-    "state_mutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "get_price",
-    "inputs": [
-      {
-        "name": "cid",
-        "type": "core::felt252"
-      }
-    ],
-    "outputs": [
-      {
-        "type": "core::integer::u256"
-      }
-    ],
-    "state_mutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "get_platform_fee",
-    "inputs": [],
-    "outputs": [
-      {
-        "type": "core::integer::u256"
-      }
-    ],
-    "state_mutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "get_total_fees",
-    "inputs": [],
-    "outputs": [
-      {
-        "type": "core::integer::u256"
-      }
-    ],
-    "state_mutability": "view"
   },
   {
     "type": "event",

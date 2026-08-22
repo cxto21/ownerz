@@ -1,0 +1,21 @@
+{
+  "network": "sepolia",
+  "rpc": "https://starknet-sepolia.g.alchemy.com/v2/alch_rjRG2UrZXootnmaX8FVj0",
+  "strkToken": "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+  "platformWallet": "0x056180cC00A2F2094cc3AaA3a364C6000481E8Ecd8DED195a58bd99B30d737CF",
+  "platformFee": "500000000000000000",
+  "keyExchangeMockup": {
+    "address": "0x06a7a2b1c1d266e5ed1a43ed1edc8b11e1ca861e51f24be6b11da0da8b5eb3d3",
+    "classHash": "0x003b4ab8062e65fb0eaf6bb089cd1774d7d1dd57f41486ad2aa3ce0e47a7e6e3",
+    "transactionHash": "0x00918faf1874103e68390a536fe336ae9b0af2a67cb9e879c615d96722536e15",
+    "declareTransactionHash": "0x03a633dc3833ce901f5ac20c698e888ec2490b667eddaa6accdd9612a7655e62"
+  },
+  "fileVault": {
+    "address": "0x00ddb791008296863e58975ff1641627228c2b85485d1ac7e08e400134138a24",
+    "classHash": "0x02bc35705c26001b012fde4da8bb37b1a04997d203ac1c2541629128b64e5549",
+    "transactionHash": "0x04d21e134188b0e28c6820738be2e5c630751d116436d13fbb5b65923a1348ba",
+    "declareTransactionHash": "0x051bce91c5a6b04ab59edf2b1ee6aec0ca9d5127cbaa56bde2c2bb0d97eedd5f"
+  },
+  "deployedAt": "2026-08-22T19:15:00Z",
+  "deployer": "0x195a993d0cc7495642009001a9c0a2b52d83b76d787ed1a0452decdb1bdc40a"
+}

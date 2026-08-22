@@ -11,15 +11,22 @@ async function streamToString(stream) {
 }
 
 export default async function handler(req) {
-  if (req.method !== 'POST') {
-    return new Response(JSON.stringify({ error: 'Method not allowed' }), { status: 405 })
-  }
-
   try {
-    const { objectKey, metadataOnly } = await req.json()
+    let objectKey, metadataOnly
+    if (req.method === 'GET') {
+      const { searchParams } = new URL(req.url)
+      objectKey = searchParams.get('cid') || searchParams.get('key') || searchParams.get('objectKey')
+      metadataOnly = searchParams.get('metadataOnly') === 'true'
+    } else if (req.method === 'POST') {
+      const body = await req.json()
+      objectKey = body.objectKey || body.cid || body.key
+      metadataOnly = body.metadataOnly
+    } else {
+      return new Response(JSON.stringify({ error: 'Method not allowed' }), { status: 405 })
+    }
 
     if (!objectKey) {
-      return new Response(JSON.stringify({ error: 'Missing objectKey' }), { status: 400 })
+      return new Response(JSON.stringify({ error: 'Missing objectKey / cid' }), { status: 400 })
     }
 
     if (metadataOnly) {
