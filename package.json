@@ -20,7 +20,8 @@
     "process": "^0.11.10",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "starknet": "^10.7.0"
+    "starknet": "^10.7.0",
+    "starknetkit": "^3.4.3"
   },
   "devDependencies": {
     "@cloudflare/next-on-pages": "^1.13.16",

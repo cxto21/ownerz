@@ -19,6 +19,7 @@ export default function Ownerz() {
     connected: false,
     account: null,
     address: '',
+    wallet: null,
     isStrk20: false,
     loading: false,
     error: null
@@ -46,10 +47,11 @@ export default function Ownerz() {
         })
         
         // Only show error after all retries and listeners are exhausted
+        // Mobile: suggest QR / WalletConnect via StarknetKit
         setTimeout(() => {
           setWalletState(prev => ({ 
             ...prev, 
-            error: 'No Starknet wallet detected. Install Ready or Argent X.' 
+            error: 'No wallet detected. On mobile, use \u2018Connect via QR\u2019 to open Ready/Argent mobile app.' 
           }))
         }, 15000)
       } else {
@@ -83,20 +85,73 @@ export default function Ownerz() {
     setWalletState(prev => ({ ...prev, loading: true, error: null }))
     
     try {
-      const wallets = await getAvailableWallets()
-      
-      if (wallets.length === 0) {
-        throw new Error('No Starknet wallet found. Install Ready extension.')
+      const isMobile = typeof window !== 'undefined' && (/Mobi|Android/i.test(navigator.userAgent) || window.matchMedia('(max-width:768px)').matches)
+      let wallet = null
+
+      // Try injected first with a quick wait (extension may still be injecting)
+      let wallets = await getAvailableWallets()
+      if (wallets.length === 0 && !isMobile) {
+        // On desktop, give the extension 600ms to inject before falling back to Kit
+        wallets = await waitForWallets(2, 300)
+      }
+      const shouldTryKit = isMobile || wallets.length === 0
+
+      if (shouldTryKit) {
+        try {
+          const { connectViaKit } = await import('../lib/starknet-kit')
+          // On desktop, Kit modal still shows injected wallets + QR, so it's safe fallback
+          const kitWallet = await connectViaKit({ modalMode: 'alwaysAsk', modalTheme: 'system' })
+          if (kitWallet) {
+            console.log('StarknetKit wallet obtained', kitWallet?.name || kitWallet?.id)
+            wallet = kitWallet
+          } else if (wallets.length > 0) {
+            wallet = wallets[0]
+          } else {
+            // Kit cancelled — retry injected once more (user may have just unlocked extension)
+            const retryWallets = await getAvailableWallets()
+            if (retryWallets.length > 0) wallet = retryWallets[0]
+          }
+        } catch (kitErr) {
+          console.warn('StarknetKit connect failed, falling back to injected', kitErr)
+          if (wallets.length > 0) wallet = wallets[0]
+          else {
+            const retryWallets = await getAvailableWallets()
+            if (retryWallets.length > 0) wallet = retryWallets[0]
+          }
+        }
+      } else {
+        wallet = wallets[0]
       }
       
-      // Use first available wallet (in production, let user choose)
-      const wallet = wallets[0]
-      const result = await connectWallet(wallet)
+      if (!wallet) {
+        throw new Error('No wallet detected. On mobile, use \u2018Connect via QR\u2019 to open Ready/Argent mobile app.')
+      }
+      
+      let result
+      try {
+        result = await connectWallet(wallet)
+      } catch (connErr) {
+        const msg = connErr?.message || String(connErr)
+        // "not preauthorized" means wallet is locked or not yet approved — retry once with explicit request
+        if (/not.*preauthorized|preauthorized|not.*authorized/i.test(msg)) {
+          console.warn('Wallet not preauthorized, retrying with explicit requestAccounts', msg)
+          try {
+            const { walletV6 } = await import('starknet')
+            await walletV6.requestAccounts(wallet)
+            result = await connectWallet(wallet)
+          } catch (retryErr) {
+            throw connErr // throw original if retry fails
+          }
+        } else {
+          throw connErr
+        }
+      }
       
       setWalletState({
         connected: true,
         account: result.account,
         address: result.address,
+        wallet: result.wallet,
         isStrk20: result.isStrk20,
         loading: false,
         error: null
@@ -110,11 +165,67 @@ export default function Ownerz() {
     }
   }
 
-  const handleDisconnect = () => {
+  const handleConnectViaKit = async () => {
+    setWalletState(prev => ({ ...prev, loading: true, error: null }))
+    try {
+      const { connectViaKit } = await import('../lib/starknet-kit')
+      const kitWallet = await connectViaKit({ modalMode: 'alwaysAsk', modalTheme: 'system' })
+      if (!kitWallet) throw new Error('WalletConnect cancelled or not available. Check NEXT_PUBLIC_WC_PROJECT_ID env.')
+      const result = await connectWallet(kitWallet)
+      setWalletState({
+        connected: true,
+        account: result.account,
+        address: result.address,
+        wallet: result.wallet,
+        isStrk20: result.isStrk20,
+        loading: false,
+        error: null
+      })
+    } catch (err) {
+      setWalletState(prev => ({ ...prev, loading: false, error: err.message }))
+    }
+  }
+
+  const handleOpenInReadyApp = () => {
+    if (typeof window === 'undefined') return
+    const currentUrl = window.location.href
+    // Ready / Argent deeplink — falls back to download page if app not installed
+    const deeplink = `https://ready.co/app?url=${encodeURIComponent(currentUrl)}`
+    window.open(deeplink, '_blank')
+  }
+
+  const handleDisconnect = async () => {
+    // Clear StarknetKit / WalletConnect persistence so next connect shows popup again
+    try {
+      const { disconnectKit } = await import('../lib/starknet-kit')
+      await disconnectKit({ clearLastWallet: true })
+    } catch {}
+    // Clear Kit + WC + get-starknet localStorage (cookies don't help)
+    if (typeof window !== 'undefined') {
+      try {
+        const keysToRemove = []
+        for (let i = 0; i < localStorage.length; i++) {
+          const k = localStorage.key(i)
+          if (!k) continue
+          if (/starknet|walletconnect|wc:|kit|WALLETCONNECT/i.test(k)) keysToRemove.push(k)
+        }
+        keysToRemove.forEach(k => localStorage.removeItem(k))
+        // Also clear sessionStorage
+        for (let i = 0; i < sessionStorage.length; i++) {
+          const k = sessionStorage.key(i)
+          if (k && /starknet|walletconnect|wc:/i.test(k)) sessionStorage.removeItem(k)
+        }
+        // Specific keys StarknetKit uses
+        localStorage.removeItem('starknetLastConnectedWallet')
+        localStorage.removeItem('starknetkit:connectedWallet')
+        localStorage.removeItem('lastConnectedWallet')
+      } catch {}
+    }
     setWalletState({
       connected: false,
       account: null,
       address: '',
+      wallet: null,
       isStrk20: false,
       loading: false,
       error: null
@@ -122,16 +233,21 @@ export default function Ownerz() {
   }
 
   // Re-connect wallet to get a fresh account (needed after STRK20 operations)
-  const refreshWallet = async () => {
+  const refreshWallet = async (preferredWallet) => {
     try {
-      const wallets = await getAvailableWallets()
-      if (wallets.length === 0) return
-      const wallet = wallets[0]
+      // Prefer explicit wallet (e.g. from Kit), then stored, then discovery
+      let wallet = preferredWallet || walletState.wallet || null
+      if (!wallet) {
+        const wallets = await getAvailableWallets()
+        if (wallets.length === 0) return null
+        wallet = wallets[0]
+      }
       const result = await connectWallet(wallet)
       setWalletState(prev => ({
         ...prev,
         account: result.account,
         address: result.address,
+        wallet: result.wallet,
         isStrk20: result.isStrk20,
       }))
       return result.account
@@ -158,6 +274,8 @@ export default function Ownerz() {
       setLoadingBalance(false)
     }
   }
+
+  const isNoWalletError = walletState.error && /No wallet detected/i.test(walletState.error)
 
   return (
     <div className="dv">
@@ -307,7 +425,17 @@ export default function Ownerz() {
             {/* Error Banner */}
             {walletState.error && (
               <div className="dv-error" style={{ marginBottom: '24px' }}>
-                {walletState.error}
+                <div>{walletState.error}</div>
+                {isNoWalletError && (
+                  <div style={{ display: 'flex', gap: '12px', marginTop: '12px', flexWrap: 'wrap' }}>
+                    <button onClick={handleConnectViaKit} disabled={walletState.loading} className="dv-btn-primary" style={{ width: 'auto', padding: '8px 16px', fontSize: '13px' }}>
+                      {walletState.loading ? 'Connecting...' : 'Connect via QR'}
+                    </button>
+                    <button onClick={handleOpenInReadyApp} className="dv-nav-btn dv-nav-btn-purple" style={{ padding: '8px 16px', fontSize: '13px', border: '1px solid var(--hairline)' }}>
+                      Open in Ready App
+                    </button>
+                  </div>
+                )}
               </div>
             )}
             
