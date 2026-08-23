@@ -46,13 +46,17 @@ export default function Ownerz() {
           setWalletState(prev => ({ ...prev, error: null }))
         })
         
-        // Only show error after all retries and listeners are exhausted
-        // Mobile: suggest QR / WalletConnect via StarknetKit
+        // Only show error on desktop after retries; on mobile don't auto-error — user will tap CONNECT
         setTimeout(() => {
-          setWalletState(prev => ({ 
-            ...prev, 
-            error: 'No wallet detected. On mobile, use \u2018Connect via QR\u2019 to open Ready/Argent mobile app.' 
-          }))
+          const isMobile = typeof window !== 'undefined' && (/Mobi|Android/i.test(navigator.userAgent) || window.matchMedia('(max-width:768px)').matches)
+          if (isMobile) return // mobile: keep clean, CONNECT will open Kit modal with QR/WebWallet
+          setWalletState(prev => {
+            if (prev.connected) return prev
+            return { 
+              ...prev, 
+              error: 'No wallet detected. On mobile, use \u2018Connect via QR\u2019 or Web Wallet.' 
+            }
+          })
         }, 15000)
       } else {
         setWalletState(prev => ({ ...prev, error: null }))
@@ -186,12 +190,19 @@ export default function Ownerz() {
     }
   }
 
-  const handleOpenInReadyApp = () => {
+  const handleOpenInReadyApp = async () => {
     if (typeof window === 'undefined') return
+    // Use StarknetKit's WalletConnect flow which correctly handles ready:// deeplink.
+    // Manual https://ready.co/app?url=... is 404 — correct is ready:// + fallback to download.
+    try {
+      const { connectViaKit } = await import('../lib/starknet-kit')
+      const w = await connectViaKit({ modalMode: 'alwaysAsk', modalTheme: 'system' })
+      if (w) return // Kit handled QR/deeplink
+    } catch {}
+    // Fallback: try app scheme then store
     const currentUrl = window.location.href
-    // Ready / Argent deeplink — falls back to download page if app not installed
-    const deeplink = `https://ready.co/app?url=${encodeURIComponent(currentUrl)}`
-    window.open(deeplink, '_blank')
+    window.location.href = `ready://app?url=${encodeURIComponent(currentUrl)}`
+    setTimeout(() => window.open('https://ready.co/download', '_blank'), 1200)
   }
 
   const handleDisconnect = async () => {
