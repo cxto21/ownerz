@@ -133,16 +133,16 @@ export default function SellFlow({ connected, isStrk20, account, refreshWallet, 
 
       {step === 0 && (
         <>
-          <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', gap:'12px', marginBottom:'12px'}}>
-            <div>
-              <h3 className="dv-title" style={{margin:0}}>Upload Your File</h3>
-              <p className="dv-hint" style={{margin:'4px 0 0 0'}}>Encrypted and uploaded to Fil One (Filecoin). Any file type works.</p>
+          <div style={{display:'flex', alignItems:'flex-start', justifyContent:'space-between', gap:'16px', marginBottom:'16px'}}>
+            <div style={{flex:1}}>
+              <h3 className="dv-title" style={{margin:0, lineHeight:'1.1'}}>Upload Your File</h3>
+              <p className="dv-hint" style={{margin:'6px 0 0 0', fontSize:'13px'}}>Encrypted and uploaded to Fil One (Filecoin). Any file type works.</p>
             </div>
-            <div className="dv-pqc-bubble" onClick={() => setShowPqcTip(!showPqcTip)} style={{position:'relative', display:'inline-flex', alignItems:'center', gap:'6px', fontSize:'11px', padding:'5px 10px', borderRadius:'999px', background:'rgba(197,52,0,0.12)', border:'1px solid rgba(197,52,0,0.25)', color:'#c53400', cursor:'pointer', flexShrink:0}}>
-              <span style={{width:'5px', height:'5px', borderRadius:'50%', background:'#c53400', display:'inline-block'}}></span>
+            <div className="dv-pqc-bubble dv-badge" onClick={() => setShowPqcTip(!showPqcTip)} style={{position:'relative', display:'inline-flex', alignItems:'center', gap:'6px', fontSize:'10px', padding:'6px 10px', borderRadius:'2px', background:'rgba(197,52,0,0.08)', border:'1px solid var(--hairline)', color:'var(--text-secondary)', cursor:'pointer', flexShrink:0, letterSpacing:'0.14em', fontFamily:'var(--font-mono)', textTransform:'uppercase', backdropFilter:'blur(12px)'}}>
+              <span style={{width:'6px', height:'6px', borderRadius:'50%', background:'var(--accent)', display:'inline-block', boxShadow:'0 0 8px var(--accent-glow)'}}></span>
               PQC
-              <span style={{width:'14px', height:'14px', borderRadius:'50%', background:'rgba(197,52,0,0.15)', display:'inline-flex', alignItems:'center', justifyContent:'center', fontSize:'10px', fontWeight:'400', color:'#c53400'}}>i</span>
-              <div className="dv-pqc-tooltip" style={{position:'absolute', top:'calc(100% + 8px)', right:0, width:'280px', background:'#111827', border:'1px solid #1e293b', borderRadius:'8px', padding:'12px 14px', fontSize:'13px', lineHeight:'1.6', color:'#d1d5db', boxShadow:'0 8px 24px rgba(0,0,0,0.5)', opacity: showPqcTip ? 1 : 0, pointerEvents: showPqcTip ? 'auto' : 'none', transition:'opacity 0.15s', zIndex:10, textAlign:'left'}}>
+              <span style={{width:'14px', height:'14px', borderRadius:'50%', background:'rgba(197,52,0,0.12)', display:'inline-flex', alignItems:'center', justifyContent:'center', fontSize:'9px', fontWeight:'600', color:'var(--accent)', border:'1px solid rgba(197,52,0,0.2)'}}>i</span>
+              <div className="dv-pqc-tooltip" style={{position:'absolute', top:'calc(100% + 10px)', right:0, width:'300px', background:'var(--raised)', backdropFilter:'blur(20px)', border:'1px solid var(--hairline)', borderRadius:'2px', padding:'14px 16px', fontSize:'13px', lineHeight:'1.6', color:'var(--text-secondary)', boxShadow:'0 12px 32px rgba(0,0,0,0.5)', opacity: showPqcTip ? 1 : 0, pointerEvents: showPqcTip ? 'auto' : 'none', transition:'all 0.2s', zIndex:10, textAlign:'left', fontFamily:'var(--font-body)', textTransform:'none', letterSpacing:'0'}}>
                 Update to a modern browser with TLS 1.3 to enable end-to-end PQC (Post-Quantum Cryptography) for your connection
               </div>
             </div>

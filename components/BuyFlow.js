@@ -211,21 +211,21 @@ export default function BuyFlow({ connected, isStrk20, account, refreshWallet, o
 
       {step === 2 && (
         <>
-          <div style={{display:'flex', alignItems:'center', gap:'8px', marginBottom:'12px', justifyContent:'flex-end'}}>
-            <div className="dv-pqc-bubble" onClick={() => setShowPqcTip(!showPqcTip)} style={{position:'relative', display:'inline-flex', alignItems:'center', gap:'6px', fontSize:'11px', padding:'4px 8px', borderRadius:'999px', background: fileMetadata?.pqc ? 'rgba(197,52,0,0.12)' : 'rgba(239,68,68,0.12)', border: fileMetadata?.pqc ? '1px solid rgba(197,52,0,0.25)' : '1px solid rgba(239,68,68,0.25)', color: fileMetadata?.pqc ? '#c53400' : '#ef4444', cursor:'pointer'}}>
-              <span style={{width:'6px', height:'6px', borderRadius:'50%', background: fileMetadata?.pqc ? '#c53400' : '#ef4444', display:'inline-block'}}></span>
-              {fileMetadata?.pqc ? 'PQC secure' : 'Non-PQC creation'}
-              <span style={{width:'14px', height:'14px', borderRadius:'50%', background: fileMetadata?.pqc ? 'rgba(197,52,0,0.15)' : 'rgba(239,68,68,0.15)', display:'inline-flex', alignItems:'center', justifyContent:'center', fontSize:'10px', fontWeight:'bold'}}>i</span>
-              <div className="dv-pqc-tooltip" style={{position:'absolute', top:'calc(100% + 8px)', right:0, width:'280px', background:'#111827', border:'1px solid #1e293b', borderRadius:'8px', padding:'12px 14px', fontSize:'13px', lineHeight:'1.6', color:'#d1d5db', boxShadow:'0 8px 24px rgba(0,0,0,0.5)', opacity: showPqcTip ? 1 : 0, pointerEvents: showPqcTip ? 'auto' : 'none', transition:'opacity 0.15s', zIndex:10, textAlign:'left'}}>
+          <div style={{display:'flex', alignItems:'flex-start', justifyContent:'space-between', gap:'16px', marginBottom:'16px'}}>
+            <div style={{flex:1}}>
+              <h3 className="dv-title" style={{margin:0, lineHeight:'1.1'}}>File Found</h3>
+              <p className="dv-hint" style={{margin:'6px 0 0 0', fontSize:'13px'}}>
+                Review the details and pay to access the encrypted file.
+              </p>
+            </div>
+            <div className="dv-pqc-bubble dv-badge" onClick={() => setShowPqcTip(!showPqcTip)} style={{position:'relative', display:'inline-flex', alignItems:'center', gap:'6px', fontSize:'10px', padding:'6px 10px', borderRadius:'2px', background: fileMetadata?.pqc ? 'rgba(197,52,0,0.08)' : 'rgba(239,68,68,0.08)', border: '1px solid var(--hairline)', color: fileMetadata?.pqc ? 'var(--accent)' : '#ef4444', cursor:'pointer', flexShrink:0, letterSpacing:'0.14em', fontFamily:'var(--font-mono)', textTransform:'uppercase', backdropFilter:'blur(12px)'}}>
+              <span style={{width:'6px', height:'6px', borderRadius:'50%', background: fileMetadata?.pqc ? 'var(--accent)' : '#ef4444', display:'inline-block', boxShadow: fileMetadata?.pqc ? '0 0 8px var(--accent-glow)' : '0 0 8px rgba(239,68,68,0.4)'}}></span>
+              {fileMetadata?.pqc ? 'PQC secure' : 'Non-PQC'}
+              <span style={{width:'14px', height:'14px', borderRadius:'50%', background: fileMetadata?.pqc ? 'rgba(197,52,0,0.12)' : 'rgba(239,68,68,0.12)', display:'inline-flex', alignItems:'center', justifyContent:'center', fontSize:'9px', fontWeight:'600', color: fileMetadata?.pqc ? 'var(--accent)' : '#ef4444', border: fileMetadata?.pqc ? '1px solid rgba(197,52,0,0.2)' : '1px solid rgba(239,68,68,0.2)'}}>i</span>
+              <div className="dv-pqc-tooltip" style={{position:'absolute', top:'calc(100% + 10px)', right:0, width:'300px', background:'var(--raised)', backdropFilter:'blur(20px)', border:'1px solid var(--hairline)', borderRadius:'2px', padding:'14px 16px', fontSize:'13px', lineHeight:'1.6', color:'var(--text-secondary)', boxShadow:'0 12px 32px rgba(0,0,0,0.5)', opacity: showPqcTip ? 1 : 0, pointerEvents: showPqcTip ? 'auto' : 'none', transition:'all 0.2s', zIndex:10, textAlign:'left', fontFamily:'var(--font-body)', textTransform:'none', letterSpacing:'0'}}>
                 {fileMetadata?.pqc ? 'Your browser is using TLS 1.3 with end-to-end PQC (Post-Quantum Cryptography) active — your connection is quantum-safe.' : 'Update to a modern browser with TLS 1.3 to enable end-to-end PQC (Post-Quantum Cryptography) for your connection'}
               </div>
             </div>
-          </div>
-          <div>
-            <h3 className="dv-title">File Found</h3>
-            <p className="dv-hint">
-              Review the details and pay to access the encrypted file.
-            </p>
           </div>
 
           {fileMetadata && (
