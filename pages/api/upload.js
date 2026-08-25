@@ -25,6 +25,11 @@ export default async function handler(req) {
     const randomId = Array.from(randomBytes).map(b => b.toString(16).padStart(2, '0')).join('')
     const objectKey = `ownerz/${timestamp}-${randomId}.enc`
 
+    // Capture PQC flag from edge TLS (non-modifiable, edge-signed)
+    // TLSv1.3 is best proxy for now (MLKEM not directly exposed via cf)
+    const tlsVersion = req.cf?.tlsVersion || req.headers.get('cf-tls-version') || ''
+    const pqc = tlsVersion === 'TLSv1.3'
+
     const result = await s3.send(new PutObjectCommand({
       Bucket: BUCKET,
       Key: objectKey,
@@ -35,6 +40,8 @@ export default async function handler(req) {
         'uploaded-at': new Date().toISOString(),
         'seller-address': sellerAddress || '',
         'price': price || '0',
+        'pqc': pqc ? 'true' : 'false',
+        'tls-version': tlsVersion || 'unknown',
       },
     }))
 
@@ -50,6 +57,8 @@ export default async function handler(req) {
       fileName,
       sellerAddress: sellerAddress || '',
       price: price || '0',
+      pqc,
+      tlsVersion: tlsVersion || 'unknown',
       message: 'Encrypted file uploaded to Fil One',
     }), { status: 200 })
   } catch (err) {

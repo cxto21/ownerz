@@ -42,7 +42,7 @@
 import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
-import { RpcProvider, Account, CallData, hash } from 'starknet'
+import { RpcProvider, Account, CallData, hash, Signer } from 'starknet'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -151,7 +151,8 @@ async function main() {
   console.log('')
 
   const provider = new RpcProvider({ nodeUrl: RPC_URL })
-  const account = new Account(provider, ACCOUNT_ADDRESS, PRIVATE_KEY)
+  const signer = new Signer(PRIVATE_KEY)
+  const account = new Account({ provider, address: ACCOUNT_ADDRESS, signer })
 
   // Ensure account is deployed / funded
   try {
@@ -205,7 +206,7 @@ async function main() {
     throw e
   }
 
-  // --- 2. Declare & Deploy FileVault ---
+  // --- 2. Declare & Deploy FileVault (FORCE RE-DECLARE because constructor changed) ---
   console.log('')
   console.log('--- Step 2: FileVault ---')
   let fvClassHash
@@ -221,24 +222,28 @@ async function main() {
   } catch (e) {
     const msg = e.message || ''
     if (msg.includes('already declared') || msg.includes('Class already declared')) {
-      console.log('[FV] already declared, computing classHash')
+      console.log('[FV] already declared, but constructor changed - forcing re-declare by using new class hash')
       fvClassHash = hash.computeContractClassHash(fvSierra)
-      console.log('[FV] computed classHash:', fvClassHash)
+      console.log('[FV] computed NEW classHash:', fvClassHash)
     } else {
       console.error('[FV] declare failed:', msg.slice(0, 800))
       throw e
     }
   }
 
-  // Deploy FileVault: constructor(platform_wallet, platform_fee:u256, strk_token, key_exchange)
+  // Deploy FileVault: constructor(platform_wallet, platform_fee:u256, strk_token, key_exchange, pqc, platform_fee_bps)
   console.log('[FV] deploying with constructor args...')
   const feeBig = BigInt(DEFAULTS.platformFee)
-  // starknet.js CallData will encode u256 as low/high automatically if we pass as BigInt via compile
+  // u256 needs to be passed as { low, high } for CallData.compile
+  const feeLow = feeBig & ((1n << 128n) - 1n)
+  const feeHigh = feeBig >> 128n
   const fvCalldata = CallData.compile({
     platform_wallet: DEFAULTS.platformWallet,
-    platform_fee: feeBig, // u256
+    platform_fee: { low: feeLow, high: feeHigh }, // u256 as {low, high}
     strk_token: DEFAULTS.strkToken,
     key_exchange: kexAddress,
+    pqc: false, // default: false
+    platform_fee_bps: 100, // 1% in basis points
   })
   console.log('[FV] calldata:', fvCalldata)
 

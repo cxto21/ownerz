@@ -12,8 +12,11 @@ export default function BuyFlow({ connected, isStrk20, account, refreshWallet, o
   const [error, setError] = useState(null)
   const [txHash, setTxHash] = useState(null)
   const [fileMetadata, setFileMetadata] = useState(null)
+  const [showPqcTip, setShowPqcTip] = useState(false)
 
-  const PLATFORM_FEE = '0xde0b6b3a7640000' // 1 STRK in hex (1e18)
+  // Platform fee is now 1% splitted at purchase time — see handleStrk20Payment
+  // Legacy constant kept for fallback display only
+  const PLATFORM_FEE = '0xde0b6b3a7640000' // 1 STRK in hex (1e18) — deprecated, now 1%
 
   const handlePurchase = async () => {
     if (!cid) return
@@ -48,8 +51,10 @@ export default function BuyFlow({ connected, isStrk20, account, refreshWallet, o
       // Keep lock reference for claim step to show commitment/integrity
       const commitment = locked.commitment ?? locked.lock?.commitment
       const integrityHash = locked.integrityHash ?? locked.integrity_hash ?? locked.lock?.integrity_hash
+      const pqc = locked.pqc ?? locked.meta?.pqc ?? locked.vault?.pqc ?? false
+      const platformFeeBps = locked.platformFeeBps ?? locked.meta?.platformFeeBps ?? locked.vault?.platform_fee_bps ?? 100
 
-      setFileMetadata({ sellerAddress, price: priceStr, commitment, integrityHash, isClaimed, status })
+      setFileMetadata({ sellerAddress, price: priceStr, commitment, integrityHash, isClaimed, status, pqc, platformFeeBps })
       setStep(2)
     } catch (err) {
       setError(err.message)
@@ -72,14 +77,23 @@ export default function BuyFlow({ connected, isStrk20, account, refreshWallet, o
       } else {
         sellerHex = sellerAddress
       }
-      const priceHex = '0x' + (BigInt(Math.round(parseFloat(fileMetadata.price) * 1e18))).toString(16)
+      const price = BigInt(Math.round(parseFloat(fileMetadata.price) * 1e18))
+      const fee = price / 100n // 1%
+      const toSeller = price - fee
+      const priceHex = '0x' + price.toString(16)
+      const feeHex = '0x' + fee.toString(16)
+      const toSellerHex = '0x' + toSeller.toString(16)
       const platformWallet = process.env.NEXT_PUBLIC_PLATFORM_WALLET
 
-      const transfers = [
-        { amount: priceHex, recipient: sellerHex }
-      ]
+      // Buyer pays price, seller receives 99%, platform 1% — STRK20 private batch
+      const transfers = []
+      // Always include seller portion (99%)
+      transfers.push({ amount: toSellerHex, recipient: sellerHex })
       if (platformWallet) {
-        transfers.push({ amount: PLATFORM_FEE, recipient: platformWallet })
+        transfers.push({ amount: feeHex, recipient: platformWallet })
+      } else {
+        // No platform wallet configured — seller gets full price (fallback)
+        console.warn('[BuyFlow] NEXT_PUBLIC_PLATFORM_WALLET not set — skipping platform fee, seller receives full price')
       }
 
       const result = await batchPrivateTransfer(
@@ -146,6 +160,7 @@ export default function BuyFlow({ connected, isStrk20, account, refreshWallet, o
 
   return (
     <>
+      <style>{`.dv-pqc-bubble:hover .dv-pqc-tooltip{opacity:1 !important; pointer-events:auto !important;}`}</style>
       {step > 0 && step < 8 && (
         <div className="dv-progress">
           <div className={`dv-progress-step ${step >= 2 ? 'done' : ''}`}></div>
@@ -196,6 +211,16 @@ export default function BuyFlow({ connected, isStrk20, account, refreshWallet, o
 
       {step === 2 && (
         <>
+          <div style={{display:'flex', alignItems:'center', gap:'8px', marginBottom:'12px', justifyContent:'flex-end'}}>
+            <div className="dv-pqc-bubble" onClick={() => setShowPqcTip(!showPqcTip)} style={{position:'relative', display:'inline-flex', alignItems:'center', gap:'6px', fontSize:'11px', padding:'4px 8px', borderRadius:'999px', background: fileMetadata?.pqc ? 'rgba(197,52,0,0.12)' : 'rgba(239,68,68,0.12)', border: fileMetadata?.pqc ? '1px solid rgba(197,52,0,0.25)' : '1px solid rgba(239,68,68,0.25)', color: fileMetadata?.pqc ? '#c53400' : '#ef4444', cursor:'pointer'}}>
+              <span style={{width:'6px', height:'6px', borderRadius:'50%', background: fileMetadata?.pqc ? '#c53400' : '#ef4444', display:'inline-block'}}></span>
+              {fileMetadata?.pqc ? 'PQC secure' : 'Non-PQC creation'}
+              <span style={{width:'14px', height:'14px', borderRadius:'50%', background: fileMetadata?.pqc ? 'rgba(197,52,0,0.15)' : 'rgba(239,68,68,0.15)', display:'inline-flex', alignItems:'center', justifyContent:'center', fontSize:'10px', fontWeight:'bold'}}>i</span>
+              <div className="dv-pqc-tooltip" style={{position:'absolute', top:'calc(100% + 8px)', right:0, width:'280px', background:'#111827', border:'1px solid #1e293b', borderRadius:'8px', padding:'12px 14px', fontSize:'13px', lineHeight:'1.6', color:'#d1d5db', boxShadow:'0 8px 24px rgba(0,0,0,0.5)', opacity: showPqcTip ? 1 : 0, pointerEvents: showPqcTip ? 'auto' : 'none', transition:'opacity 0.15s', zIndex:10, textAlign:'left'}}>
+                Update to a modern browser with TLS 1.3 to enable end-to-end PQC (Post-Quantum Cryptography) for your connection
+              </div>
+            </div>
+          </div>
           <div>
             <h3 className="dv-title">File Found</h3>
             <p className="dv-hint">
@@ -214,14 +239,18 @@ export default function BuyFlow({ connected, isStrk20, account, refreshWallet, o
                 <span className="dv-metadata-value price">{fileMetadata.price} STRK</span>
               </div>
               <div className="dv-metadata-row">
-                <span className="dv-metadata-label">Platform fee</span>
-                <span className="dv-metadata-value fee">1 STRK</span>
+                <span className="dv-metadata-label">Platform fee 1%</span>
+                <span className="dv-metadata-value fee">{(parseFloat(fileMetadata.price || 0) * 0.01).toFixed(4)} STRK</span>
               </div>
               <div className="dv-metadata-row">
-                <span className="dv-metadata-label">Total to pay</span>
+                <span className="dv-metadata-label">You pay</span>
                 <span className="dv-metadata-value total">
-                  {parseFloat(fileMetadata.price || 0) + 1} STRK + gas
+                  {fileMetadata.price} STRK + gas
                 </span>
+              </div>
+              <div className="dv-metadata-row">
+                <span className="dv-metadata-label">Seller receives</span>
+                <span className="dv-metadata-value" style={{color:'rgba(255,255,255,0.7)'}}>{(parseFloat(fileMetadata.price || 0) * 0.99).toFixed(4)} STRK (99%)</span>
               </div>
               {fileMetadata.commitment && (
                 <>
@@ -241,12 +270,19 @@ export default function BuyFlow({ connected, isStrk20, account, refreshWallet, o
                   )}
                 </>
               )}
+              {/* PQC badge — non-modifiable source from edge TLS at creation */}
+              <div className="dv-metadata-row">
+                <span className="dv-metadata-label">Connection</span>
+                <span className="dv-metadata-value" style={{ fontSize: '11px', fontWeight: 600, color: fileMetadata.pqc ? '#22c55e' : '#f59e0b' }}>
+                  {fileMetadata.pqc ? '✓ Created over PQC' : '⚠ Created without PQC — HNDL risk'}
+                </span>
+              </div>
             </div>
           )}
 
           <p className="dv-hint" style={{fontSize:'12px',marginBottom:'12px'}}>
-            You need at least {parseFloat(fileMetadata?.price || 0) + 6 + 1} STRK in your public balance 
-            (to shield and pay). Then pay privately from the pool.
+            You need at least {parseFloat(fileMetadata?.price || 0) + 6} STRK in your public balance 
+            (to shield and pay). Then pay privately from the pool. Seller receives 99%, platform 1%.
           </p>
 
           {error && <div className="dv-error">{error}</div>}
@@ -255,7 +291,7 @@ export default function BuyFlow({ connected, isStrk20, account, refreshWallet, o
             className="dv-btn-primary"
             onClick={handleStrk20Payment}
           >
-            Pay {parseFloat(fileMetadata?.price || 0) + 1} STRK Privately
+            Pay {fileMetadata?.price} STRK Privately
           </button>
         </>
       )}

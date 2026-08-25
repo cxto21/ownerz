@@ -14,6 +14,7 @@ export default function SellFlow({ connected, isStrk20, account, refreshWallet, 
   const [copied, setCopied] = useState(null)
   const [feeInfo, setFeeInfo] = useState(null)
   const [cidFelt, setCidFelt] = useState(null)
+  const [showPqcTip, setShowPqcTip] = useState(false)
 
   useEffect(() => {
     if (file) {
@@ -63,17 +64,18 @@ export default function SellFlow({ connected, isStrk20, account, refreshWallet, 
       const integrityHash = listing.integrityHash
       const keySeedCiphertext = listing.keySeedCiphertext
 
-      // Step 5: Lock on-chain with recomputed commitment
+      // Step 5: Lock on-chain with recomputed commitment (include PQC from edge)
       setStep(2)
       const priceWei = BigInt(Math.floor(parseFloat(price) * 1e18))
       const fee = await getFee()
+      const pqc = uploadResult.pqc ?? false
 
       const lockResult = await lock({
         account,
         identifier,
         commitment,
         integrityHash,
-        meta: { price: priceWei, ttl: 2592000, fee },
+        meta: { price: priceWei, ttl: 2592000, fee, pqc },
       })
 
       // Step 6: Upload key seed (same wrapped key as step 2)
@@ -119,6 +121,7 @@ export default function SellFlow({ connected, isStrk20, account, refreshWallet, 
 
   return (
     <>
+      <style>{`.dv-pqc-bubble:hover .dv-pqc-tooltip{opacity:1 !important; pointer-events:auto !important;}`}</style>
       {step > 0 && step < 4 && (
         <div className="dv-progress">
           <div className={`dv-progress-step ${step >= 1 ? 'done' : ''}`}></div>
@@ -130,9 +133,19 @@ export default function SellFlow({ connected, isStrk20, account, refreshWallet, 
 
       {step === 0 && (
         <>
-          <div>
-            <h3 className="dv-title">Upload Your File</h3>
-            <p className="dv-hint">Encrypted and uploaded to Fil One (Filecoin). Any file type works.</p>
+          <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', gap:'12px', marginBottom:'12px'}}>
+            <div>
+              <h3 className="dv-title" style={{margin:0}}>Upload Your File</h3>
+              <p className="dv-hint" style={{margin:'4px 0 0 0'}}>Encrypted and uploaded to Fil One (Filecoin). Any file type works.</p>
+            </div>
+            <div className="dv-pqc-bubble" onClick={() => setShowPqcTip(!showPqcTip)} style={{position:'relative', display:'inline-flex', alignItems:'center', gap:'6px', fontSize:'11px', padding:'5px 10px', borderRadius:'999px', background:'rgba(197,52,0,0.12)', border:'1px solid rgba(197,52,0,0.25)', color:'#c53400', cursor:'pointer', flexShrink:0}}>
+              <span style={{width:'5px', height:'5px', borderRadius:'50%', background:'#c53400', display:'inline-block'}}></span>
+              PQC
+              <span style={{width:'14px', height:'14px', borderRadius:'50%', background:'rgba(197,52,0,0.15)', display:'inline-flex', alignItems:'center', justifyContent:'center', fontSize:'10px', fontWeight:'400', color:'#c53400'}}>i</span>
+              <div className="dv-pqc-tooltip" style={{position:'absolute', top:'calc(100% + 8px)', right:0, width:'280px', background:'#111827', border:'1px solid #1e293b', borderRadius:'8px', padding:'12px 14px', fontSize:'13px', lineHeight:'1.6', color:'#d1d5db', boxShadow:'0 8px 24px rgba(0,0,0,0.5)', opacity: showPqcTip ? 1 : 0, pointerEvents: showPqcTip ? 'auto' : 'none', transition:'opacity 0.15s', zIndex:10, textAlign:'left'}}>
+                Update to a modern browser with TLS 1.3 to enable end-to-end PQC (Post-Quantum Cryptography) for your connection
+              </div>
+            </div>
           </div>
 
           <div
@@ -193,6 +206,14 @@ export default function SellFlow({ connected, isStrk20, account, refreshWallet, 
               step="0.01"
             />
             <small>This is what buyers will pay you</small>
+            {price && !isNaN(parseFloat(price)) && parseFloat(price) > 0 && (
+              <div style={{marginTop:'8px', fontSize:'12px', color:'rgba(255,255,255,0.7)', background:'rgba(255,255,255,0.06)', padding:'8px 10px', borderRadius:'8px'}}>
+                Platform fee 1% — you will receive 99% ({(parseFloat(price) * 0.99).toFixed(4)} STRK). No gas included.
+                <div style={{fontSize:'11px', color:'rgba(255,255,255,0.4)', marginTop:'2px'}}>
+                  Fee: {(parseFloat(price) * 0.01).toFixed(4)} STRK · Seller receives 99% at purchase time
+                </div>
+              </div>
+            )}
           </div>
 
           {error && <div className="dv-error">{error}</div>}

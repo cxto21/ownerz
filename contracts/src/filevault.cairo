@@ -70,6 +70,8 @@ pub mod FileVault {
         pub status: felt252,
         pub created_at: u64,
         pub ttl: u64,
+        pub pqc: bool,
+        pub platform_fee_bps: u16,
     }
 
     // ─── Events ─────────────────────────────────────────────
@@ -108,6 +110,7 @@ pub mod FileVault {
     const STATUS_REFUNDED: felt252 = 2;
     const MIN_PRICE: u256 = 1;
     const MIN_TTL: u64 = 1;
+    const PLATFORM_FEE_BPS: u16 = 100; // 1%
 
     // ─── Errors ─────────────────────────────────────────────
     const ERR_VAULT_EXISTS: felt252 = 'VAULT_EXISTS';
@@ -128,11 +131,14 @@ pub mod FileVault {
         platform_fee: u256,
         strk_token: ContractAddress,
         key_exchange: ContractAddress,
+        pqc: bool,
+        platform_fee_bps: u16,
     ) {
         self.platform_wallet.write(platform_wallet);
         self.platform_fee.write(platform_fee);
         self.strk_token.write(strk_token);
         self.key_exchange.write(key_exchange);
+        // Initialize default values for new fields (will be set per-vault in create_vault)
     }
 
     // ─── IFileVault Interface ─────────────────────────────────
@@ -145,6 +151,7 @@ pub mod FileVault {
             integrity_hash: felt252,
             commitment: felt252,
             ttl: u64,
+            pqc: bool,
         );
         fn claim_vault(ref self: TContractState, cid: felt252, claim_secret: u16);
         fn refund_vault(ref self: TContractState, cid: felt252);
@@ -165,6 +172,7 @@ pub mod FileVault {
             integrity_hash: felt252,
             commitment: felt252,
             ttl: u64,
+            pqc: bool,
         ) {
             assert(price >= MIN_PRICE, ERR_INVALID_PRICE);
             assert(ttl >= MIN_TTL, ERR_INVALID_TTL);
@@ -193,6 +201,8 @@ pub mod FileVault {
                 status: STATUS_ACTIVE,
                 created_at: now,
                 ttl,
+                pqc,
+                platform_fee_bps: PLATFORM_FEE_BPS,
             };
             self.vaults.write(cid, vault);
 

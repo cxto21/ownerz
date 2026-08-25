@@ -19,6 +19,20 @@
     ]
   },
   {
+    "type": "enum",
+    "name": "core::bool",
+    "variants": [
+      {
+        "name": "False",
+        "type": "()"
+      },
+      {
+        "name": "True",
+        "type": "()"
+      }
+    ]
+  },
+  {
     "type": "struct",
     "name": "ownerz_filevault::filevault::FileVault::Vault",
     "members": [
@@ -41,20 +55,14 @@
       {
         "name": "ttl",
         "type": "core::integer::u64"
-      }
-    ]
-  },
-  {
-    "type": "enum",
-    "name": "core::bool",
-    "variants": [
-      {
-        "name": "False",
-        "type": "()"
       },
       {
-        "name": "True",
-        "type": "()"
+        "name": "pqc",
+        "type": "core::bool"
+      },
+      {
+        "name": "platform_fee_bps",
+        "type": "core::integer::u16"
       }
     ]
   },
@@ -103,6 +111,10 @@
           {
             "name": "ttl",
             "type": "core::integer::u64"
+          },
+          {
+            "name": "pqc",
+            "type": "core::bool"
           }
         ],
         "outputs": [],
