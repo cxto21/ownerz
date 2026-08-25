@@ -100,7 +100,7 @@ export default function SellFlow({ connected, isStrk20, account, refreshWallet, 
       }
 
       setCidFelt(identifier)
-      setResult({ cid, claimSecret, fileName: file.name, fileSize: file.size })
+      setResult({ cid, claimSecret, fileName: file.name, fileSize: file.size, pqc })
       setStep(3)
     } catch (err) {
       console.error('[SellFlow] Error:', err.message)
@@ -248,6 +248,16 @@ export default function SellFlow({ connected, isStrk20, account, refreshWallet, 
 
       {step === 3 && result && (
         <>
+          <div style={{display:'flex', alignItems:'center', justifyContent:'flex-end', marginBottom:'12px'}}>
+            <div className="dv-pqc-bubble" onClick={() => setShowPqcTip(!showPqcTip)} style={{position:'relative', display:'inline-flex', alignItems:'center', gap:'6px', fontSize:'11px', padding:'5px 10px', borderRadius:'999px', background: result.pqc ? 'rgba(197,52,0,0.12)' : 'rgba(239,68,68,0.12)', border: result.pqc ? '1px solid rgba(197,52,0,0.25)' : '1px solid rgba(239,68,68,0.25)', color: result.pqc ? '#c53400' : '#ef4444', cursor:'pointer'}}>
+              <span style={{width:'5px', height:'5px', borderRadius:'50%', background: result.pqc ? '#c53400' : '#ef4444', display:'inline-block'}}></span>
+              {result.pqc ? 'PQC secure' : 'Non-PQC'}
+              <span style={{width:'14px', height:'14px', borderRadius:'50%', background: result.pqc ? 'rgba(197,52,0,0.15)' : 'rgba(239,68,68,0.15)', display:'inline-flex', alignItems:'center', justifyContent:'center', fontSize:'10px', fontWeight:'400', color: result.pqc ? '#c53400' : '#ef4444'}}>i</span>
+              <div className="dv-pqc-tooltip" style={{position:'absolute', top:'calc(100% + 8px)', right:0, width:'280px', background:'#111827', border:'1px solid #1e293b', borderRadius:'8px', padding:'12px 14px', fontSize:'13px', lineHeight:'1.6', color:'#d1d5db', boxShadow:'0 8px 24px rgba(0,0,0,0.5)', opacity: showPqcTip ? 1 : 0, pointerEvents: showPqcTip ? 'auto' : 'none', transition:'opacity 0.15s', zIndex:10, textAlign:'left'}}>
+                {result.pqc ? 'Your browser is using TLS 1.3 with end-to-end PQC (Post-Quantum Cryptography) active — your vault was created quantum-safe.' : 'Update to a modern browser with TLS 1.3 to enable end-to-end PQC (Post-Quantum Cryptography) for your connection'}
+              </div>
+            </div>
+          </div>
           <div>
             <h3 className="dv-title">File Uploaded & Vault Created</h3>
             <p className="dv-hint">Share this CID and claim secret privately with your buyer.</p>
@@ -290,6 +300,10 @@ export default function SellFlow({ connected, isStrk20, account, refreshWallet, 
           <div className="dv-info-row">
             <span>Price:</span>
             <strong>{price} STRK</strong>
+          </div>
+          <div className="dv-info-row">
+            <span>PQC:</span>
+            <strong style={{color: result.pqc ? '#c53400' : '#ef4444', fontSize:'12px'}}>{result.pqc ? '✓ Created with PQC' : '⚠ Created without PQC'}</strong>
           </div>
 
           <button className="dv-btn-secondary" onClick={reset}>Upload Another</button>
