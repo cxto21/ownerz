@@ -1,5 +1,6 @@
 export const runtime = 'edge'
 
+import { getRequestContext } from '@cloudflare/next-on-pages'
 import s3, { BUCKET, PutObjectCommand } from '../../lib/s3'
 
 export default async function handler(req) {
@@ -25,9 +26,15 @@ export default async function handler(req) {
     const randomId = Array.from(randomBytes).map(b => b.toString(16).padStart(2, '0')).join('')
     const objectKey = `ownerz/${timestamp}-${randomId}.enc`
 
-    // Capture PQC flag from edge TLS (non-modifiable, edge-signed)
-    // TLSv1.3 is best proxy for now (MLKEM not directly exposed via cf)
-    const tlsVersion = req.cf?.tlsVersion || req.headers.get('cf-tls-version') || ''
+    // Capture TLS version from the Cloudflare edge (real handshake data).
+    // TLSv1.3 is a proxy for PQC: the edge does not expose whether the visitor
+    // negotiated X25519MLKEM768. Client-side capability is inferred in lib/pqc.js.
+    let tlsVersion = ''
+    try {
+      tlsVersion = getRequestContext().cf?.tlsVersion || ''
+    } catch {
+      tlsVersion = ''
+    }
     const pqc = tlsVersion === 'TLSv1.3'
 
     const result = await s3.send(new PutObjectCommand({

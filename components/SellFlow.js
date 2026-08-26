@@ -3,6 +3,7 @@ import { generateListing, lock, readLock, getFee, identifierToFelt, computeCommi
 import { uploadEncryptedFile, uploadKeySeed } from '../lib/storage/index.js'
 import { calculateUploadFee } from '../lib/fees'
 import { getFileIcon, formatSize, copyToClipboard } from './utils'
+import { getPqcCapability } from '../lib/pqc'
 
 export default function SellFlow({ connected, isStrk20, account, refreshWallet, onConnect }) {
   const [file, setFile] = useState(null)
@@ -15,6 +16,22 @@ export default function SellFlow({ connected, isStrk20, account, refreshWallet, 
   const [feeInfo, setFeeInfo] = useState(null)
   const [cidFelt, setCidFelt] = useState(null)
   const [showPqcTip, setShowPqcTip] = useState(false)
+  const [conn, setConn] = useState({ tls13: null, pqc: 'unknown' })
+
+  useEffect(() => {
+    let cancelled = false
+    async function detect() {
+      let tls13 = false
+      try {
+        const r = await fetch('/api/tls-info', { cache: 'no-store' })
+        if (r.ok) tls13 = !!(await r.json()).tls13
+      } catch {}
+      const pqc = await getPqcCapability()
+      if (!cancelled) setConn({ tls13, pqc })
+    }
+    detect()
+    return () => { cancelled = true }
+  }, [])
 
   useEffect(() => {
     if (file) {
@@ -133,17 +150,23 @@ export default function SellFlow({ connected, isStrk20, account, refreshWallet, 
 
       {step === 0 && (
         <>
-          <div style={{display:'flex', alignItems:'flex-start', justifyContent:'space-between', gap:'16px', marginBottom:'16px'}}>
-            <div style={{flex:1}}>
+          <div style={{display:'flex', alignItems:'flex-start', justifyContent:'space-between', gap:'12px 16px', marginBottom:'16px', flexWrap:'wrap'}}>
+            <div style={{flex:'1 1 160px', minWidth:0}}>
               <h3 className="dv-title" style={{margin:0, lineHeight:'1.1'}}>Upload Your File</h3>
               <p className="dv-hint" style={{margin:'6px 0 0 0', fontSize:'13px'}}>Encrypted and uploaded to Fil One (Filecoin). Any file type works.</p>
             </div>
-            <div className="dv-pqc-bubble dv-badge" onClick={() => setShowPqcTip(!showPqcTip)} style={{position:'relative', display:'inline-flex', alignItems:'center', gap:'6px', fontSize:'10px', padding:'6px 10px', borderRadius:'2px', background:'rgba(197,52,0,0.08)', border:'1px solid var(--hairline)', color:'var(--text-secondary)', cursor:'pointer', flexShrink:0, letterSpacing:'0.14em', fontFamily:'var(--font-mono)', textTransform:'uppercase', backdropFilter:'blur(12px)'}}>
-              <span style={{width:'6px', height:'6px', borderRadius:'50%', background:'var(--accent)', display:'inline-block', boxShadow:'0 0 8px var(--accent-glow)'}}></span>
-              PQC
+            <div className="dv-pqc-bubble dv-badge" onClick={() => setShowPqcTip(!showPqcTip)} style={{position:'relative', display:'inline-flex', alignItems:'center', gap:'6px', fontSize:'10px', padding:'6px 10px', borderRadius:'2px', background: conn.tls13 && conn.pqc === 'supported' ? 'rgba(197,52,0,0.08)' : 'rgba(239,68,68,0.08)', border:'1px solid var(--hairline)', color: conn.tls13 && conn.pqc === 'supported' ? 'var(--accent)' : '#ef4444', cursor:'pointer', flexShrink:0, alignSelf:'flex-start', letterSpacing:'0.14em', fontFamily:'var(--font-mono)', textTransform:'uppercase', backdropFilter:'blur(12px)'}}>
+              <span style={{width:'6px', height:'6px', borderRadius:'50%', background: conn.tls13 && conn.pqc === 'supported' ? 'var(--accent)' : '#ef4444', display:'inline-block', boxShadow: conn.tls13 && conn.pqc === 'supported' ? '0 0 8px var(--accent-glow)' : '0 0 8px rgba(239,68,68,0.4)'}}></span>
+              {conn.tls13 == null ? 'Checking…' : conn.tls13 && conn.pqc === 'supported' ? 'PQC ready' : conn.tls13 ? 'TLS 1.3 · PQ unknown' : 'Non-PQC'}
               <span style={{width:'14px', height:'14px', borderRadius:'50%', background:'rgba(197,52,0,0.12)', display:'inline-flex', alignItems:'center', justifyContent:'center', fontSize:'9px', fontWeight:'600', color:'var(--accent)', border:'1px solid rgba(197,52,0,0.2)'}}>i</span>
-              <div className="dv-pqc-tooltip" style={{position:'absolute', top:'calc(100% + 10px)', right:0, width:'300px', background:'var(--raised)', backdropFilter:'blur(20px)', border:'1px solid var(--hairline)', borderRadius:'2px', padding:'14px 16px', fontSize:'13px', lineHeight:'1.6', color:'var(--text-secondary)', boxShadow:'0 12px 32px rgba(0,0,0,0.5)', opacity: showPqcTip ? 1 : 0, pointerEvents: showPqcTip ? 'auto' : 'none', transition:'all 0.2s', zIndex:10, textAlign:'left', fontFamily:'var(--font-body)', textTransform:'none', letterSpacing:'0'}}>
-                Update to a modern browser with TLS 1.3 to enable end-to-end PQC (Post-Quantum Cryptography) for your connection
+              <div className="dv-pqc-tooltip" style={{position:'absolute', top:'calc(100% + 10px)', right:0, width:'300px', maxWidth:'calc(100vw - 32px)', background:'var(--raised)', backdropFilter:'blur(20px)', border:'1px solid var(--hairline)', borderRadius:'2px', padding:'14px 16px', fontSize:'13px', lineHeight:'1.6', color:'var(--text-secondary)', boxShadow:'0 12px 32px rgba(0,0,0,0.5)', opacity: showPqcTip ? 1 : 0, pointerEvents: showPqcTip ? 'auto' : 'none', transition:'all 0.2s', zIndex:10, textAlign:'left', fontFamily:'var(--font-body)', textTransform:'none', letterSpacing:'0'}}>
+                {conn.tls13 == null
+                  ? 'Detecting your connection security (edge TLS + browser post-quantum capability)…'
+                  : conn.tls13 && conn.pqc === 'supported'
+                    ? 'Your connection to the edge uses TLS 1.3 and your browser supports post-quantum key exchange (X25519MLKEM768) — this upload is protected against harvest-now-decrypt-later attacks.'
+                    : conn.tls13
+                      ? 'TLS 1.3 confirmed, but your browser PQ capability could not be verified. Update to Chrome/Edge 124+, Firefox 132+ or Safari 18+ for post-quantum protection.'
+                      : 'This connection is not using TLS 1.3. Update your browser to enable PQC (Post-Quantum Cryptography) protection.'}
               </div>
             </div>
           </div>
@@ -254,7 +277,7 @@ export default function SellFlow({ connected, isStrk20, account, refreshWallet, 
               {result.pqc ? 'PQC secure' : 'Non-PQC'}
               <span style={{width:'14px', height:'14px', borderRadius:'50%', background: result.pqc ? 'rgba(197,52,0,0.15)' : 'rgba(239,68,68,0.15)', display:'inline-flex', alignItems:'center', justifyContent:'center', fontSize:'10px', fontWeight:'400', color: result.pqc ? '#c53400' : '#ef4444'}}>i</span>
               <div className="dv-pqc-tooltip" style={{position:'absolute', top:'calc(100% + 8px)', right:0, width:'280px', background:'#111827', border:'1px solid #1e293b', borderRadius:'8px', padding:'12px 14px', fontSize:'13px', lineHeight:'1.6', color:'#d1d5db', boxShadow:'0 8px 24px rgba(0,0,0,0.5)', opacity: showPqcTip ? 1 : 0, pointerEvents: showPqcTip ? 'auto' : 'none', transition:'opacity 0.15s', zIndex:10, textAlign:'left'}}>
-                {result.pqc ? 'Your browser is using TLS 1.3 with end-to-end PQC (Post-Quantum Cryptography) active — your vault was created quantum-safe.' : 'Update to a modern browser with TLS 1.3 to enable end-to-end PQC (Post-Quantum Cryptography) for your connection'}
+                {result.pqc ? 'This vault was created over a TLS 1.3 connection confirmed by the edge — quantum-safe against harvest-now-decrypt-later attacks.' : 'This vault was created without PQC protection (HNDL risk). New uploads from modern browsers are marked PQC secure.'}
               </div>
             </div>
           </div>

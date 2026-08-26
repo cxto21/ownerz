@@ -1150,4 +1150,17 @@ body::after {
     padding: 28px 20px;
     border-radius: 0;
   }
+
+  .dv-upload {
+    padding: 24px 16px;
+  }
+
+  .dv-upload-icon {
+    font-size: 36px;
+  }
+
+  .dv-pqc-tooltip {
+    max-width: calc(100vw - 32px);
+    right: -4px;
+  }
 }
