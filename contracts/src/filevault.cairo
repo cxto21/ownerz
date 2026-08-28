@@ -70,8 +70,10 @@ pub mod FileVault {
         pub status: felt252,
         pub created_at: u64,
         pub ttl: u64,
-        pub pqc: bool,
+        pub pqc: felt252,
         pub platform_fee_bps: u16,
+        pub token_gate: ContractAddress,
+        pub file_cid: felt252,
     }
 
     // ─── Events ─────────────────────────────────────────────
@@ -90,6 +92,7 @@ pub mod FileVault {
         price: u256,
         created_at: u64,
         ttl: u64,
+        file_cid: felt252,
     }
 
     #[derive(Drop, starknet::Event)]
@@ -131,7 +134,7 @@ pub mod FileVault {
         platform_fee: u256,
         strk_token: ContractAddress,
         key_exchange: ContractAddress,
-        pqc: bool,
+        pqc: felt252,
         platform_fee_bps: u16,
     ) {
         self.platform_wallet.write(platform_wallet);
@@ -151,7 +154,9 @@ pub mod FileVault {
             integrity_hash: felt252,
             commitment: felt252,
             ttl: u64,
-            pqc: bool,
+            pqc: felt252,
+            token_gate: ContractAddress,
+            file_cid: felt252,
         );
         fn claim_vault(ref self: TContractState, cid: felt252, claim_secret: u16);
         fn refund_vault(ref self: TContractState, cid: felt252);
@@ -172,7 +177,9 @@ pub mod FileVault {
             integrity_hash: felt252,
             commitment: felt252,
             ttl: u64,
-            pqc: bool,
+            pqc: felt252,
+            token_gate: ContractAddress,
+            file_cid: felt252,
         ) {
             assert(price >= MIN_PRICE, ERR_INVALID_PRICE);
             assert(ttl >= MIN_TTL, ERR_INVALID_TTL);
@@ -203,6 +210,8 @@ pub mod FileVault {
                 ttl,
                 pqc,
                 platform_fee_bps: PLATFORM_FEE_BPS,
+                token_gate,
+                file_cid,
             };
             self.vaults.write(cid, vault);
 
@@ -217,6 +226,7 @@ pub mod FileVault {
                 price,
                 created_at: now,
                 ttl,
+                file_cid,
             });
         }
 
@@ -225,6 +235,14 @@ pub mod FileVault {
             let zero_addr: ContractAddress = 0.try_into().unwrap();
             assert(vault.seller != zero_addr, ERR_VAULT_NOT_FOUND);
             assert(vault.status == STATUS_ACTIVE, ERR_ALREADY_CLAIMED);
+
+            // Token gate check: if token_gate is set, claimer must hold ≥1 token
+            let claimer = get_caller_address();
+            if vault.token_gate != zero_addr {
+                let gate_token = IERC20Dispatcher { contract_address: vault.token_gate };
+                let balance = gate_token.balance_of(claimer);
+                assert(balance >= u256 { low: 1, high: 0 }, 'INSUFFICIENT_TOKEN_BALANCE');
+            }
 
             // Delegate to KeyExchangeMockup — will panic with INVALID_PROOF if wrong secret
             let key_exchange_addr = self.key_exchange.read();
@@ -235,7 +253,6 @@ pub mod FileVault {
             updated.status = STATUS_CLAIMED;
             self.vaults.write(cid, updated);
 
-            let claimer = get_caller_address();
             self.emit(KeyClaimed { cid, claimer });
         }
 

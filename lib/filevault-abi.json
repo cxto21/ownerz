@@ -19,20 +19,6 @@
     ]
   },
   {
-    "type": "enum",
-    "name": "core::bool",
-    "variants": [
-      {
-        "name": "False",
-        "type": "()"
-      },
-      {
-        "name": "True",
-        "type": "()"
-      }
-    ]
-  },
-  {
     "type": "struct",
     "name": "ownerz_filevault::filevault::FileVault::Vault",
     "members": [
@@ -58,11 +44,33 @@
       },
       {
         "name": "pqc",
-        "type": "core::bool"
+        "type": "core::felt252"
       },
       {
         "name": "platform_fee_bps",
         "type": "core::integer::u16"
+      },
+      {
+        "name": "token_gate",
+        "type": "core::starknet::contract_address::ContractAddress"
+      },
+      {
+        "name": "file_cid",
+        "type": "core::felt252"
+      }
+    ]
+  },
+  {
+    "type": "enum",
+    "name": "core::bool",
+    "variants": [
+      {
+        "name": "False",
+        "type": "()"
+      },
+      {
+        "name": "True",
+        "type": "()"
       }
     ]
   },
@@ -114,7 +122,15 @@
           },
           {
             "name": "pqc",
-            "type": "core::bool"
+            "type": "core::felt252"
+          },
+          {
+            "name": "token_gate",
+            "type": "core::starknet::contract_address::ContractAddress"
+          },
+          {
+            "name": "file_cid",
+            "type": "core::felt252"
           }
         ],
         "outputs": [],
@@ -239,6 +255,14 @@
       {
         "name": "key_exchange",
         "type": "core::starknet::contract_address::ContractAddress"
+      },
+      {
+        "name": "pqc",
+        "type": "core::felt252"
+      },
+      {
+        "name": "platform_fee_bps",
+        "type": "core::integer::u16"
       }
     ]
   },
@@ -270,6 +294,11 @@
       {
         "name": "ttl",
         "type": "core::integer::u64",
+        "kind": "data"
+      },
+      {
+        "name": "file_cid",
+        "type": "core::felt252",
         "kind": "data"
       }
     ]

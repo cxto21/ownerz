@@ -2,6 +2,16 @@
 
 Project-specific instructions for this repo. See also global `~/.config/opencode/AGENTS.md` for persona and Engram protocol.
 
+## Dev Server
+
+Levantar en `http://localhost:3001` (una línea, queda prendido):
+
+```bash
+nohup npm run dev > /tmp/dev.log 2>&1 &
+```
+
+Si cambiaste deps/env: `rm -rf .next && nohup npm run dev > /tmp/dev.log 2>&1 &` — ver `cat /tmp/dev.log` y `curl -s -o /dev/null -w "%{http_code}\n" http://localhost:3001`.
+
 ## StarknetKit Mobile (pending review)
 
 > **Status:** Implemented locally, NOT pushed to `main` — awaiting user review. Run `git status` / `git diff` to inspect before pushing.
