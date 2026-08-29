@@ -1,7 +1,10 @@
 export const runtime = 'nodejs'
 
-import { getRequestContext } from '@cloudflare/next-on-pages'
 import s3, { BUCKET, PutObjectCommand } from '../../lib/s3'
+
+// Cloudflare-only: safely import if available
+let getRequestContext
+try { getRequestContext = (await import('@cloudflare/next-on-pages')).getRequestContext } catch {}
 
 export default async function handler(req) {
   if (req.method !== 'POST') {
