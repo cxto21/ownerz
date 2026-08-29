@@ -4,6 +4,7 @@ import { useRouter } from 'next/router'
 import { readLock, identifierToFelt, unlock, secretToOnChain, feltToString } from '../../lib/key-onchain/index.js'
 import { connectWallet, getAvailableWallets, waitForWallets } from '../../lib/starknet.js'
 import { checkAccess, mintAccess, getTokenInfo, revealShieldedAccess } from '../../lib/access-token.js'
+import { registerWallet, shieldTokens, unshieldTokens } from '../../lib/strk20-payments.js'
 import { downloadKeySeed, downloadEncryptedFile } from '../../lib/storage/index.js'
 import { unwrapKeySeed, decryptData, hexToArray } from '../../lib/crypto/index.js'
 
@@ -105,14 +106,18 @@ export default function VaultAccess() {
     loadVault()
   }, [uid, router.isReady])
 
-  // Auto-connect wallet and check token access
+  // Auto-connect wallet and register viewing key
   useEffect(() => {
     const connect = async () => {
       try {
         const wallets = await waitForWallets(3, 1000)
         if (wallets.length > 0) {
           const result = await connectWallet(wallets[0])
-          setAccount(result.account) // extract actual account, not the wrapper
+          setAccount(result.account)
+          // Auto-register viewing key in STRK20 pool (non-blocking)
+          registerWallet(result.account).then(r => {
+            console.log('[VaultAccess] STRK20 registration:', r.success ? 'OK' : r.message || r.error)
+          }).catch(() => {})
         }
       } catch { /* no wallet detected */ }
     }
@@ -195,6 +200,16 @@ export default function VaultAccess() {
         }
       }
 
+      // Auto-shield token to STRK20 pool for private ownership
+      try {
+        console.log('[VaultAccess] Auto-shielding token to STRK20 pool...')
+        const shieldResult = await shieldTokens(account, tokenGate, '0x1')
+        console.log('[VaultAccess] Shield result:', shieldResult?.success ? 'OK' : shieldResult?.message)
+      } catch (shieldErr) {
+        // Non-blocking: token is still usable publicly even if shield fails
+        console.warn('[VaultAccess] Auto-shield failed (non-blocking):', shieldErr.message)
+      }
+
       // Re-check access after purchase (public + shielded)
       const addr = account.address || account.contractAddress
       const access = await checkAccess(tokenGate, addr)
@@ -222,6 +237,27 @@ export default function VaultAccess() {
     try {
       setClaimStatus('claiming')
       setError(null)
+
+      // Auto-unshield token if shielded (claim requires public balance)
+      const tokenGate = toHexAddress(vaultInfo.vault?.token_gate)
+      if (tokenGate && tokenGate !== '0x0' && tokenGate !== '0') {
+        try {
+          const shielded = await revealShieldedAccess(account, tokenGate)
+          if (shielded.hasShieldedAccess) {
+            console.log('[VaultAccess] Token shielded — auto-unshielding for claim...')
+            const unshieldResult = await unshieldTokens(account, tokenGate, '0x1', account.address || account.contractAddress)
+            console.log('[VaultAccess] Unshield result:', unshieldResult?.success ? 'OK' : unshieldResult?.message)
+            // Wait for unshield tx to settle
+            if (unshieldResult?.transactionHash) {
+              try {
+                await account.provider.waitForTransaction(unshieldResult.transactionHash, { timeout: 60000 })
+              } catch {}
+            }
+          }
+        } catch (shieldCheckErr) {
+          console.warn('[VaultAccess] Shield check/unshield failed (non-blocking):', shieldCheckErr.message)
+        }
+      }
 
       // Convert claim secret hex to u16 proof
       const proof = secretToOnChain(claimSecret)
