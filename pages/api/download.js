@@ -10,23 +10,22 @@ async function streamToString(stream) {
   return chunks.join('')
 }
 
-export default async function handler(req) {
+export default async function handler(req, res) {
   try {
     let objectKey, metadataOnly
     if (req.method === 'GET') {
-      const { searchParams } = new URL(req.url)
-      objectKey = searchParams.get('cid') || searchParams.get('key') || searchParams.get('objectKey')
-      metadataOnly = searchParams.get('metadataOnly') === 'true'
+      objectKey = req.query.cid || req.query.key || req.query.objectKey
+      metadataOnly = req.query.metadataOnly === 'true'
     } else if (req.method === 'POST') {
-      const body = await req.json()
+      const body = req.body
       objectKey = body.objectKey || body.cid || body.key
       metadataOnly = body.metadataOnly
     } else {
-      return new Response(JSON.stringify({ error: 'Method not allowed' }), { status: 405 })
+      return res.status(405).json({ error: 'Method not allowed' })
     }
 
     if (!objectKey) {
-      return new Response(JSON.stringify({ error: 'Missing objectKey / cid' }), { status: 400 })
+      return res.status(400).json({ error: 'Missing objectKey / cid' })
     }
 
     if (metadataOnly) {
@@ -35,7 +34,7 @@ export default async function handler(req) {
         Key: objectKey,
       }))
 
-      return new Response(JSON.stringify({
+      return res.status(200).json({
         success: true,
         metadata: {
           sellerAddress: headResult.Metadata['seller-address'] || '',
@@ -43,7 +42,7 @@ export default async function handler(req) {
           fileName: headResult.Metadata['original-name'] || '',
           uploadedAt: headResult.Metadata['uploaded-at'] || '',
         },
-      }), { status: 200 })
+      })
     }
 
     const result = await s3.send(new GetObjectCommand({
@@ -54,7 +53,7 @@ export default async function handler(req) {
     const body = await streamToString(result.Body)
     const encryptedData = JSON.parse(body)
 
-    return new Response(JSON.stringify({
+    return res.status(200).json({
       success: true,
       encryptedData,
       metadata: {
@@ -62,9 +61,9 @@ export default async function handler(req) {
         price: result.Metadata['price'] || '0',
         fileName: result.Metadata['original-name'] || '',
       },
-    }), { status: 200 })
+    })
   } catch (err) {
     console.error('[download] Error:', err.message)
-    return new Response(JSON.stringify({ error: err.message }), { status: 500 })
+    return res.status(500).json({ error: err.message })
   }
 }

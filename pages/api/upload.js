@@ -2,25 +2,20 @@ export const runtime = 'nodejs'
 
 import s3, { BUCKET, PutObjectCommand } from '../../lib/s3'
 
-// Cloudflare-only: safely import if available
-let getRequestContext
-try { getRequestContext = (await import('@cloudflare/next-on-pages')).getRequestContext } catch {}
-
-export default async function handler(req) {
+export default async function handler(req, res) {
   if (req.method !== 'POST') {
-    return new Response(JSON.stringify({ error: 'Method not allowed' }), { status: 405 })
+    return res.status(405).json({ error: 'Method not allowed' })
   }
 
   try {
-    const body = await req.json()
-    // Tolerant: accept {data, encryptedData} and {fileName, fileName fallback}
+    const body = req.body
     const encryptedData = body.encryptedData || body.data || body.encrypted
     const fileName = body.fileName || body.filename || body.originalName || 'unnamed.enc'
     const sellerAddress = body.sellerAddress || ''
     const price = body.price || '0'
 
     if (!encryptedData) {
-      return new Response(JSON.stringify({ error: 'Missing encryptedData or data' }), { status: 400 })
+      return res.status(400).json({ error: 'Missing encryptedData or data' })
     }
 
     const timestamp = Date.now()
@@ -29,16 +24,9 @@ export default async function handler(req) {
     const randomId = Array.from(randomBytes).map(b => b.toString(16).padStart(2, '0')).join('')
     const objectKey = `ownerz/${timestamp}-${randomId}.enc`
 
-    // Capture TLS version from the Cloudflare edge (real handshake data).
-    // TLSv1.3 is a proxy for PQC: the edge does not expose whether the visitor
-    // negotiated X25519MLKEM768. Client-side capability is inferred in lib/pqc.js.
-    let tlsVersion = ''
-    try {
-      tlsVersion = getRequestContext().cf?.tlsVersion || ''
-    } catch {
-      tlsVersion = ''
-    }
-    const pqc = tlsVersion === 'TLSv1.3'
+    // TLS version: not available in Node.js runtime (was Cloudflare edge only)
+    const pqc = false
+    const tlsVersion = 'unknown'
 
     const result = await s3.send(new PutObjectCommand({
       Bucket: BUCKET,
@@ -50,14 +38,14 @@ export default async function handler(req) {
         'uploaded-at': new Date().toISOString(),
         'seller-address': sellerAddress || '',
         'price': price || '0',
-        'pqc': pqc ? 'true' : 'false',
-        'tls-version': tlsVersion || 'unknown',
+        'pqc': 'false',
+        'tls-version': 'unknown',
       },
     }))
 
     const cid = objectKey
 
-    return new Response(JSON.stringify({
+    return res.status(200).json({
       success: true,
       cid,
       key: objectKey,
@@ -68,11 +56,11 @@ export default async function handler(req) {
       sellerAddress: sellerAddress || '',
       price: price || '0',
       pqc,
-      tlsVersion: tlsVersion || 'unknown',
+      tlsVersion,
       message: 'Encrypted file uploaded to Fil One',
-    }), { status: 200 })
+    })
   } catch (err) {
     console.error('[upload] Error:', err.message)
-    return new Response(JSON.stringify({ error: err.message }), { status: 500 })
+    return res.status(500).json({ error: err.message })
   }
 }

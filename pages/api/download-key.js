@@ -10,17 +10,16 @@ async function streamToString(stream) {
   return chunks.join('')
 }
 
-export default async function handler(req) {
+export default async function handler(req, res) {
   if (req.method !== 'GET') {
-    return new Response(JSON.stringify({ error: 'Method not allowed' }), { status: 405 })
+    return res.status(405).json({ error: 'Method not allowed' })
   }
 
   try {
-    const { searchParams } = new URL(req.url)
-    const key = searchParams.get('key')
+    const key = req.query.key
 
     if (!key) {
-      return new Response(JSON.stringify({ error: 'Missing key parameter' }), { status: 400 })
+      return res.status(400).json({ error: 'Missing key parameter' })
     }
 
     const result = await s3.send(new GetObjectCommand({
@@ -30,11 +29,11 @@ export default async function handler(req) {
 
     const data = await streamToString(result.Body)
 
-    return new Response(JSON.stringify({ success: true, data, key }), { status: 200 })
+    return res.status(200).json({ success: true, data, key })
   } catch (err) {
     console.error('[download-key] Error:', err.name, err.message, err.$metadata?.httpStatusCode)
     const status = err.$metadata?.httpStatusCode || 500
     const msg = err.name === 'NoSuchKey' ? 'Key seed not found in storage' : err.message
-    return new Response(JSON.stringify({ error: msg, key }), { status })
+    return res.status(status).json({ error: msg })
   }
 }
