@@ -1,0 +1,13 @@
+{
+  "network": "sepolia",
+  "rpc": "https://starknet-sepolia.g.alchemy.com/v2/alch_rjRG2UrZXootnmaX8FVj0",
+  "shieldPool": "0x0254a6b2997ef52e9f830ce1f543f6b29768295e8d17e2267d672c552cfe0d91",
+  "accessToken": {
+    "classHash": "0x4097089f47e818c6c2c79a49b110a08bc76a47a3bb0461b0ecc51478afef757"
+  },
+  "accessFactory": {
+    "address": "0x7e88df8348f2539e21ce100750ae98b1f0b1d681c62e028d52e47bf3786a89f",
+    "classHash": "0x38207d764efe217ccee64a193d601cf9018cf1d4cb5285ef37cb1e1ae12a084"
+  },
+  "deployedAt": "2026-08-29T12:10:57.227Z"
+}

@@ -6,6 +6,7 @@ edition = "2024_07"
 
 [dependencies]
 starknet = "2.18.0"
+openzeppelin_token = "3.0.0"
 key_onchain = { path = "../lib/key-onchain" }
 
 [dev-dependencies]
