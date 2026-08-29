@@ -149,7 +149,7 @@ export default function SellFlow({ connected, isStrk20, account, refreshWallet, 
         identifier,
         commitment,
         integrityHash,
-        meta: { price: priceWei, ttl: 2592000, fee, pqc, tokenGate: selectedToken?.address || '0x0', fileCid: await identifierToFelt(cid) },
+        meta: { price: priceWei, ttl: 2592000, fee, pqc, tokenGate: selectedToken?.address || '0x0', fileCid: cid },
       })
 
       // Step 6: Upload key seed (same wrapped key as step 2)
