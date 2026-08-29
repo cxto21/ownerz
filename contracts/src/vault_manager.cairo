@@ -1,15 +1,15 @@
 // contracts/src/vault_manager.cairo
-// VaultManager — STRK20-powered privacy-first access control
+// VaultManager — STRK20-powered access control (no cross-contract calls)
 //
 // Flow:
-//   1. Owner registers vault (calls AccessFactory.create_token → deploys AccessToken)
-//   2. VaultManager becomes owner of the AccessToken
-//   3. Buyer calls strk20InvokeTransaction with invoke to VaultManager.mint_access
-//   4. STRK20 pool calls VaultManager atomically → mints token to buyer
-//   5. Token is shielded in the same atomic tx
+//   1. Frontend calls AccessFactory.create_token → deploys AccessToken (owner = frontend wallet)
+//   2. Frontend calls VaultManager.set_vault → stores config (no cross-contract call)
+//   3. Buyer pays via STRK20 → pool calls VaultManager.mint_access → records access
+//   4. Frontend calls AccessToken.mint_to(recipient) → mints token
+//   5. Frontend shields the token
 //
-// Seller never touches contracts — just uses Ready/STRK20.
-// Buyer pays via STRK20 → pool calls VaultManager → token minted atomically.
+// VaultManager is a pure storage + access control contract.
+// No cross-contract calls → deployable via Alchemy/Cartridge RPC.
 
 #[starknet::contract]
 pub mod VaultManager {
@@ -21,21 +21,17 @@ pub mod VaultManager {
     use starknet::storage::StorageMapWriteAccess;
     use starknet::storage::StoragePointerReadAccess;
     use starknet::storage::StoragePointerWriteAccess;
-    use starknet::SyscallResultTrait;
 
     const ERR_NOT_POOL: felt252 = 'ONLY_POOL';
     const ERR_NOT_OWNER: felt252 = 'NOT_OWNER';
     const ERR_VAULT_NOT_FOUND: felt252 = 'VAULT_NOT_FOUND';
     const ERR_ZERO_ADDRESS: felt252 = 'ZERO_ADDRESS';
     const ERR_VAULT_EXISTS: felt252 = 'VAULT_EXISTS';
-    const ERR_NO_FACTORY: felt252 = 'NO_FACTORY';
 
     #[storage]
     struct Storage {
         // STRK20 pool — only this address can call mint_access
         pool_address: ContractAddress,
-        // AccessFactory — deploys AccessToken contracts
-        access_factory: ContractAddress,
         // Owner — can register vaults and update config
         owner: ContractAddress,
         // Vault registry: vault_id → VaultConfig
@@ -49,7 +45,7 @@ pub mod VaultManager {
     }
 
     #[derive(Copy, Drop, Serde, starknet::Store)]
-    struct VaultConfig {
+    pub struct VaultConfig {
         filevault: ContractAddress,      // FileVault contract holding the file
         token_address: ContractAddress,  // AccessToken contract for this vault
         price: u256,                     // Price in STRK wei
@@ -94,14 +90,11 @@ pub mod VaultManager {
     fn constructor(
         ref self: ContractState,
         pool_address: ContractAddress,
-        access_factory: ContractAddress,
         owner: ContractAddress,
     ) {
         assert(pool_address.is_non_zero(), ERR_ZERO_ADDRESS);
-        assert(access_factory.is_non_zero(), ERR_ZERO_ADDRESS);
         assert(owner.is_non_zero(), ERR_ZERO_ADDRESS);
         self.pool_address.write(pool_address);
-        self.access_factory.write(access_factory);
         self.owner.write(owner);
     }
 
@@ -110,12 +103,11 @@ pub mod VaultManager {
         // ─── Core (called by STRK20 pool atomically) ───
         fn mint_access(ref self: TContractState, vault_id: felt252, recipient: ContractAddress);
         // ─── Admin (owner only) ───
-        fn register_vault(
+        fn set_vault(
             ref self: TContractState,
             vault_id: felt252,
             filevault: ContractAddress,
-            token_name: felt252,
-            token_symbol: felt252,
+            token_address: ContractAddress,
             price: u256,
             duration: u64,
         );
@@ -124,17 +116,16 @@ pub mod VaultManager {
         fn get_vault_count(self: @TContractState) -> u64;
         fn has_access(self: @TContractState, vault_id: felt252, account: ContractAddress) -> bool;
         fn get_pool(self: @TContractState) -> ContractAddress;
-        fn get_factory(self: @TContractState) -> ContractAddress;
         fn get_owner(self: @TContractState) -> ContractAddress;
         // ─── Config ───
         fn set_pool(ref self: TContractState, new_pool: ContractAddress);
-        fn set_factory(ref self: TContractState, new_factory: ContractAddress);
     }
 
     #[abi(embed_v0)]
     impl IVaultManagerImpl of IVaultManager<ContractState> {
-        /// Pool calls this atomically — mints AccessToken to recipient.
+        /// Pool calls this atomically — records access for recipient.
         /// Only callable by the STRK20 pool contract.
+        /// No cross-contract call — just stores access_granted.
         fn mint_access(ref self: ContractState, vault_id: felt252, recipient: ContractAddress) {
             // Only pool can call this
             let caller = get_caller_address();
@@ -144,7 +135,6 @@ pub mod VaultManager {
             // Get vault config
             let config = self.vaults.read(vault_id);
             assert(config.active, ERR_VAULT_NOT_FOUND);
-            assert(config.token_address.is_non_zero(), ERR_VAULT_NOT_FOUND);
 
             // Idempotent — skip if already granted
             let already = self.access_granted.read((vault_id, recipient));
@@ -152,36 +142,23 @@ pub mod VaultManager {
                 return;
             }
 
-            // Call AccessToken.mint_to(recipient)
-            // VaultManager is the owner of the AccessToken (deployed via create_token)
-            let token = config.token_address;
-            let mut calldata = array![];
-            calldata.append(recipient.into());
-            starknet::syscalls::call_contract_syscall(
-                token,
-                selector!("mint_to"),
-                calldata.span(),
-            )
-                .unwrap_syscall();
-
-            // Track access
+            // Track access (no cross-contract call)
             self.access_granted.write((vault_id, recipient), true);
 
             self.emit(AccessMinted {
                 vault_id,
                 recipient,
-                token_address: token,
+                token_address: config.token_address,
             });
         }
 
-        /// Owner registers a vault. Deploys AccessToken via AccessFactory.
-        /// VaultManager becomes owner of the token → can mint_to later.
-        fn register_vault(
+        /// Owner registers a vault. Frontend calls AccessFactory.create_token first,
+        /// then passes the token_address here. No cross-contract call.
+        fn set_vault(
             ref self: ContractState,
             vault_id: felt252,
             filevault: ContractAddress,
-            token_name: felt252,
-            token_symbol: felt252,
+            token_address: ContractAddress,
             price: u256,
             duration: u64,
         ) {
@@ -191,31 +168,6 @@ pub mod VaultManager {
 
             let existing = self.vaults.read(vault_id);
             assert(!existing.active, ERR_VAULT_EXISTS);
-
-            let factory = self.access_factory.read();
-            assert(factory.is_non_zero(), ERR_NO_FACTORY);
-
-            // Call AccessFactory.create_token(name, symbol, price, duration)
-            // This deploys a new AccessToken where owner = VaultManager
-            let mut calldata = array![];
-            calldata.append(token_name);
-            calldata.append(token_symbol);
-            // price is u256 → low, high
-            let price_low: felt252 = (price.low).into();
-            let price_high: felt252 = (price.high).into();
-            calldata.append(price_low);
-            calldata.append(price_high);
-            calldata.append(duration.into());
-
-            let result = starknet::syscalls::call_contract_syscall(
-                factory,
-                selector!("create_token"),
-                calldata.span(),
-            )
-                .unwrap_syscall();
-
-            // Result is the deployed AccessToken address (felt252)
-            let token_address: ContractAddress = (*result.at(0)).try_into().unwrap();
 
             let config = VaultConfig {
                 filevault,
@@ -252,9 +204,6 @@ pub mod VaultManager {
         fn get_pool(self: @ContractState) -> ContractAddress {
             self.pool_address.read()
         }
-        fn get_factory(self: @ContractState) -> ContractAddress {
-            self.access_factory.read()
-        }
         fn get_owner(self: @ContractState) -> ContractAddress {
             self.owner.read()
         }
@@ -263,11 +212,6 @@ pub mod VaultManager {
             assert(get_caller_address() == self.owner.read(), ERR_NOT_OWNER);
             self.pool_address.write(new_pool);
             self.emit(ConfigUpdated { field: 'pool' });
-        }
-        fn set_factory(ref self: ContractState, new_factory: ContractAddress) {
-            assert(get_caller_address() == self.owner.read(), ERR_NOT_OWNER);
-            self.access_factory.write(new_factory);
-            self.emit(ConfigUpdated { field: 'factory' });
         }
     }
 }

@@ -15,6 +15,7 @@ snforge_std = "0.61.0"
 [[target.starknet-contract]]
 sierra = true
 casm = true
+allowed-libfuncs-list.name = "experimental"
 
 [profile.dev.cairo]
 unstable-add-statements-functions-debug-info = true

@@ -76,7 +76,7 @@ pub mod AccessToken {
             amount: u256,
         ) {
             // Allow mint (from=0), burn (to=0), or transfer to STRK20 pool (shield)
-            let pool = self.shield_pool.read();
+            let pool = self.get_contract().shield_pool.read();
             let is_pool = pool.is_non_zero() && recipient == pool;
             assert(from.is_zero() || recipient.is_zero() || is_pool, 'SOULBOUND');
         }
