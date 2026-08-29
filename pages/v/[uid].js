@@ -131,8 +131,10 @@ export default function VaultAccess() {
       }
 
       try {
-        const addr = account.address || account.contractAddress
+        const addr = toHexAddress(account.address || account.contractAddress)
+        console.log('[VaultAccess] Checking token access for:', { tokenGate, addr })
         const access = await checkAccess(tokenGate, addr)
+        console.log('[VaultAccess] checkAccess result:', access)
         let hasAccess = access.hasAccess
         // STRK20 shielded balance check: checkAccess || revealShieldedAccess
         try {
