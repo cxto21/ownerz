@@ -34,6 +34,8 @@ pub mod AccessToken {
         duration: u64,
         expiry: Map<ContractAddress, u64>,
         owner: ContractAddress,
+        // STRK20 pool whitelist — transfers to this address are allowed (shield/unshield)
+        shield_pool: ContractAddress,
     }
 
     #[event]
@@ -65,7 +67,7 @@ pub mod AccessToken {
         new_duration: u64,
     }
 
-    // Soulbound hook — only mint (from.is_zero) or burn (to.is_zero) allowed
+    // Soulbound hook — mint (from=0), burn (to=0), or transfer to STRK20 pool allowed
     impl ERC20HooksImpl of ERC20Component::ERC20HooksTrait<ContractState> {
         fn before_update(
             ref self: ERC20Component::ComponentState<ContractState>,
@@ -73,7 +75,10 @@ pub mod AccessToken {
             recipient: ContractAddress,
             amount: u256,
         ) {
-            assert(from.is_zero() || recipient.is_zero(), 'SOULBOUND');
+            // Allow mint (from=0), burn (to=0), or transfer to STRK20 pool (shield)
+            let pool = self.shield_pool.read();
+            let is_pool = pool.is_non_zero() && recipient == pool;
+            assert(from.is_zero() || recipient.is_zero() || is_pool, 'SOULBOUND');
         }
     }
 
@@ -88,6 +93,7 @@ pub mod AccessToken {
         price: u256,
         duration: u64,
         owner: ContractAddress,
+        shield_pool: ContractAddress,
     ) {
         // Convert felt252 short string to ByteArray with correct length
         let mut name_ba: ByteArray = Default::default();
@@ -100,6 +106,7 @@ pub mod AccessToken {
         self.price.write(price);
         self.duration.write(duration);
         self.owner.write(owner);
+        self.shield_pool.write(shield_pool);
     }
 
     // ─── IAccessToken Interface (access catalog only; ERC20 via OZ mixin) ───
@@ -111,10 +118,12 @@ pub mod AccessToken {
         fn has_access(self: @TContractState, account: ContractAddress) -> bool;
         fn is_expired(self: @TContractState, account: ContractAddress) -> bool;
         fn get_owner(self: @TContractState) -> ContractAddress;
+        fn get_shield_pool(self: @TContractState) -> ContractAddress;
         fn mint(ref self: TContractState);
         fn mint_to(ref self: TContractState, recipient: ContractAddress);
         fn set_price(ref self: TContractState, new_price: u256);
         fn set_duration(ref self: TContractState, new_duration: u64);
+        fn set_shield_pool(ref self: TContractState, pool: ContractAddress);
     }
 
     #[abi(embed_v0)]
@@ -150,6 +159,9 @@ pub mod AccessToken {
         fn get_owner(self: @ContractState) -> ContractAddress {
             self.owner.read()
         }
+        fn get_shield_pool(self: @ContractState) -> ContractAddress {
+            self.shield_pool.read()
+        }
 
         fn mint(ref self: ContractState) {
             let caller = get_caller_address();
@@ -175,6 +187,11 @@ pub mod AccessToken {
             let old = self.duration.read();
             self.duration.write(new_duration);
             self.emit(DurationUpdated { old_duration: old, new_duration });
+        }
+        fn set_shield_pool(ref self: ContractState, pool: ContractAddress) {
+            let caller = get_caller_address();
+            assert(caller == self.owner.read(), ERR_NOT_OWNER);
+            self.shield_pool.write(pool);
         }
     }
 

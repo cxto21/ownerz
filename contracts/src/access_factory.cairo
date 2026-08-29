@@ -24,6 +24,8 @@ pub mod AccessFactory {
         // optional per-seller tracking: count + map
         seller_token_count: Map<ContractAddress, u64>,
         seller_tokens: Map<(ContractAddress, u64), ContractAddress>,
+        // STRK20 pool address — passed to AccessToken constructors
+        shield_pool: ContractAddress,
     }
 
     #[event]
@@ -54,10 +56,11 @@ pub mod AccessFactory {
     const ERR_NOT_OWNER: felt252 = 'NOT_OWNER';
 
     #[constructor]
-    fn constructor(ref self: ContractState, access_token_class_hash: ClassHash) {
+    fn constructor(ref self: ContractState, access_token_class_hash: ClassHash, shield_pool: ContractAddress) {
         let zero_hash: ClassHash = 0.try_into().unwrap();
         // Allow 0 on init for tests, but require non-zero for production creates
         self.access_token_class_hash.write(access_token_class_hash);
+        self.shield_pool.write(shield_pool);
         self.token_count.write(0);
     }
 
@@ -78,6 +81,8 @@ pub mod AccessFactory {
         ) -> ContractAddress;
         fn get_class_hash(self: @TContractState) -> ClassHash;
         fn set_class_hash(ref self: TContractState, new_class_hash: ClassHash);
+        fn get_shield_pool(self: @TContractState) -> ContractAddress;
+        fn set_shield_pool(ref self: TContractState, pool: ContractAddress);
     }
 
     #[abi(embed_v0)]
@@ -103,6 +108,8 @@ pub mod AccessFactory {
             price.serialize(ref calldata);
             duration.serialize(ref calldata);
             caller.serialize(ref calldata);
+            let pool = self.shield_pool.read();
+            pool.serialize(ref calldata);
 
             // salt ensures unique address per create; use token_count + caller
             let salt: felt252 = (self.token_count.read() + 1).into();
@@ -151,6 +158,12 @@ pub mod AccessFactory {
             let old = self.access_token_class_hash.read();
             self.access_token_class_hash.write(new_class_hash);
             self.emit(ClassHashUpdated { old_class_hash: old, new_class_hash });
+        }
+        fn get_shield_pool(self: @ContractState) -> ContractAddress {
+            self.shield_pool.read()
+        }
+        fn set_shield_pool(ref self: ContractState, pool: ContractAddress) {
+            self.shield_pool.write(pool);
         }
     }
 }
