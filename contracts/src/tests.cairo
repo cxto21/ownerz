@@ -178,6 +178,11 @@ fn deploy_filevault(kex_address: ContractAddress, mock_token: ContractAddress) -
     FEE.serialize(ref calldata);
     mock_token.serialize(ref calldata);
     kex_address.serialize(ref calldata);
+    // pqc and platform_fee_bps (new constructor params)
+    let pqc: felt252 = 0;
+    pqc.serialize(ref calldata);
+    let fee_bps: u16 = 100;
+    fee_bps.serialize(ref calldata);
     let (fv_address, _) = fv_class.deploy(@calldata).unwrap();
     fv_address
 }
