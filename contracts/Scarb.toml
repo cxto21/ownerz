@@ -16,8 +16,3 @@ snforge_std = "0.61.0"
 sierra = true
 casm = true
 allowed-libfuncs-list.name = "experimental"
-
-[profile.dev.cairo]
-unstable-add-statements-functions-debug-info = true
-unstable-add-statements-code-locations-debug-info = true
-panic-backtrace = true
