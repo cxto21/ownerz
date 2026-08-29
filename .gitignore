@@ -35,6 +35,14 @@ dist/
 # Test files (may contain credentials)
 test-s3.js
 test-s3-v3.js
+test_*.mjs
+check_*.mjs
+
+# Vercel
+.vercel/
+
+# Env backups
+.env.bak.*
 
 # Temp
 .tmp/
