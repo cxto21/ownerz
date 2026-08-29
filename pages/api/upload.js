@@ -1,32 +1,34 @@
-export const runtime = 'nodejs'
+export const runtime = 'edge'
 
 import s3, { BUCKET, PutObjectCommand } from '../../lib/s3'
 
-export default async function handler(req, res) {
+export default async function handler(req) {
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' })
+    return new Response(JSON.stringify({ error: 'Method not allowed' }), { status: 405 })
   }
 
   try {
-    const body = req.body
+    const body = await req.json()
+    // Tolerant: accept {data, encryptedData} and {fileName, fileName fallback}
     const encryptedData = body.encryptedData || body.data || body.encrypted
     const fileName = body.fileName || body.filename || body.originalName || 'unnamed.enc'
     const sellerAddress = body.sellerAddress || ''
     const price = body.price || '0'
 
     if (!encryptedData) {
-      return res.status(400).json({ error: 'Missing encryptedData or data' })
+      return new Response(JSON.stringify({ error: 'Missing encryptedData or data' }), { status: 400 })
     }
 
-    const timestamp = Math.floor(Date.now() / 1000) // seconds (10 digits)
-    const randomBytes = new Uint8Array(4)
+    const timestamp = Date.now()
+    const randomBytes = new Uint8Array(8)
     crypto.getRandomValues(randomBytes)
     const randomId = Array.from(randomBytes).map(b => b.toString(16).padStart(2, '0')).join('')
-    const objectKey = `${timestamp}-${randomId}.enc` // e.g. "1725000000-a1b2c3d4.enc" (24 chars, fits felt252)
+    const objectKey = `ownerz/${timestamp}-${randomId}.enc`
 
-    // TLS version: not available in Node.js runtime (was Cloudflare edge only)
-    const pqc = false
-    const tlsVersion = 'unknown'
+    // Capture PQC flag from edge TLS (non-modifiable, edge-signed)
+    // TLSv1.3 is best proxy for now (MLKEM not directly exposed via cf)
+    const tlsVersion = req.cf?.tlsVersion || req.headers.get('cf-tls-version') || ''
+    const pqc = tlsVersion === 'TLSv1.3'
 
     const result = await s3.send(new PutObjectCommand({
       Bucket: BUCKET,
@@ -38,14 +40,14 @@ export default async function handler(req, res) {
         'uploaded-at': new Date().toISOString(),
         'seller-address': sellerAddress || '',
         'price': price || '0',
-        'pqc': 'false',
-        'tls-version': 'unknown',
+        'pqc': pqc ? 'true' : 'false',
+        'tls-version': tlsVersion || 'unknown',
       },
     }))
 
     const cid = objectKey
 
-    return res.status(200).json({
+    return new Response(JSON.stringify({
       success: true,
       cid,
       key: objectKey,
@@ -56,11 +58,11 @@ export default async function handler(req, res) {
       sellerAddress: sellerAddress || '',
       price: price || '0',
       pqc,
-      tlsVersion,
+      tlsVersion: tlsVersion || 'unknown',
       message: 'Encrypted file uploaded to Fil One',
-    })
+    }), { status: 200 })
   } catch (err) {
     console.error('[upload] Error:', err.message)
-    return res.status(500).json({ error: err.message })
+    return new Response(JSON.stringify({ error: err.message }), { status: 500 })
   }
 }

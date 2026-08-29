@@ -1,17 +1,17 @@
-export const runtime = 'nodejs'
+export const runtime = 'edge'
 
 import s3, { BUCKET, PutObjectCommand } from '../../lib/s3'
 
-export default async function handler(req, res) {
+export default async function handler(req) {
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' })
+    return new Response(JSON.stringify({ error: 'Method not allowed' }), { status: 405 })
   }
 
   try {
-    const { key, data } = req.body
+    const { key, data } = await req.json()
 
     if (!key || !data) {
-      return res.status(400).json({ error: 'Missing key or data' })
+      return new Response(JSON.stringify({ error: 'Missing key or data' }), { status: 400 })
     }
 
     await s3.send(new PutObjectCommand({
@@ -21,9 +21,9 @@ export default async function handler(req, res) {
       ContentType: 'text/plain',
     }))
 
-    return res.status(200).json({ success: true, key })
+    return new Response(JSON.stringify({ success: true, key }), { status: 200 })
   } catch (err) {
     console.error('[upload-key] Error:', err.message)
-    return res.status(500).json({ error: err.message })
+    return new Response(JSON.stringify({ error: err.message }), { status: 500 })
   }
 }

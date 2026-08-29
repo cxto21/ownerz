@@ -9,10 +9,6 @@ use snforge_std::{
 use crate::filevault::FileVault::{IFileVaultDispatcher, IFileVaultDispatcherTrait, Vault};
 use crate::filevault::FileVault::LockState as FileVaultLockState;
 
-fn zero_addr() -> ContractAddress {
-    0.try_into().unwrap()
-}
-
 // ---- Mock ERC20 (STRK) ----
 #[starknet::interface]
 trait IMockERC20<TContractState> {
@@ -178,11 +174,6 @@ fn deploy_filevault(kex_address: ContractAddress, mock_token: ContractAddress) -
     FEE.serialize(ref calldata);
     mock_token.serialize(ref calldata);
     kex_address.serialize(ref calldata);
-    // pqc and platform_fee_bps (new constructor params)
-    let pqc: felt252 = 0;
-    pqc.serialize(ref calldata);
-    let fee_bps: u16 = 100;
-    fee_bps.serialize(ref calldata);
     let (fv_address, _) = fv_class.deploy(@calldata).unwrap();
     fv_address
 }
@@ -204,7 +195,7 @@ fn test_create_vault_success() {
     let integrity_hash: felt252 = 'hash123';
 
     start_cheat_caller_address(fv.contract_address, seller());
-    fv.create_vault(CID, PRICE, integrity_hash, commitment, TTL, 1, zero_addr(), 0);
+    fv.create_vault(CID, PRICE, integrity_hash, commitment, TTL, true);
     stop_cheat_caller_address(fv.contract_address);
 
     let (vault, lock) = fv.get_vault(CID);
@@ -212,7 +203,7 @@ fn test_create_vault_success() {
     assert(vault.price == PRICE, 'wrong price');
     assert(vault.status == 0, 'should be active');
     assert(vault.ttl == TTL, 'wrong ttl');
-    assert(vault.pqc == 1, 'pqc should be true');
+    assert(vault.pqc == true, 'pqc should be true');
     assert(vault.platform_fee_bps == 100, 'fee bps should be 100');
     // LockState delegated to KEX
     assert(lock.commitment == commitment, 'wrong commitment');
@@ -227,9 +218,9 @@ fn test_create_vault_duplicate() {
     let commitment = compute_commitment(CID, CLAIM_SECRET);
     let ih: felt252 = 'hash123';
     start_cheat_caller_address(fv.contract_address, seller());
-    fv.create_vault(CID, PRICE, ih, commitment, TTL, 0, zero_addr(), 0);
+    fv.create_vault(CID, PRICE, ih, commitment, TTL, false);
     // second should panic
-    fv.create_vault(CID, PRICE, ih, commitment, TTL, 0, zero_addr(), 0);
+    fv.create_vault(CID, PRICE, ih, commitment, TTL, false);
     stop_cheat_caller_address(fv.contract_address);
 }
 
@@ -240,7 +231,7 @@ fn test_create_vault_zero_price() {
     let commitment = compute_commitment(CID, CLAIM_SECRET);
     let ih: felt252 = 'hash123';
     start_cheat_caller_address(fv.contract_address, seller());
-    fv.create_vault(CID, 0, ih, commitment, TTL, 0, zero_addr(), 0);
+    fv.create_vault(CID, 0, ih, commitment, TTL, false);
     stop_cheat_caller_address(fv.contract_address);
 }
 
@@ -251,7 +242,7 @@ fn test_create_vault_zero_ttl() {
     let commitment = compute_commitment(CID, CLAIM_SECRET);
     let ih: felt252 = 'hash123';
     start_cheat_caller_address(fv.contract_address, seller());
-    fv.create_vault(CID, PRICE, ih, commitment, 0, 0, zero_addr(), 0);
+    fv.create_vault(CID, PRICE, ih, commitment, 0, false);
     stop_cheat_caller_address(fv.contract_address);
 }
 
@@ -262,7 +253,7 @@ fn test_claim_success() {
     let ih: felt252 = 'hash123';
 
     start_cheat_caller_address(fv.contract_address, seller());
-    fv.create_vault(CID, PRICE, ih, commitment, TTL, 0, zero_addr(), 0);
+    fv.create_vault(CID, PRICE, ih, commitment, TTL, false);
     stop_cheat_caller_address(fv.contract_address);
 
     start_cheat_caller_address(fv.contract_address, buyer());
@@ -282,7 +273,7 @@ fn test_claim_wrong_secret() {
     let ih: felt252 = 'hash123';
 
     start_cheat_caller_address(fv.contract_address, seller());
-    fv.create_vault(CID, PRICE, ih, commitment, TTL, 0, zero_addr(), 0);
+    fv.create_vault(CID, PRICE, ih, commitment, TTL, false);
     stop_cheat_caller_address(fv.contract_address);
 
     start_cheat_caller_address(fv.contract_address, buyer());
@@ -298,7 +289,7 @@ fn test_double_claim_fails() {
     let ih: felt252 = 'hash123';
 
     start_cheat_caller_address(fv.contract_address, seller());
-    fv.create_vault(CID, PRICE, ih, commitment, TTL, 0, zero_addr(), 0);
+    fv.create_vault(CID, PRICE, ih, commitment, TTL, false);
     stop_cheat_caller_address(fv.contract_address);
 
     start_cheat_caller_address(fv.contract_address, buyer());
@@ -315,14 +306,14 @@ fn test_get_vault_tuple() {
     let ih: felt252 = 'integrity_abc';
 
     start_cheat_caller_address(fv.contract_address, seller());
-    fv.create_vault(CID2, PRICE, ih, commitment, TTL, 1, zero_addr(), 0);
+    fv.create_vault(CID2, PRICE, ih, commitment, TTL, true);
     stop_cheat_caller_address(fv.contract_address);
 
     let (vault, lock) = fv.get_vault(CID2);
     assert(vault.seller == seller(), 'seller mismatch');
     assert(vault.price == PRICE, 'price mismatch');
     assert(vault.status == 0, 'status mismatch');
-    assert(vault.pqc == 1, 'pqc true');
+    assert(vault.pqc == true, 'pqc true');
     assert(vault.platform_fee_bps == 100, 'bps');
     assert(lock.commitment == commitment, 'commitment mismatch');
     assert(lock.integrity_hash == ih, 'ih mismatch');
@@ -335,10 +326,10 @@ fn test_pqc_flag_false_and_fee_bps() {
     let commitment = compute_commitment(CID, CLAIM_SECRET);
     let ih: felt252 = 'hash_pqc_false';
     start_cheat_caller_address(fv.contract_address, seller());
-    fv.create_vault(CID, PRICE, ih, commitment, TTL, 0, zero_addr(), 0);
+    fv.create_vault(CID, PRICE, ih, commitment, TTL, false);
     stop_cheat_caller_address(fv.contract_address);
     let (vault, _lock) = fv.get_vault(CID);
-    assert(vault.pqc == 0, 'pqc should be false');
+    assert(vault.pqc == false, 'pqc should be false');
     assert(vault.platform_fee_bps == 100, 'fee bps 100');
 }
 
@@ -351,13 +342,13 @@ fn test_pqc_flag_immutable_after_create() {
     let c2 = compute_commitment(CID2, CLAIM_SECRET);
     let ih: felt252 = 'hash123';
     start_cheat_caller_address(fv.contract_address, seller());
-    fv.create_vault(CID, PRICE, ih, c1, TTL, 1, zero_addr(), 0);
-    fv.create_vault(CID2, PRICE, ih, c2, TTL, 0, zero_addr(), 0);
+    fv.create_vault(CID, PRICE, ih, c1, TTL, true);
+    fv.create_vault(CID2, PRICE, ih, c2, TTL, false);
     stop_cheat_caller_address(fv.contract_address);
     let (v1, _) = fv.get_vault(CID);
     let (v2, _) = fv.get_vault(CID2);
-    assert(v1.pqc == 1, 'v1 pqc true');
-    assert(v2.pqc == 0, 'v2 pqc false');
+    assert(v1.pqc == true, 'v1 pqc true');
+    assert(v2.pqc == false, 'v2 pqc false');
     assert(v1.platform_fee_bps == 100, 'v1 bps');
     assert(v2.platform_fee_bps == 100, 'v2 bps');
 }
@@ -378,7 +369,7 @@ fn test_get_total_fees_accumulates() {
     assert(fee_before == 0, 'should start 0');
 
     start_cheat_caller_address(fv.contract_address, seller());
-    fv.create_vault(CID, PRICE, ih, commitment, TTL, 0, zero_addr(), 0);
+    fv.create_vault(CID, PRICE, ih, commitment, TTL, false);
     stop_cheat_caller_address(fv.contract_address);
 
     let fee_after = fv.get_total_fees();
@@ -387,7 +378,7 @@ fn test_get_total_fees_accumulates() {
     // second vault with different CID should add again
     let commitment2 = compute_commitment(CID2, CLAIM_SECRET);
     start_cheat_caller_address(fv.contract_address, seller());
-    fv.create_vault(CID2, PRICE, ih, commitment2, TTL, 0, zero_addr(), 0);
+    fv.create_vault(CID2, PRICE, ih, commitment2, TTL, false);
     stop_cheat_caller_address(fv.contract_address);
 
     let fee_after2 = fv.get_total_fees();
@@ -402,7 +393,7 @@ fn test_refund_after_ttl() {
     let short_ttl: u64 = 100;
 
     start_cheat_caller_address(fv.contract_address, seller());
-    fv.create_vault(CID, PRICE, ih, commitment, short_ttl, 0, zero_addr(), 0);
+    fv.create_vault(CID, PRICE, ih, commitment, short_ttl, false);
     stop_cheat_caller_address(fv.contract_address);
 
     // Warp time past TTL
@@ -427,7 +418,7 @@ fn test_refund_too_early() {
     let ih: felt252 = 'hash123';
 
     start_cheat_caller_address(fv.contract_address, seller());
-    fv.create_vault(CID, PRICE, ih, commitment, TTL, 0, zero_addr(), 0);
+    fv.create_vault(CID, PRICE, ih, commitment, TTL, false);
     // immediate refund should fail
     fv.refund_vault(CID);
     stop_cheat_caller_address(fv.contract_address);
@@ -442,7 +433,7 @@ fn test_refund_not_seller() {
     let short_ttl: u64 = 100;
 
     start_cheat_caller_address(fv.contract_address, seller());
-    fv.create_vault(CID, PRICE, ih, commitment, short_ttl, 0, zero_addr(), 0);
+    fv.create_vault(CID, PRICE, ih, commitment, short_ttl, false);
     stop_cheat_caller_address(fv.contract_address);
 
     let now = starknet::get_block_timestamp();
@@ -461,7 +452,7 @@ fn test_get_status_and_price() {
     let ih: felt252 = 'hash123';
 
     start_cheat_caller_address(fv.contract_address, seller());
-    fv.create_vault(CID, PRICE, ih, commitment, TTL, 0, zero_addr(), 0);
+    fv.create_vault(CID, PRICE, ih, commitment, TTL, false);
     stop_cheat_caller_address(fv.contract_address);
 
     let status = fv.get_status(CID);
