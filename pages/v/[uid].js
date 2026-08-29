@@ -52,6 +52,15 @@ export default function VaultAccess() {
     } catch { /* ignore */ }
   }
 
+  // Auto-fill claim secret from URL query param (?secret=...)
+  useEffect(() => {
+    if (!router.isReady) return
+    const qs = router.query.secret
+    if (qs && typeof qs === 'string' && !claimSecret) {
+      setClaimSecret(qs)
+    }
+  }, [router.isReady, router.query.secret])
+
   // Load vault info when uid is available
   useEffect(() => {
     if (!uid || !router.isReady) return
@@ -214,6 +223,7 @@ export default function VaultAccess() {
 
       // Convert claim secret hex to u16 proof
       const proof = secretToOnChain(claimSecret)
+      console.log('[VaultAccess] Claiming vault:', { identifier: vaultInfo.identifier, proof, secretLen: claimSecret.length })
 
       // Step 1: Unlock on-chain (claim vault)
       const result = await unlock({
@@ -222,12 +232,21 @@ export default function VaultAccess() {
         proof,
       })
 
-      // Wait for tx
+      // Wait for tx — if it fails, surface the error
       if (result?.transaction_hash) {
+        console.log('[VaultAccess] Claim tx submitted:', result.transaction_hash)
         try {
-          await account.provider.waitForTransaction(result.transaction_hash, { timeout: 60000 })
+          const txResult = await account.provider.waitForTransaction(result.transaction_hash, { timeout: 60000 })
+          // Check execution status
+          if (txResult?.execution_status === 'REVERTED') {
+            const reason = txResult?.revert_reason || 'Transaction reverted on-chain'
+            throw new Error('Claim failed: ' + reason)
+          }
         } catch (waitErr) {
-          console.warn('waitForTransaction failed:', waitErr.message)
+          // If waitForTransaction throws, the tx likely reverted
+          if (waitErr.message?.includes('Claim failed:')) throw waitErr
+          console.warn('[VaultAccess] waitForTransaction error:', waitErr.message)
+          throw new Error('Transaction failed — the claim secret may be incorrect or the vault may have already been claimed.')
         }
       }
 
