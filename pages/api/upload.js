@@ -18,11 +18,11 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Missing encryptedData or data' })
     }
 
-    const timestamp = Date.now()
-    const randomBytes = new Uint8Array(8)
+    const timestamp = Math.floor(Date.now() / 1000) // seconds (10 digits)
+    const randomBytes = new Uint8Array(4)
     crypto.getRandomValues(randomBytes)
     const randomId = Array.from(randomBytes).map(b => b.toString(16).padStart(2, '0')).join('')
-    const objectKey = `ownerz/${timestamp}-${randomId}.enc`
+    const objectKey = `${timestamp}-${randomId}.enc` // e.g. "1725000000-a1b2c3d4.enc" (24 chars, fits felt252)
 
     // TLS version: not available in Node.js runtime (was Cloudflare edge only)
     const pqc = false

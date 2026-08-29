@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { generateListing, lock, readLock, getFee, identifierToFelt, computeCommitment, computeIntegrityHash } from '../lib/key-onchain/index.js'
+import { generateListing, lock, readLock, getFee, identifierToFelt, computeCommitment, computeIntegrityHash, stringToFelt } from '../lib/key-onchain/index.js'
 import { uploadEncryptedFile, uploadKeySeed } from '../lib/storage/index.js'
 import { calculateUploadFee } from '../lib/fees'
 import { getFileIcon, formatSize, copyToClipboard } from './utils'
@@ -149,7 +149,7 @@ export default function SellFlow({ connected, isStrk20, account, refreshWallet, 
         identifier,
         commitment,
         integrityHash,
-        meta: { price: priceWei, ttl: 2592000, fee, pqc, tokenGate: selectedToken?.address || '0x0', fileCid: cid },
+        meta: { price: priceWei, ttl: 2592000, fee, pqc, tokenGate: selectedToken?.address || '0x0', fileCid: stringToFelt(cid) },
       })
 
       // Step 6: Upload key seed (same wrapped key as step 2)

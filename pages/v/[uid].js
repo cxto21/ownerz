@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
-import { readLock, identifierToFelt, unlock, secretToOnChain } from '../../lib/key-onchain/index.js'
+import { readLock, identifierToFelt, unlock, secretToOnChain, feltToString } from '../../lib/key-onchain/index.js'
 import { connectWallet, getAvailableWallets, waitForWallets } from '../../lib/starknet.js'
 import { checkAccess, mintAccess, getTokenInfo, revealShieldedAccess } from '../../lib/access-token.js'
 import { downloadKeySeed, downloadEncryptedFile } from '../../lib/storage/index.js'
@@ -252,15 +252,16 @@ export default function VaultAccess() {
         }
       }
 
-      // Step 2: Get file_cid from vault (normalize BigInt to hex string)
-      const fileCid = toHexAddress(vaultInfo.vault?.file_cid)
-      if (!fileCid || fileCid === '0x0' || fileCid === '0') {
+      // Step 2: Get file_cid from vault — decode felt252 short string back to raw CID
+      const rawCid = feltToString(vaultInfo.vault?.file_cid)
+      console.log('[VaultAccess] file_cid decoded:', rawCid)
+      if (!rawCid || rawCid === '0x0' || rawCid === '0') {
         throw new Error('No file_cid found in vault — cannot download file')
       }
 
       // Step 3: Download key seed from storage
       setClaimStatus('downloading')
-      const keySeedCiphertext = await downloadKeySeed(fileCid)
+      const keySeedCiphertext = await downloadKeySeed(rawCid)
       if (!keySeedCiphertext) throw new Error('Key seed not found in storage')
 
       // Step 4: Unwrap key seed with claim secret → recover ML-KEM768 secret key
@@ -278,7 +279,7 @@ export default function VaultAccess() {
 
       // Step 5: Download encrypted file from storage
       setClaimStatus('decrypting')
-      const encryptedData = await downloadEncryptedFile(fileCid)
+      const encryptedData = await downloadEncryptedFile(rawCid)
       if (!encryptedData) throw new Error('Encrypted file not found in storage')
 
       // Step 6: Decrypt file
@@ -313,14 +314,14 @@ export default function VaultAccess() {
       setError(null)
       setClaimStatus('downloading')
 
-      // Get file_cid from vault
-      const fileCid = toHexAddress(vaultInfo.vault?.file_cid)
-      if (!fileCid || fileCid === '0x0' || fileCid === '0') {
+      // Get file_cid from vault — decode felt252 short string
+      const rawCidDl = feltToString(vaultInfo.vault?.file_cid)
+      if (!rawCidDl || rawCidDl === '0x0' || rawCidDl === '0') {
         throw new Error('No file_cid found in vault')
       }
 
       // Download key seed
-      const keySeedCiphertext = await downloadKeySeed(fileCid)
+      const keySeedCiphertext = await downloadKeySeed(rawCidDl)
       if (!keySeedCiphertext) throw new Error('Key seed not found in storage')
 
       // Unwrap key seed with claim secret
@@ -335,7 +336,7 @@ export default function VaultAccess() {
 
       // Download encrypted file
       setClaimStatus('decrypting')
-      const encryptedData = await downloadEncryptedFile(fileCid)
+      const encryptedData = await downloadEncryptedFile(rawCidDl)
       if (!encryptedData) throw new Error('Encrypted file not found in storage')
 
       // Decrypt
