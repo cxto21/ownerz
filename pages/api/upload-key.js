@@ -1,4 +1,4 @@
-export const runtime = 'edge'
+export const runtime = 'nodejs'
 
 import s3, { BUCKET, PutObjectCommand } from '../../lib/s3'
 

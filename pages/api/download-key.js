@@ -1,4 +1,4 @@
-export const runtime = 'edge'
+export const runtime = 'nodejs'
 
 import s3, { BUCKET, GetObjectCommand } from '../../lib/s3'
 
@@ -32,7 +32,9 @@ export default async function handler(req) {
 
     return new Response(JSON.stringify({ success: true, data, key }), { status: 200 })
   } catch (err) {
-    console.error('[download-key] Error:', err.message)
-    return new Response(JSON.stringify({ error: err.message }), { status: 500 })
+    console.error('[download-key] Error:', err.name, err.message, err.$metadata?.httpStatusCode)
+    const status = err.$metadata?.httpStatusCode || 500
+    const msg = err.name === 'NoSuchKey' ? 'Key seed not found in storage' : err.message
+    return new Response(JSON.stringify({ error: msg, key }), { status })
   }
 }
