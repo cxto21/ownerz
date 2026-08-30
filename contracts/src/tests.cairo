@@ -174,6 +174,10 @@ fn deploy_filevault(kex_address: ContractAddress, mock_token: ContractAddress) -
     FEE.serialize(ref calldata);
     mock_token.serialize(ref calldata);
     kex_address.serialize(ref calldata);
+    // pqc: bool
+    calldata.append(1);
+    // platform_fee_bps: u16 (100 = 1%)
+    calldata.append(100);
     let (fv_address, _) = fv_class.deploy(@calldata).unwrap();
     fv_address
 }
