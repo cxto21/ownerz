@@ -362,7 +362,7 @@ export default function Ownerz() {
                 transition: 'transform .15s, box-shadow .2s',
               }}
             >
-              {walletState.loading ? 'Connecting...' : 'CONNECT WALLET ↗'}
+              {walletState.loading ? 'Connecting...' : <><span className="dv-connect-full">CONNECT WALLET</span><span className="dv-connect-short">CONNECT</span> ↗</>}
             </button>
           )}
           {/* Mobile hamburger */}
@@ -374,8 +374,10 @@ export default function Ownerz() {
 
       {/* Mobile Top Bar */}
       {menuOpen && (
-        <div className="dv-topbar" onClick={() => setMenuOpen(false)}>
-          <div className="dv-topbar-inner" onClick={e => e.stopPropagation()}>
+        <>
+          <div className="dv-sidebar-overlay" onClick={() => setMenuOpen(false)} />
+          <div className="dv-topbar open">
+            <div className="dv-topbar-inner">
             {walletState.connected ? (
               <>
                 <div className="dv-topbar-row">
@@ -400,11 +402,12 @@ export default function Ownerz() {
               </>
             ) : (
               <button onClick={() => { handleConnect(); setMenuOpen(false) }} disabled={walletState.loading} className="dv-topbar-btn dv-topbar-btn-purple" style={{ width: '100%' }}>
-              {walletState.loading ? 'Connecting...' : 'CONNECT WALLET ↗'}
+              {walletState.loading ? 'Connecting...' : <><span className="dv-connect-full">CONNECT WALLET</span><span className="dv-connect-short">CONNECT</span> ↗</>}
               </button>
             )}
           </div>
         </div>
+        </>
       )}
 
       {/* Shielded Balance Panel */}

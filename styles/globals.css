@@ -261,33 +261,42 @@ body::after {
   }
 }
 
-/* Top Bar (mobile dropdown) */
+/* Sidebar (mobile) */
 .dv-topbar {
   position: fixed;
   top: 0;
-  left: 0;
   right: 0;
-  z-index: 49;
-  padding-top: 65px;
+  bottom: 0;
+  width: 280px;
+  z-index: 999;
+  padding: 0;
   pointer-events: none;
-}
-.dv-topbar-inner {
-  background: rgba(0, 0, 0, 0.92);
+  background: rgba(5, 8, 18, 0.95);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
-  border-bottom: 1px solid var(--hairline);
-  padding: 12px 20px 16px;
+  border-left: 1px solid var(--hairline);
+  transform: translateX(100%);
+  transition: transform 0.3s ease;
+  overflow-y: auto;
+}
+.dv-topbar.open {
+  pointer-events: auto;
+  transform: translateX(0);
+}
+.dv-topbar-inner {
+  padding: 80px 20px 24px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  max-width: 420px;
-  margin: 0 auto;
-  pointer-events: auto;
-  animation: slideDown 0.2s ease-out;
+  gap: 12px;
 }
-@keyframes slideDown {
-  from { opacity: 0; transform: translateY(-8px); }
-  to { opacity: 1; transform: translateY(0); }
+
+/* Sidebar overlay */
+.dv-sidebar-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 998;
+  animation: fadeIn 0.2s ease-out;
 }
 .dv-topbar-row {
   display: flex;
@@ -1208,5 +1217,41 @@ body::after {
 @media (max-width: 640px) {
   .dv-features-grid {
     grid-template-columns: 1fr !important;
+  }
+}
+
+/* Connect button text toggle (mobile) */
+.dv-connect-short { display: none; }
+@media (max-width: 600px) {
+  .dv-connect-full { display: none; }
+  .dv-connect-short { display: inline; }
+}
+
+/* Micro responsive fixes */
+@media (max-width: 600px) {
+  /* Hero text smaller on mobile */
+  .dv-hero h1 {
+    font-size: clamp(28px, 8vw, 40px) !important;
+  }
+
+  /* Hero tagline smaller */
+  .dv-hero p {
+    font-size: 14px !important;
+  }
+
+  /* Card full width on mobile */
+  .dv-hero .dv-hero-content:last-child {
+    width: 100%;
+  }
+
+  /* Metrics stack vertically */
+  .dv-metrics-row {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  /* Nav smaller logo on mobile */
+  .dv-logo-img {
+    height: 64px !important;
   }
 }
