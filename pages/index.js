@@ -10,6 +10,7 @@ export default function Ownerz() {
   const [mode, setMode] = useState('sell')
   const [copiedAddress, setCopiedAddress] = useState(false)
   const [showShieldModal, setShowShieldModal] = useState(false)
+  const [showHackathonPopup, setShowHackathonPopup] = useState(true)
   const [shieldedBalance, setShieldedBalance] = useState(null)
   const [showShieldedBalance, setShowShieldedBalance] = useState(false)
   const [loadingBalance, setLoadingBalance] = useState(false)
@@ -289,6 +290,39 @@ export default function Ownerz() {
 
   return (
     <div className="dv">
+      {/* Hackathon Popup */}
+      {showHackathonPopup && (
+        <div className="dv-popup-overlay" onClick={() => setShowHackathonPopup(false)}>
+          <div
+            className="dv-popup-card"
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: 'var(--bg-raised)',
+              border: '1px solid var(--line)',
+              clipPath: 'polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px)',
+            }}
+          >
+            <button className="dv-popup-close" onClick={() => setShowHackathonPopup(false)} style={{ color: 'var(--accent)' }}>✕</button>
+            <div style={{ fontFamily: 'var(--mono)', fontSize: '13px', letterSpacing: '0.22em', textTransform: 'uppercase', color: 'var(--faint)', marginBottom: '8px' }}>
+              Post-Quantum Secure · Zero-Knowledge · Sovereign
+            </div>
+            <div className="dv-popup-title" style={{ fontFamily: 'var(--mono)', letterSpacing: '0.10em' }}>STRK20 Hackathon</div>
+            <div className="dv-popup-text">
+              Your files, protected beyond the next generation of computing.
+            </div>
+            <div className="dv-popup-subtitle" style={{ fontFamily: 'var(--mono)' }}>
+              Starknet Sepolia Testnet · Do not use real funds
+            </div>
+            <button
+              className="dv-btn-primary"
+              onClick={() => setShowHackathonPopup(false)}
+            >
+              Enter
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Navigation */}
       <nav className="dv-nav">
         <div className="dv-nav-inner">
