@@ -44,24 +44,31 @@ export default function ShieldModal({ account, onClose }) {
       left: 0,
       right: 0,
       bottom: 0,
-      background: 'rgba(0,0,0,0.8)',
+      background: 'rgba(2,4,10,0.85)',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
       zIndex: 1000
     }}>
-      <div className="dv-card" style={{ maxWidth: '400px', width: '100%' }}>
+      <div className="dv-card" style={{
+        maxWidth: '400px',
+        width: '100%',
+        background: 'linear-gradient(160deg, rgba(13,18,31,.88), rgba(5,8,18,.94))',
+        border: '1px solid var(--blue-glow)',
+        boxShadow: '0 0 34px rgba(112,145,255,.10)',
+        clipPath: 'polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px)',
+      }}>
         <div className="dv-card-content">
           {step === 0 && (
             <>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <h3 className="dv-title">Shield STRK</h3>
+                <h3 className="dv-title" style={{ fontFamily: 'var(--mono)', letterSpacing: '0.10em' }}>Shield STRK</h3>
                 <button 
                   onClick={onClose}
                   style={{ 
                     background: 'none', 
                     border: 'none', 
-                    color: 'rgba(255,255,255,0.5)',
+                    color: 'var(--text-muted)',
                     cursor: 'pointer',
                     fontSize: '20px'
                   }}
@@ -70,12 +77,12 @@ export default function ShieldModal({ account, onClose }) {
                 </button>
               </div>
               
-              <p className="dv-hint">
+              <p className="dv-hint" style={{ fontFamily: 'var(--body)' }}>
                 Deposit STRK into the privacy pool. Once shielded, you can make private transfers.
               </p>
 
               <div className="dv-input-group">
-                <label>Amount (STRK)</label>
+                <label style={{ fontFamily: 'var(--mono)', letterSpacing: '0.22em' }}>Amount (STRK)</label>
                 <input
                   type="number"
                   value={amount}

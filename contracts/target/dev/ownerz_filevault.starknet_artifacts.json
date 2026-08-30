@@ -1,1 +1,1 @@
-{"version":1,"contracts":[{"id":"38j9j5kqo9ckk","package_name":"ownerz_filevault","contract_name":"FileVault","module_path":"ownerz_filevault::filevault::FileVault","artifacts":{"sierra":"ownerz_filevault_FileVault.contract_class.json","casm":null}}]}
+{"version":1,"contracts":[{"id":"38j9j5kqo9ckk","package_name":"ownerz_filevault","contract_name":"FileVault","module_path":"ownerz_filevault::filevault::FileVault","artifacts":{"sierra":"ownerz_filevault_FileVault.contract_class.json","casm":"ownerz_filevault_FileVault.compiled_contract_class.json"}}]}

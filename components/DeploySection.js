@@ -54,14 +54,14 @@ export default function DeploySection({ account, refreshWallet }) {
         <h3 style={{ color: '#10b981', margin: '0 0 10px 0', fontSize: '14px' }}>✅ Contracts Deployed</h3>
         {kexAddress && (
           <>
-            <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)', marginBottom: '4px' }}>KeyExchangeMockup:</div>
+            <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.5)', marginBottom: '4px' }}>KeyExchangeMockup:</div>
             <code
               style={{
                 display: 'block',
                 padding: '10px',
                 background: 'rgba(0,0,0,0.3)',
                 borderRadius: '4px',
-                fontSize: '12px',
+                fontSize: '13px',
                 wordBreak: 'break-all',
                 marginBottom: '12px',
               }}
@@ -70,20 +70,20 @@ export default function DeploySection({ account, refreshWallet }) {
             </code>
           </>
         )}
-        <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)', marginBottom: '4px' }}>FileVault:</div>
+        <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.5)', marginBottom: '4px' }}>FileVault:</div>
         <code
           style={{
             display: 'block',
             padding: '10px',
             background: 'rgba(0,0,0,0.3)',
             borderRadius: '4px',
-            fontSize: '12px',
+            fontSize: '13px',
             wordBreak: 'break-all',
           }}
         >
           {contractAddress}
         </code>
-        <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginTop: '12px' }}>
+        <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.4)', marginTop: '12px' }}>
           Add both to .env and restart dev server. See scripts/deploy.js for Sepolia steps.
         </div>
       </div>
@@ -105,14 +105,14 @@ export default function DeploySection({ account, refreshWallet }) {
       <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '13px', margin: '0 0 12px 0' }}>
         FileVault v2 not deployed — requires KeyExchangeMockup + FileVault
       </p>
-      <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '11px', margin: '0 0 12px 0' }}>
+      <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '13px', margin: '0 0 12px 0' }}>
         For Sepolia: <code>node scripts/deploy.js --private-key 0x... --account 0x...</code>
         <br />
         This deploys KEX first, then FileVault with KEX address. See scripts/deploy.js comments.
       </p>
 
       {error && (
-        <div style={{ color: '#ef4444', fontSize: '12px', marginBottom: '12px', whiteSpace: 'pre-wrap', textAlign: 'left', background: 'rgba(239,68,68,0.1)', padding: '10px', borderRadius: '4px' }}>
+        <div style={{ color: '#ef4444', fontSize: '13px', marginBottom: '12px', whiteSpace: 'pre-wrap', textAlign: 'left', background: 'rgba(239,68,68,0.1)', padding: '10px', borderRadius: '4px' }}>
           {error}
         </div>
       )}

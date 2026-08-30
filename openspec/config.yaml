@@ -1,0 +1,69 @@
+project: DataVaultz
+stack:
+  frontend: "Next.js 14 (App Router/Pages), React 18, TypeScript (dev), JavaScript (src)"
+  contracts: "Cairo 2.18.0, Scarb, OpenZeppelin, snforge_std 0.61.0"
+  deploy: "Cloudflare Pages (next-on-pages + wrangler), Starknet Sepolia"
+  privacy: "STRK20 via starknet.js v10.7.0 WalletAccountV6, get-starknet v6, starknetkit v3.4.3"
+  storage: "AWS S3 (via @aws-sdk/client-s3), post-quantum crypto (@noble/post-quantum)"
+persistence: "openspec"
+strict_tdd: false
+reason: "Frontend has no test runner configured; contracts have snforge but frontend is primary app surface. Add vitest/jest + testing-library + playwright to enable strict TDD."
+testing:
+  runner:
+    command: "scarb test"
+    framework: "snforge 0.61"
+    scope: "contracts only"
+  layers:
+    unit:
+      available: true
+      tool: "snforge (contracts), — (frontend)"
+    integration:
+      available: false
+      tool: "—"
+    e2e:
+      available: false
+      tool: "—"
+  coverage:
+    available: false
+    command: "—"
+  quality:
+    linter:
+      available: false
+      command: "—"
+    type_checker:
+      available: true
+      command: "tsc --noEmit"
+    formatter:
+      available: false
+      command: "—"
+phase_rules:
+  proposal:
+    require: ["intent", "scope", "approach"]
+    template: "sdd/proposal-template.md"
+  spec:
+    require: ["requirements", "scenarios"]
+    template: "sdd/spec-template.md"
+  design:
+    require: ["architecture", "components", "data_flow"]
+    template: "sdd/design-template.md"
+  tasks:
+    require: ["breakdown", "acceptance"]
+    template: "sdd/tasks-template.md"
+  apply:
+    require: ["implementation", "tests"]
+    verify_on_complete: true
+  verify:
+    require: ["test_results", "coverage", "lint"]
+    gates: ["all_tests_pass", "types_check"]
+  archive:
+    require: ["delta_specs", "changelog"]
+    sync_mode: "incremental"
+context: |
+  DataVaultz is a privacy-preserving file marketplace on Starknet Sepolia.
+  - SellFlow: Upload files, encrypt with PQC, store on S3, list on-chain via FileVault contract
+  - BuyFlow: Purchase access with STRK, claim via KeyExchange, decrypt and download
+  - STRK20 privacy: Shielded balances, private transfers via WalletAccountV6
+  - Mobile wallet connect: StarknetKit + WalletConnect QR for Ready/Argent mobile apps
+  - Contracts: FileVault (vaults, pricing, TTL, fees), KeyExchange (commitment/reveal), MockERC20 for testing
+  - Deploy: Cloudflare Pages with next-on-pages, wrangler for Workers/Pages
+  - Key files: pages/index.js (main UI), lib/starknet.js (wallet layer), lib/starknet-kit.js (mobile connect), contracts/src/filevault.cairo, contracts/src/tests.cairo
