@@ -833,7 +833,7 @@ body::after {
   backdrop-filter: blur(20px);
   border: 1px solid var(--hairline);
   border-radius: 0;
-  padding: 40px;
+  padding: 40px 56px 40px 40px;
   max-width: 480px;
   width: 100%;
   text-align: center;
@@ -1153,7 +1153,7 @@ body::after {
   }
   
   .dv-popup-card {
-    padding: 28px 20px;
+    padding: 28px 44px 28px 20px;
     border-radius: 0;
   }
 }
