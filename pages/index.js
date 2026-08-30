@@ -453,7 +453,6 @@ export default function Ownerz() {
         {/* Hero Section */}
         <section className="dv-hero reveal" style={{
           position: 'relative',
-          minHeight: '60vh',
           width: '100%',
         }}>
           <div className="dv-hero-content reveal reveal-d1" style={{ position: 'relative', zIndex: 1, maxWidth: '480px' }}>
