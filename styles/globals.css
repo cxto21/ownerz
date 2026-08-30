@@ -162,19 +162,6 @@ body::after {
   display: block;
 }
 
-/* Nav Links */
-.dv-nav-links {
-  display: flex;
-  gap: 32px;
-  align-items: center;
-}
-
-@media (max-width: 768px) {
-  .dv-nav-links {
-    display: none;
-  }
-}
-
 /* Desktop Nav Controls */
 .dv-nav-desktop {
   display: flex;
