@@ -647,9 +647,9 @@ export default function Ownerz() {
             <img src="/images/ownerz_logotype.png" alt="OWNERZ" style={{ height: '96px', width: 'auto', flexShrink: 0 }} />
             <div style={{ display: 'flex', gap: 'clamp(24px, 5vw, 64px)', flexWrap: 'wrap', flex: 1, justifyContent: 'center' }}>
               {[
-                { label: 'USERS', value: '+10K' },
-                { label: 'FILES STORED', value: '+250K' },
+                { label: 'STORED', value: '+5GB' },
                 { label: 'UPTIME', value: '99.9%' },
+                { label: 'FILES STORED', value: '+35' },
               ].map((m, i) => (
                 <div key={i} style={{ textAlign: 'center', minWidth: '80px' }}>
                   <div style={{ fontFamily: 'var(--display)', fontSize: 'clamp(20px,2.5vw,36px)', fontWeight: 800, color: 'var(--text-primary)', lineHeight: 1 }}>{m.value}</div>
