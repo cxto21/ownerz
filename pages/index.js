@@ -470,7 +470,7 @@ export default function Ownerz() {
               color: 'transparent',
               margin: 0,
             }}>YOUR FILES.<br/>QUANTUM<br/>OWNERSHIP.</h1>
-            <p style={{ fontFamily: 'var(--body)', fontSize: '16px', lineHeight: '1.5', color: 'var(--text-secondary)', margin: 0, maxWidth: '380px' }}>
+            <p style={{ fontFamily: 'var(--body)', fontSize: '16px', lineHeight: '1.5', color: '#fff', margin: 0, maxWidth: '380px' }}>
               Store, encrypt and manage your files on the post-quantum blockchain. Built for a sovereign digital future.
             </p>
             <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap', marginTop: '2px' }}>
