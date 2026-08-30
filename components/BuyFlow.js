@@ -212,10 +212,10 @@ export default function BuyFlow({ connected, isStrk20, account, refreshWallet, o
       {step === 2 && (
         <>
           <div style={{display:'flex', alignItems:'center', gap:'8px', marginBottom:'12px', justifyContent:'flex-end'}}>
-            <div className="dv-pqc-bubble" onClick={() => setShowPqcTip(!showPqcTip)} style={{position:'relative', display:'inline-flex', alignItems:'center', gap:'6px', fontSize:'11px', padding:'4px 8px', borderRadius:'999px', background: fileMetadata?.pqc ? 'rgba(197,52,0,0.12)' : 'rgba(239,68,68,0.12)', border: fileMetadata?.pqc ? '1px solid rgba(197,52,0,0.25)' : '1px solid rgba(239,68,68,0.25)', color: fileMetadata?.pqc ? '#c53400' : '#ef4444', cursor:'pointer'}}>
-              <span style={{width:'6px', height:'6px', borderRadius:'50%', background: fileMetadata?.pqc ? '#c53400' : '#ef4444', display:'inline-block'}}></span>
+            <div className="dv-pqc-bubble" onClick={() => setShowPqcTip(!showPqcTip)} style={{position:'relative', display:'inline-flex', alignItems:'center', gap:'6px', fontSize:'13px', padding:'4px 8px', borderRadius:'999px', background: fileMetadata?.pqc ? 'rgba(112,145,255,0.10)' : 'rgba(239,68,68,0.12)', border: fileMetadata?.pqc ? '1px solid rgba(91,112,168,0.30)' : '1px solid rgba(239,68,68,0.25)', color: fileMetadata?.pqc ? 'rgba(153,176,255,.9)' : '#ef4444', cursor:'pointer'}}>
+              <span style={{width:'6px', height:'6px', borderRadius:'50%', background: fileMetadata?.pqc ? 'rgba(153,176,255,.9)' : '#ef4444', display:'inline-block'}}></span>
               {fileMetadata?.pqc ? 'PQC secure' : 'Non-PQC creation'}
-              <span style={{width:'14px', height:'14px', borderRadius:'50%', background: fileMetadata?.pqc ? 'rgba(197,52,0,0.15)' : 'rgba(239,68,68,0.15)', display:'inline-flex', alignItems:'center', justifyContent:'center', fontSize:'10px', fontWeight:'bold'}}>i</span>
+              <span style={{width:'14px', height:'14px', borderRadius:'50%', background: fileMetadata?.pqc ? 'rgba(112,145,255,0.12)' : 'rgba(239,68,68,0.15)', display:'inline-flex', alignItems:'center', justifyContent:'center', fontSize:'13px', fontWeight:'bold'}}>i</span>
               <div className="dv-pqc-tooltip" style={{position:'absolute', top:'calc(100% + 8px)', right:0, width:'280px', background:'#111827', border:'1px solid #1e293b', borderRadius:'8px', padding:'12px 14px', fontSize:'13px', lineHeight:'1.6', color:'#d1d5db', boxShadow:'0 8px 24px rgba(0,0,0,0.5)', opacity: showPqcTip ? 1 : 0, pointerEvents: showPqcTip ? 'auto' : 'none', transition:'opacity 0.15s', zIndex:10, textAlign:'left'}}>
                 {fileMetadata?.pqc ? 'Your browser is using TLS 1.3 with end-to-end PQC (Post-Quantum Cryptography) active — your connection is quantum-safe.' : 'Update to a modern browser with TLS 1.3 to enable end-to-end PQC (Post-Quantum Cryptography) for your connection'}
               </div>
@@ -256,14 +256,14 @@ export default function BuyFlow({ connected, isStrk20, account, refreshWallet, o
                 <>
                   <div className="dv-metadata-row">
                     <span className="dv-metadata-label">Lock</span>
-                    <span className="dv-metadata-value" style={{ fontSize: '10px', fontFamily: 'var(--font-mono)' }}>
+                    <span className="dv-metadata-value" style={{ fontSize: '13px', fontFamily: 'var(--font-mono)' }}>
                       {fileMetadata.isClaimed ? 'claimed' : 'active'} · {String(fileMetadata.commitment).slice(0, 12)}...
                     </span>
                   </div>
                   {fileMetadata.integrityHash && (
                     <div className="dv-metadata-row">
                       <span className="dv-metadata-label">Integrity</span>
-                      <span className="dv-metadata-value" style={{ fontSize: '10px', fontFamily: 'var(--font-mono)' }}>
+                      <span className="dv-metadata-value" style={{ fontSize: '13px', fontFamily: 'var(--font-mono)' }}>
                         {String(fileMetadata.integrityHash).slice(0, 12)}...
                       </span>
                     </div>
@@ -273,14 +273,14 @@ export default function BuyFlow({ connected, isStrk20, account, refreshWallet, o
               {/* PQC badge — non-modifiable source from edge TLS at creation */}
               <div className="dv-metadata-row">
                 <span className="dv-metadata-label">Connection</span>
-                <span className="dv-metadata-value" style={{ fontSize: '11px', fontWeight: 600, color: fileMetadata.pqc ? '#22c55e' : '#f59e0b' }}>
+                <span className="dv-metadata-value" style={{ fontSize: '13px', fontWeight: 600, color: fileMetadata.pqc ? '#22c55e' : '#f59e0b' }}>
                   {fileMetadata.pqc ? '✓ Created over PQC' : '⚠ Created without PQC — HNDL risk'}
                 </span>
               </div>
             </div>
           )}
 
-          <p className="dv-hint" style={{fontSize:'12px',marginBottom:'12px'}}>
+          <p className="dv-hint" style={{fontSize:'13px',marginBottom:'12px'}}>
             You need at least {parseFloat(fileMetadata?.price || 0) + 6} STRK in your public balance 
             (to shield and pay). Then pay privately from the pool. Seller receives 99%, platform 1%.
           </p>
@@ -326,7 +326,7 @@ export default function BuyFlow({ connected, isStrk20, account, refreshWallet, o
                 href={getExplorerUrl(txHash)} 
                 target="_blank" 
                 rel="noopener noreferrer"
-                style={{color: 'var(--primary)', fontSize: '12px', marginTop: '8px', display: 'block'}}
+                style={{color: 'var(--primary)', fontSize: '13px', marginTop: '8px', display: 'block'}}
               >
                 View on Explorer →
               </a>
@@ -350,7 +350,7 @@ export default function BuyFlow({ connected, isStrk20, account, refreshWallet, o
               value={claimSecret}
               onChange={(e) => setClaimSecret(e.target.value)}
               placeholder="Enter the claim secret..."
-              style={{fontFamily: 'var(--font-mono)', fontSize: '12px'}}
+              style={{fontFamily: 'var(--font-mono)', fontSize: '13px'}}
             />
             <small>The seller shared this secret privately with you</small>
           </div>

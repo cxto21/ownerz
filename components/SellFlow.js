@@ -135,13 +135,13 @@ export default function SellFlow({ connected, isStrk20, account, refreshWallet, 
         <>
           <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', gap:'12px', marginBottom:'12px'}}>
             <div>
-              <h3 className="dv-title" style={{margin:0}}>Upload Your File</h3>
-              <p className="dv-hint" style={{margin:'4px 0 0 0'}}>Encrypted and uploaded to Fil One (Filecoin). Any file type works.</p>
+              <h3 className="dv-title" style={{margin:0, textTransform: 'uppercase', letterSpacing: '-0.025em'}}>UPLOAD YOUR FILE</h3>
+              <p className="dv-hint" style={{margin:'4px 0 0 0'}}>Encrypted and uploaded to F1 One (Filecoin). Any file type works.</p>
             </div>
-            <div className="dv-pqc-bubble" onClick={() => setShowPqcTip(!showPqcTip)} style={{position:'relative', display:'inline-flex', alignItems:'center', gap:'6px', fontSize:'11px', padding:'5px 10px', borderRadius:'999px', background:'rgba(197,52,0,0.12)', border:'1px solid rgba(197,52,0,0.25)', color:'#c53400', cursor:'pointer', flexShrink:0}}>
-              <span style={{width:'5px', height:'5px', borderRadius:'50%', background:'#c53400', display:'inline-block'}}></span>
-              PQC
-              <span style={{width:'14px', height:'14px', borderRadius:'50%', background:'rgba(197,52,0,0.15)', display:'inline-flex', alignItems:'center', justifyContent:'center', fontSize:'10px', fontWeight:'400', color:'#c53400'}}>i</span>
+            <div className="dv-pqc-bubble" onClick={() => setShowPqcTip(!showPqcTip)} style={{position:'relative', display:'inline-flex', alignItems:'center', gap:'6px', fontSize:'13px', padding:'5px 10px', borderRadius:'999px', background:'rgba(112,145,255,0.10)', border:'1px solid rgba(91,112,168,0.30)', color:'rgba(153,176,255,.9)', cursor:'pointer', flexShrink:0}}>
+              <span style={{width:'5px', height:'5px', borderRadius:'50%', background:'rgba(153,176,255,.9)', display:'inline-block'}}></span>
+              NON-POC
+              <span style={{width:'14px', height:'14px', borderRadius:'50%', background:'rgba(112,145,255,0.12)', display:'inline-flex', alignItems:'center', justifyContent:'center', fontSize:'13px', fontWeight:'400', color:'rgba(153,176,255,.9)'}}>i</span>
               <div className="dv-pqc-tooltip" style={{position:'absolute', top:'calc(100% + 8px)', right:0, width:'280px', background:'#111827', border:'1px solid #1e293b', borderRadius:'8px', padding:'12px 14px', fontSize:'13px', lineHeight:'1.6', color:'#d1d5db', boxShadow:'0 8px 24px rgba(0,0,0,0.5)', opacity: showPqcTip ? 1 : 0, pointerEvents: showPqcTip ? 'auto' : 'none', transition:'opacity 0.15s', zIndex:10, textAlign:'left'}}>
                 Update to a modern browser with TLS 1.3 to enable end-to-end PQC (Post-Quantum Cryptography) for your connection
               </div>
@@ -207,9 +207,9 @@ export default function SellFlow({ connected, isStrk20, account, refreshWallet, 
             />
             <small>This is what buyers will pay you</small>
             {price && !isNaN(parseFloat(price)) && parseFloat(price) > 0 && (
-              <div style={{marginTop:'8px', fontSize:'12px', color:'rgba(255,255,255,0.7)', background:'rgba(255,255,255,0.06)', padding:'8px 10px', borderRadius:'8px'}}>
+              <div style={{marginTop:'8px', fontSize:'13px', color:'rgba(255,255,255,0.7)', background:'rgba(255,255,255,0.06)', padding:'8px 10px', borderRadius:'8px'}}>
                 Platform fee 1% — you will receive 99% ({(parseFloat(price) * 0.99).toFixed(4)} STRK). No gas included.
-                <div style={{fontSize:'11px', color:'rgba(255,255,255,0.4)', marginTop:'2px'}}>
+                <div style={{fontSize:'13px', color:'rgba(255,255,255,0.4)', marginTop:'2px'}}>
                   Fee: {(parseFloat(price) * 0.01).toFixed(4)} STRK · Seller receives 99% at purchase time
                 </div>
               </div>
@@ -222,8 +222,9 @@ export default function SellFlow({ connected, isStrk20, account, refreshWallet, 
             className="dv-btn-primary"
             onClick={!connected ? onConnect : handleUpload}
             disabled={connected && (!file || !price)}
+            style={{ width: '100%' }}
           >
-            {!connected ? 'Connect Wallet' :
+            {!connected ? 'CONNECT WALLET ↗' :
              `Pay ${feeInfo?.feeFormatted || '0.5'} STRK & Upload`}
           </button>
         </>
@@ -232,7 +233,7 @@ export default function SellFlow({ connected, isStrk20, account, refreshWallet, 
       {step === 1 && (
         <div className="dv-loading">
           <div className="dv-spinner"></div>
-          <p>Encrypting and uploading to Fil One...</p>
+          <p>Encrypting and uploading to F1 One...</p>
         </div>
       )}
 
@@ -249,10 +250,10 @@ export default function SellFlow({ connected, isStrk20, account, refreshWallet, 
       {step === 3 && result && (
         <>
           <div style={{display:'flex', alignItems:'center', justifyContent:'flex-end', marginBottom:'12px'}}>
-            <div className="dv-pqc-bubble" onClick={() => setShowPqcTip(!showPqcTip)} style={{position:'relative', display:'inline-flex', alignItems:'center', gap:'6px', fontSize:'11px', padding:'5px 10px', borderRadius:'999px', background: result.pqc ? 'rgba(197,52,0,0.12)' : 'rgba(239,68,68,0.12)', border: result.pqc ? '1px solid rgba(197,52,0,0.25)' : '1px solid rgba(239,68,68,0.25)', color: result.pqc ? '#c53400' : '#ef4444', cursor:'pointer'}}>
-              <span style={{width:'5px', height:'5px', borderRadius:'50%', background: result.pqc ? '#c53400' : '#ef4444', display:'inline-block'}}></span>
+            <div className="dv-pqc-bubble" onClick={() => setShowPqcTip(!showPqcTip)} style={{position:'relative', display:'inline-flex', alignItems:'center', gap:'6px', fontSize:'13px', padding:'5px 10px', borderRadius:'999px', background: result.pqc ? 'rgba(112,145,255,0.10)' : 'rgba(239,68,68,0.12)', border: result.pqc ? '1px solid rgba(91,112,168,0.30)' : '1px solid rgba(239,68,68,0.25)', color: result.pqc ? 'rgba(153,176,255,.9)' : '#ef4444', cursor:'pointer'}}>
+              <span style={{width:'5px', height:'5px', borderRadius:'50%', background: result.pqc ? 'rgba(153,176,255,.9)' : '#ef4444', display:'inline-block'}}></span>
               {result.pqc ? 'PQC secure' : 'Non-PQC'}
-              <span style={{width:'14px', height:'14px', borderRadius:'50%', background: result.pqc ? 'rgba(197,52,0,0.15)' : 'rgba(239,68,68,0.15)', display:'inline-flex', alignItems:'center', justifyContent:'center', fontSize:'10px', fontWeight:'400', color: result.pqc ? '#c53400' : '#ef4444'}}>i</span>
+              <span style={{width:'14px', height:'14px', borderRadius:'50%', background: result.pqc ? 'rgba(112,145,255,0.12)' : 'rgba(239,68,68,0.15)', display:'inline-flex', alignItems:'center', justifyContent:'center', fontSize:'13px', fontWeight:'400', color: result.pqc ? 'rgba(153,176,255,.9)' : '#ef4444'}}>i</span>
               <div className="dv-pqc-tooltip" style={{position:'absolute', top:'calc(100% + 8px)', right:0, width:'280px', background:'#111827', border:'1px solid #1e293b', borderRadius:'8px', padding:'12px 14px', fontSize:'13px', lineHeight:'1.6', color:'#d1d5db', boxShadow:'0 8px 24px rgba(0,0,0,0.5)', opacity: showPqcTip ? 1 : 0, pointerEvents: showPqcTip ? 'auto' : 'none', transition:'opacity 0.15s', zIndex:10, textAlign:'left'}}>
                 {result.pqc ? 'Your browser is using TLS 1.3 with end-to-end PQC (Post-Quantum Cryptography) active — your vault was created quantum-safe.' : 'Update to a modern browser with TLS 1.3 to enable end-to-end PQC (Post-Quantum Cryptography) for your connection'}
               </div>
@@ -271,7 +272,7 @@ export default function SellFlow({ connected, isStrk20, account, refreshWallet, 
               </button>
             </div>
             <code>{result.cid}</code>
-            <small style={{color: 'rgba(255,255,255,0.3)', fontSize: '10px', display: 'block', marginTop: '4px'}}>
+            <small style={{color: 'rgba(255,255,255,0.3)', fontSize: '13px', display: 'block', marginTop: '4px'}}>
               Felt: {cidFelt}
             </small>
           </div>
@@ -303,7 +304,7 @@ export default function SellFlow({ connected, isStrk20, account, refreshWallet, 
           </div>
           <div className="dv-info-row">
             <span>PQC:</span>
-            <strong style={{color: result.pqc ? '#c53400' : '#ef4444', fontSize:'12px'}}>{result.pqc ? '✓ Created with PQC' : '⚠ Created without PQC'}</strong>
+            <strong style={{color: result.pqc ? 'rgba(153,176,255,.9)' : '#ef4444', fontSize:'13px'}}>{result.pqc ? '✓ Created with PQC' : '⚠ Created without PQC'}</strong>
           </div>
 
           <button className="dv-btn-secondary" onClick={reset}>Upload Another</button>
