@@ -1220,13 +1220,6 @@ body::after {
   }
 }
 
-/* Connect button text toggle (mobile) */
-.dv-connect-short { display: none; }
-@media (max-width: 600px) {
-  .dv-connect-full { display: none; }
-  .dv-connect-short { display: inline; }
-}
-
 /* Micro responsive fixes */
 @media (max-width: 600px) {
   /* Hero text smaller on mobile */

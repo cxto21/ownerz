@@ -362,7 +362,7 @@ export default function Ownerz() {
                 transition: 'transform .15s, box-shadow .2s',
               }}
             >
-              {walletState.loading ? 'Connecting...' : <><span className="dv-connect-full">CONNECT WALLET</span><span className="dv-connect-short">CONNECT</span> ↗</>}
+              {walletState.loading ? 'Connecting...' : 'CONNECT ↗'}
             </button>
           )}
           {/* Mobile hamburger */}
@@ -402,7 +402,7 @@ export default function Ownerz() {
               </>
             ) : (
               <button onClick={() => { handleConnect(); setMenuOpen(false) }} disabled={walletState.loading} className="dv-topbar-btn dv-topbar-btn-purple" style={{ width: '100%' }}>
-              {walletState.loading ? 'Connecting...' : <><span className="dv-connect-full">CONNECT WALLET</span><span className="dv-connect-short">CONNECT</span> ↗</>}
+              {walletState.loading ? 'Connecting...' : 'CONNECT ↗'}
               </button>
             )}
           </div>
@@ -476,16 +476,6 @@ export default function Ownerz() {
             <p style={{ fontFamily: 'var(--body)', fontSize: '16px', lineHeight: '1.5', color: '#fff', margin: 0, maxWidth: '380px' }}>
               Store, encrypt and manage your files on the post-quantum blockchain. Built for a sovereign digital future.
             </p>
-            <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap', marginTop: '2px' }}>
-              <button onClick={handleConnect} disabled={walletState.loading} className="dv-btn-primary" style={{
-                width: 'auto',
-                padding: '10px 20px',
-                clipPath: 'polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px)',
-                fontSize: '13px',
-              }}>
-                {walletState.loading ? 'Connecting...' : 'CONNECT WALLET ↗'}
-              </button>
-            </div>
           </div>
           
           <div className="dv-hero-content reveal reveal-d2" style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', alignItems: 'stretch', justifySelf: 'center' }}>
