@@ -304,7 +304,7 @@ export default function Ownerz() {
           >
             <button className="dv-popup-close" onClick={() => setShowHackathonPopup(false)} style={{ color: 'var(--accent)' }}>✕</button>
             <div style={{ fontFamily: 'var(--mono)', fontSize: '13px', letterSpacing: '0.22em', textTransform: 'uppercase', color: 'var(--faint)', marginBottom: '8px' }}>
-              Post-Quantum Secure · Zero-Knowledge · Sovereign
+              A butterfly's flutter can summon a storm — we built the umbrella
             </div>
             <div className="dv-popup-title" style={{ fontFamily: 'var(--mono)', letterSpacing: '0.10em' }}>STRK20 Hackathon</div>
             <div className="dv-popup-text">
