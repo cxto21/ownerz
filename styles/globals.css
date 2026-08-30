@@ -369,11 +369,11 @@ body::after {
   .dv-hero {
     grid-template-columns: 1fr 380px;
     display: grid;
-    align-items: center;
+    align-items: start;
     text-align: left;
     min-height: auto;
     gap: 20px;
-    padding: 72px 24px 4px;
+    padding: 160px 24px 4px;
   }
 }
 
