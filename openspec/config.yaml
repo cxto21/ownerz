@@ -3,8 +3,10 @@ stack:
   frontend: "Next.js 14 (App Router/Pages), React 18, TypeScript (dev), JavaScript (src)"
   contracts: "Cairo 2.18.0, Scarb, OpenZeppelin, snforge_std 0.61.0"
   deploy: "Cloudflare Pages (next-on-pages + wrangler), Starknet Sepolia"
+  auth: "SIWS (Sign-In With Starknet) JWT via Cloudflare Workers + D1"
   privacy: "STRK20 via starknet.js v10.7.0 WalletAccountV6, get-starknet v6, starknetkit v3.4.3"
-  storage: "AWS S3 (via @aws-sdk/client-s3), post-quantum crypto (@noble/post-quantum)"
+  storage: "Cloudflare R2 (primary) + IPFS/Filecoin (cold), @aws-sdk/client-s3, post-quantum crypto (@noble/post-quantum)"
+  auth: "SIWS (Sign-In With Starknet) JWT via Cloudflare Workers + D1"
 persistence: "openspec"
 strict_tdd: false
 reason: "Frontend has no test runner configured; contracts have snforge but frontend is primary app surface. Add vitest/jest + testing-library + playwright to enable strict TDD."
@@ -60,10 +62,13 @@ phase_rules:
     sync_mode: "incremental"
 context: |
   DataVaultz is a privacy-preserving file marketplace on Starknet Sepolia.
-  - SellFlow: Upload files, encrypt with PQC, store on S3, list on-chain via FileVault contract
+  - SellFlow: Upload files, encrypt with PQC, store on R2/IPFS, list on-chain via FileVault contract
   - BuyFlow: Purchase access with STRK, claim via KeyExchange, decrypt and download
   - STRK20 privacy: Shielded balances, private transfers via WalletAccountV6
   - Mobile wallet connect: StarknetKit + WalletConnect QR for Ready/Argent mobile apps
+  - Auth: SIWS (Sign-In With Starknet) JWT via Cloudflare Workers + D1
+  - Storage: R2 (primary) + IPFS/Filecoin (cold) with CIDv1 content addressing
   - Contracts: FileVault (vaults, pricing, TTL, fees), KeyExchange (commitment/reveal), MockERC20 for testing
   - Deploy: Cloudflare Pages with next-on-pages, wrangler for Workers/Pages
+  - Vision: P2P local installable, TEE CoCo compute, OpenSea Tools listing, agent marketplace
   - Key files: pages/index.js (main UI), lib/starknet.js (wallet layer), lib/starknet-kit.js (mobile connect), contracts/src/filevault.cairo, contracts/src/tests.cairo
