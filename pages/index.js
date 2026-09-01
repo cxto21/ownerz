@@ -85,6 +85,45 @@ export default function Ownerz() {
     checkNetwork()
   }, [walletState.connected])
 
+  // Navbar: opaca al scrollear en desktop (>16px), throttled via rAF
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const mq = window.matchMedia('(min-width: 768px)')
+    let ticking = false
+    const updateNav = () => {
+      const nav = document.querySelector('.dv-nav')
+      if (!nav) return
+      if (!mq.matches) {
+        nav.classList.remove('scrolled')
+        return
+      }
+      if (window.scrollY > 16) nav.classList.add('scrolled')
+      else nav.classList.remove('scrolled')
+    }
+    const onScroll = () => {
+      if (ticking) return
+      ticking = true
+      window.requestAnimationFrame(() => {
+        updateNav()
+        ticking = false
+      })
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    // init
+    updateNav()
+    const onMqChange = () => updateNav()
+    // matchMedia change + resize fallback
+    if (mq.addEventListener) mq.addEventListener('change', onMqChange)
+    else if (mq.addListener) mq.addListener(onMqChange)
+    window.addEventListener('resize', onMqChange)
+    return () => {
+      window.removeEventListener('scroll', onScroll)
+      window.removeEventListener('resize', onMqChange)
+      if (mq.removeEventListener) mq.removeEventListener('change', onMqChange)
+      else if (mq.removeListener) mq.removeListener(onMqChange)
+    }
+  }, [])
+
   const handleConnect = async () => {
     setWalletState(prev => ({ ...prev, loading: true, error: null }))
     
@@ -303,7 +342,7 @@ export default function Ownerz() {
             }}
           >
             <button className="dv-popup-close" onClick={() => setShowHackathonPopup(false)} style={{ color: 'var(--accent)' }}>✕</button>
-            <div style={{ fontFamily: 'var(--mono)', fontSize: '13px', letterSpacing: '0.22em', textTransform: 'uppercase', color: 'var(--faint)', marginBottom: '8px' }}>
+            <div style={{ fontFamily: 'var(--mono)', fontSize: '12px', letterSpacing: '0.22em', textTransform: 'uppercase', color: 'var(--faint)', marginBottom: '12px' }}>
               A butterfly's flutter can summon a storm — we built the umbrella
             </div>
             <div className="dv-popup-title" style={{ fontFamily: 'var(--mono)', letterSpacing: '0.10em' }}>STRK20 Hackathon</div>
@@ -329,7 +368,7 @@ export default function Ownerz() {
           <img src="/images/ownerz_logotype.png" alt="OWNERZ" className="dv-logo-img" style={{ height: '104px', width: 'auto' }} />
           {/* Desktop wallet controls */}
           {walletState.connected ? (
-            <div className="dv-nav-desktop" style={{ display: 'flex', flexDirection: 'column', gap: '6px', alignItems: 'flex-end' }}>
+            <div className="dv-nav-desktop" style={{ display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'flex-end' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <span className={`dv-badge ${walletState.isStrk20 ? 'dv-badge-ok' : 'dv-badge-err'}`}>
                   {walletState.isStrk20 ? 'STRK20 Ready' : 'No STRK20'}
@@ -337,16 +376,16 @@ export default function Ownerz() {
                 <button
                   onClick={() => { navigator.clipboard.writeText(walletState.address); setCopiedAddress(true); setTimeout(() => setCopiedAddress(false), 2000) }}
                   className="dv-nav-address"
-                  style={{ padding: '6px 12px', border: '1px solid var(--line)', background: copiedAddress ? 'rgba(112,145,255,0.12)' : 'transparent', color: 'rgba(153,176,255,.9)', cursor: 'pointer', transition: 'all 0.2s', fontFamily: 'var(--mono)', fontSize: '13px', letterSpacing: '0.10em', textTransform: 'uppercase' }}
+                  style={{ padding: '6px 12px', border: '1px solid var(--line)', background: copiedAddress ? 'rgba(112,145,255,0.12)' : 'transparent', color: 'rgba(153,176,255,.9)', cursor: 'pointer', transition: 'all 0.2s', fontFamily: 'var(--mono)', fontSize: '12px', letterSpacing: '0.10em', textTransform: 'uppercase' }}
                 >
                   {copiedAddress ? '✓ Copied' : `${walletState.address.slice(0,6)}...${walletState.address.slice(-4)}`}
                 </button>
-                <button onClick={handleDisconnect} className="dv-nav-btn dv-nav-btn-err" style={{ fontFamily: 'var(--mono)', fontSize: '13px', padding: '5px 10px' }}>Disconnect</button>
+                <button onClick={handleDisconnect} className="dv-nav-btn dv-nav-btn-err" style={{ fontFamily: 'var(--mono)', fontSize: '12px', padding: '6px 12px' }}>Disconnect</button>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <button onClick={() => setShowShieldModal(true)} className="dv-nav-btn dv-nav-btn-purple" style={{ fontFamily: 'var(--mono)', fontSize: '13px', padding: '5px 10px' }}>Shield</button>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <button onClick={() => setShowShieldModal(true)} className="dv-nav-btn dv-nav-btn-purple" style={{ fontFamily: 'var(--mono)', fontSize: '12px', padding: '6px 12px' }}>Shield</button>
                 {walletState.isStrk20 && (
-                  <button onClick={fetchShieldedBalance} className="dv-nav-btn dv-nav-btn-cyan" style={{ fontFamily: 'var(--mono)', fontSize: '13px', padding: '5px 10px' }}>{loadingBalance ? '...' : 'Shielded Funds'}</button>
+                  <button onClick={fetchShieldedBalance} className="dv-nav-btn dv-nav-btn-cyan" style={{ fontFamily: 'var(--mono)', fontSize: '12px', padding: '6px 12px' }}>{loadingBalance ? '...' : 'Shielded Funds'}</button>
                 )}
               </div>
             </div>
@@ -387,7 +426,7 @@ export default function Ownerz() {
                   <button
                     onClick={() => { navigator.clipboard.writeText(walletState.address); setCopiedAddress(true); setTimeout(() => setCopiedAddress(false), 2000); setMenuOpen(false) }}
                     className="dv-nav-address"
-                    style={{ color: 'rgba(153,176,255,.9)', fontSize: '13px', background: copiedAddress ? 'rgba(112,145,255,0.12)' : 'rgba(0,0,0,0.5)', padding: '6px 10px', borderRadius: '2px', border: '1px solid var(--hairline)' }}
+                    style={{ color: 'rgba(153,176,255,.9)', fontSize: '12px', background: copiedAddress ? 'rgba(112,145,255,0.12)' : 'rgba(0,0,0,0.5)', padding: '6px 12px', borderRadius: '2px', border: '1px solid var(--hairline)', fontFamily: 'var(--mono)', letterSpacing: '0.10em', textTransform: 'uppercase' }}
                   >
                     {copiedAddress ? '✓ Copied' : `${walletState.address.slice(0,10)}...${walletState.address.slice(-6)}`}
                   </button>
@@ -428,7 +467,7 @@ export default function Ownerz() {
           color: 'var(--on-surface)'
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-            <span style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.22em', color: 'var(--accent)' }}>
+            <span style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.22em', color: 'var(--accent)' }}>
               Shielded Balance
             </span>
             <button
@@ -445,7 +484,7 @@ export default function Ownerz() {
               {shieldedBalance || 'No balance data'}
             </div>
           )}
-          <div style={{ marginTop: '12px', fontSize: '13px', color: 'var(--text-muted)' }}>
+          <div style={{ marginTop: '12px', fontSize: '12px', color: 'var(--text-muted)' }}>
             Funds shielded via STRK20 privacy pool
           </div>
         </div>
@@ -473,8 +512,8 @@ export default function Ownerz() {
               color: 'transparent',
               margin: 0,
             }}>YOUR FILES.<br/>QUANTUM<br/>OWNERSHIP.</h1>
-            <p style={{ fontFamily: 'var(--body)', fontSize: '16px', lineHeight: '1.5', color: '#fff', margin: 0, maxWidth: '380px' }}>
-              Store, encrypt and manage your files on the post-quantum blockchain. Built for a sovereign digital future.
+            <p style={{ fontFamily: 'var(--body)', fontSize: '15px', lineHeight: '1.6', color: '#fff', margin: 0, marginTop: '16px', maxWidth: '380px' }}>
+              Store, encrypt, sell and manage your files on the post-quantum blockchain. Built for a sovereign digital future.
             </p>
           </div>
           
@@ -485,10 +524,10 @@ export default function Ownerz() {
                 <div>{walletState.error}</div>
                 {isNoWalletError && (
                   <div style={{ display: 'flex', gap: '12px', marginTop: '12px', flexWrap: 'wrap' }}>
-                    <button onClick={handleConnectViaKit} disabled={walletState.loading} className="dv-btn-primary" style={{ width: 'auto', padding: '8px 16px', fontSize: '13px' }}>
+                    <button onClick={handleConnectViaKit} disabled={walletState.loading} className="dv-btn-primary" style={{ width: 'auto', padding: '8px 16px', fontSize: '12px' }}>
                       {walletState.loading ? 'Connecting...' : 'Connect via QR'}
                     </button>
-                    <button onClick={handleOpenInReadyApp} className="dv-nav-btn dv-nav-btn-purple" style={{ padding: '8px 16px', fontSize: '13px', border: '1px solid var(--hairline)' }}>
+                    <button onClick={handleOpenInReadyApp} className="dv-nav-btn dv-nav-btn-purple" style={{ padding: '8px 16px', fontSize: '12px', border: '1px solid var(--hairline)' }}>
                       Open in Ready App
                     </button>
                   </div>
@@ -575,51 +614,51 @@ export default function Ownerz() {
         {/* Marketing Placeholders */}
         <section style={{ display: 'flex', flexDirection: 'column', gap: '20px', padding: '16px clamp(20px, 5vw, 60px)', position: 'relative' }}>
           {/* Gradient divider line */}
-          <div style={{ width: '100%', height: '1px', background: 'linear-gradient(90deg, rgba(112,145,255,.40), rgba(153,112,255,.20), transparent)', marginBottom: '8px' }} />
+          <div style={{ width: '100%', height: '1px', background: 'linear-gradient(90deg, rgba(112,145,255,.40), rgba(153,112,255,.20), transparent)', marginBottom: '12px' }} />
           
           {/* Features Grid */}
           <div>
-            <div style={{ fontFamily: 'var(--mono)', fontSize: '13px', letterSpacing: '0.28em', textTransform: 'uppercase', color: 'var(--faint)', marginBottom: '12px' }}>
+            <div style={{ fontFamily: 'var(--mono)', fontSize: '12px', letterSpacing: '0.28em', textTransform: 'uppercase', color: 'var(--faint)', marginBottom: '16px' }}>
               // WHY OWNERZ
             </div>
-            <div className="dv-features-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px' }}>
+            <div className="dv-features-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }}>
               {[
                 { 
                   title: 'POST-QUANTUM SECURITY', 
                   desc: 'Your data, protected beyond the next generation of computing.',
-                  icon: <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>,
+                  icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>,
                 },
                 { 
                   title: 'DECENTRALIZED STORAGE', 
                   desc: 'Powered by Filecoin. Accessible anywhere, forever.',
-                  icon: <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>,
+                  icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>,
                 },
                 { 
                   title: 'TRUE OWNERSHIP', 
                   desc: 'You control your files. No middlemen. No limits.',
-                  icon: <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>,
+                  icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>,
                 },
                 { 
                   title: 'FAST & EFFICIENT', 
                   desc: 'Built for creators, builders and the next wave of the internet.',
-                  icon: <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>,
+                  icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>,
                 },
               ].map((f, i) => (
                 <div key={i} style={{
                   background: 'rgba(5,8,18,.35)',
                   border: '1px solid rgba(91,112,168,.18)',
-                  padding: '16px 14px',
+                  padding: '20px 16px',
                   clipPath: 'polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px)',
                   display: 'flex',
                   flexDirection: 'column',
-                  gap: '8px',
+                  gap: '12px',
                   backdropFilter: 'blur(10px)',
                   WebkitBackdropFilter: 'blur(10px)',
                 }}>
                   <div style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>{f.icon}</div>
-                  <h3 style={{ fontFamily: 'var(--display)', fontSize: 'clamp(15px,1.2vw,18px)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '-0.025em', color: 'var(--text-primary)', margin: 0, lineHeight: 1.3 }}>{f.title}</h3>
-                  <p style={{ fontFamily: 'var(--body)', fontSize: '14px', lineHeight: '1.5', color: 'var(--text-secondary)', margin: 0, flex: 1 }}>{f.desc}</p>
-                  <div style={{ width: '28px', height: '2px', background: 'linear-gradient(90deg, rgba(112,145,255,.40), transparent)', marginTop: '4px' }} />
+                  <h3 style={{ fontFamily: 'var(--display)', fontSize: 'clamp(14px,1.1vw,16px)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '-0.025em', color: 'var(--text-primary)', margin: 0, lineHeight: 1.3 }}>{f.title}</h3>
+                  <p style={{ fontFamily: 'var(--body)', fontSize: '14px', lineHeight: '1.6', color: 'var(--text-secondary)', margin: 0, flex: 1 }}>{f.desc}</p>
+                  <div style={{ width: '24px', height: '2px', background: 'linear-gradient(90deg, rgba(112,145,255,.40), transparent)', marginTop: '4px' }} />
                 </div>
               ))}
             </div>
@@ -636,7 +675,7 @@ export default function Ownerz() {
             paddingTop: '24px',
             paddingBottom: '12px',
           }}>
-            <img src="/images/ownerz_logotype.png" alt="OWNERZ" style={{ height: '96px', width: 'auto', flexShrink: 0 }} />
+            <img src="/images/ownerz_logotype.png" alt="OWNERZ" style={{ height: '120px', width: 'auto', flexShrink: 0 }} />
             <div style={{ display: 'flex', gap: 'clamp(24px, 5vw, 64px)', flexWrap: 'wrap', flex: 1, justifyContent: 'center' }}>
               {[
                 { label: 'STORED', value: '+5GB' },
@@ -644,12 +683,12 @@ export default function Ownerz() {
                 { label: 'FILES STORED', value: '+35' },
               ].map((m, i) => (
                 <div key={i} style={{ textAlign: 'center', minWidth: '80px' }}>
-                  <div style={{ fontFamily: 'var(--display)', fontSize: 'clamp(20px,2.5vw,36px)', fontWeight: 800, color: 'var(--text-primary)', lineHeight: 1 }}>{m.value}</div>
-                  <div style={{ fontFamily: 'var(--mono)', fontSize: '13px', letterSpacing: '0.28em', textTransform: 'uppercase', color: 'var(--faint)', marginTop: '6px' }}>{m.label}</div>
+                  <div style={{ fontFamily: 'var(--display)', fontSize: 'clamp(24px,2.5vw,36px)', fontWeight: 800, color: 'var(--text-primary)', lineHeight: 1 }}>{m.value}</div>
+                  <div style={{ fontFamily: 'var(--mono)', fontSize: '11px', letterSpacing: '0.28em', textTransform: 'uppercase', color: 'var(--faint)', marginTop: '8px' }}>{m.label}</div>
                 </div>
               ))}
             </div>
-            <div style={{ fontFamily: 'var(--mono)', fontSize: '13px', letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--faint)', textAlign: 'right', flexShrink: 0, lineHeight: 1.6 }}>
+            <div style={{ fontFamily: 'var(--mono)', fontSize: '11px', letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--text-primary)', textAlign: 'right', flexShrink: 0, lineHeight: 1.8 }}>
               — THE FUTURE BELONGS<br/>TO OWNERS —
             </div>
           </div>
