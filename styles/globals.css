@@ -1318,9 +1318,9 @@ body::after {
     gap: 16px;
   }
 
-  /* Nav smaller logo on mobile */
+  /* Nav larger logo on mobile (2x) */
   .dv-logo-img {
-    height: 64px !important;
+    height: 128px !important;
   }
 }
 
@@ -1331,7 +1331,7 @@ body::after {
     padding: 8px 10px;
   }
   .dv-logo-img {
-    height: 32px !important;
+    height: 64px !important;
   }
 
   /* Hero: compressed vertical rhythm — padding-top clears fixed nav (~48px) */
