@@ -85,18 +85,13 @@ export default function Ownerz() {
     checkNetwork()
   }, [walletState.connected])
 
-  // Navbar: opaca al scrollear en desktop (>16px), throttled via rAF
+  // Navbar: opaca al scrollear (>16px), throttled via rAF — mobile + desktop
   useEffect(() => {
     if (typeof window === 'undefined') return
-    const mq = window.matchMedia('(min-width: 768px)')
     let ticking = false
     const updateNav = () => {
       const nav = document.querySelector('.dv-nav')
       if (!nav) return
-      if (!mq.matches) {
-        nav.classList.remove('scrolled')
-        return
-      }
       if (window.scrollY > 16) nav.classList.add('scrolled')
       else nav.classList.remove('scrolled')
     }
@@ -109,18 +104,9 @@ export default function Ownerz() {
       })
     }
     window.addEventListener('scroll', onScroll, { passive: true })
-    // init
     updateNav()
-    const onMqChange = () => updateNav()
-    // matchMedia change + resize fallback
-    if (mq.addEventListener) mq.addEventListener('change', onMqChange)
-    else if (mq.addListener) mq.addListener(onMqChange)
-    window.addEventListener('resize', onMqChange)
     return () => {
       window.removeEventListener('scroll', onScroll)
-      window.removeEventListener('resize', onMqChange)
-      if (mq.removeEventListener) mq.removeEventListener('change', onMqChange)
-      else if (mq.removeListener) mq.removeListener(onMqChange)
     }
   }, [])
 

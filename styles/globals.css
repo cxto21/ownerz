@@ -388,17 +388,11 @@ body::after {
   .dv-hero {
     grid-template-columns: 1fr 380px;
     display: grid;
-    align-items: start;
+    align-items: center;
     text-align: left;
     min-height: 60vh;
     gap: 20px;
     padding: 160px 24px 4px;
-  }
-
-  /* First column stays pinned to top — won't shift when card changes size */
-  .dv-hero-content:first-child {
-    position: sticky;
-    top: 160px;
   }
 
   /* Card container fills available hero height */
