@@ -136,6 +136,15 @@ body::after {
   top: 0;
   width: 100%;
   z-index: 100;
+  transition: background 0.25s ease, backdrop-filter 0.25s ease, border-color 0.25s ease;
+  border-bottom: 1px solid transparent;
+}
+
+.dv-nav.scrolled {
+  background: rgba(2, 4, 10, 0.92);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(91, 112, 168, 0.18);
 }
 
 .dv-nav-inner {
@@ -372,6 +381,7 @@ body::after {
   width: 100%;
   max-width: 1200px;
   margin: 0 auto;
+  overflow: visible;
 }
 
 @media (min-width: 768px) {
@@ -380,9 +390,34 @@ body::after {
     display: grid;
     align-items: start;
     text-align: left;
-    min-height: auto;
+    min-height: 60vh;
     gap: 20px;
     padding: 160px 24px 4px;
+  }
+
+  /* First column stays pinned to top — won't shift when card changes size */
+  .dv-hero-content:first-child {
+    position: sticky;
+    top: 160px;
+  }
+
+  /* Card container fills available hero height */
+  .dv-hero-content:last-child {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  .dv-card {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  .dv-card-content {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
   }
 }
 
@@ -1119,15 +1154,36 @@ body::after {
     padding-bottom: 48px;
     gap: 24px;
   }
-  
+
+  /* Hero: mobile — natural flow, no clipping, no internal scrollbar */
+  .dv-hero {
+    min-height: 60vh;
+    max-height: none;
+    overflow: visible;
+  }
+
+  /* Card container fills available hero space */
+  .dv-hero-content:last-child {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
   .dv-card {
     min-height: auto;
     max-width: 100%;
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
   }
-  
+
   .dv-card-content {
     padding: 16px;
     gap: 16px;
+    flex: 1;
+    min-height: 0;
   }
   
   .dv-tabs {
