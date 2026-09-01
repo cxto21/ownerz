@@ -390,10 +390,27 @@ export default function Ownerz() {
               {walletState.loading ? 'Connecting...' : 'CONNECT ↗'}
             </button>
           )}
-          {/* Mobile hamburger */}
-          <button className="dv-hamburger" onClick={() => setMenuOpen(!menuOpen)}>
-            <span></span><span></span><span></span>
-          </button>
+          {/* Mobile: Connect + Hamburger grouped */}
+          <div className="dv-nav-mobile-actions">
+            {!walletState.connected && (
+              <button
+                onClick={handleConnect}
+                disabled={walletState.loading}
+                className="dv-btn-primary dv-nav-connect-mobile"
+                style={{
+                  width: 'auto',
+                  padding: '8px 14px',
+                  fontSize: '12px',
+                  clipPath: 'polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px)',
+                }}
+              >
+                {walletState.loading ? '...' : 'CONNECT ↗'}
+              </button>
+            )}
+            <button className="dv-hamburger" onClick={() => setMenuOpen(!menuOpen)}>
+              <span></span><span></span><span></span>
+            </button>
+          </div>
         </div>
       </nav>
 

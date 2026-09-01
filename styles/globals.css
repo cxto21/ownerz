@@ -268,6 +268,19 @@ body::after {
   .dv-nav-inner {
     padding: 16px 20px;
   }
+  /* Mobile: group Connect + Hamburger tightly */
+  .dv-nav-mobile-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+}
+
+/* Desktop: hide mobile-only elements */
+@media (min-width: 769px) {
+  .dv-nav-mobile-actions {
+    display: none;
+  }
 }
 
 /* Sidebar (mobile) */
@@ -355,6 +368,17 @@ body::after {
   z-index: 10;
 }
 
+/* Desktop: prevent unnecessary scroll — hero fits viewport */
+@media (min-width: 769px) {
+  .dv {
+    height: 100vh;
+    overflow: hidden;
+  }
+  .dv-main {
+    overflow-y: auto;
+  }
+}
+
 @media (min-width: 768px) {
   .dv-main {
     padding-left: 0;
@@ -390,9 +414,9 @@ body::after {
     display: grid;
     align-items: center;
     text-align: left;
-    min-height: 60vh;
+    min-height: 0;
     gap: 20px;
-    padding: 160px 24px 4px;
+    padding: 120px 24px 4px;
   }
 
   /* Card container fills available hero height */
@@ -1210,6 +1234,7 @@ body::after {
   .dv-nav-connect {
     padding: 6px 12px;
     font-size: 13px;
+    display: none !important;
   }
   
   .dv-popup-card {
@@ -1296,5 +1321,136 @@ body::after {
   /* Nav smaller logo on mobile */
   .dv-logo-img {
     height: 64px !important;
+  }
+}
+
+/* ─── Ultra-compact: smartwatch / tiny screens (<320px) ─── */
+@media (max-width: 320px) {
+  /* Nav: minimal padding, tiny logo */
+  .dv-nav-inner {
+    padding: 8px 10px;
+  }
+  .dv-logo-img {
+    height: 32px !important;
+  }
+
+  /* Hero: compressed vertical rhythm — padding-top clears fixed nav (~48px) */
+  .dv-hero {
+    padding: 56px 8px 4px;
+    min-height: auto;
+    position: relative;
+    z-index: 11;
+  }
+  .dv-hero-content {
+    position: relative;
+    z-index: 12;
+  }
+  .dv-hero h1 {
+    font-size: 20px !important;
+    line-height: 1 !important;
+    letter-spacing: -0.02em;
+  }
+  .dv-hero p {
+    font-size: 11px !important;
+    line-height: 1.4 !important;
+    margin-top: 8px !important;
+  }
+
+  /* Card: full width, tight padding */
+  .dv-card {
+    max-width: 100%;
+    border-radius: 0;
+  }
+  .dv-card-content {
+    padding: 10px;
+    gap: 10px;
+  }
+
+  /* Tabs: ultra compact */
+  .dv-tab {
+    padding: 8px 4px;
+    font-size: 10px;
+    letter-spacing: 0.06em;
+  }
+
+  /* Inputs & buttons: finger-friendly but compact */
+  .dv-input-group input,
+  .dv-input-group textarea,
+  .dv-input-group select {
+    padding: 8px;
+    font-size: 12px;
+  }
+  .dv-btn-primary {
+    padding: 8px;
+    font-size: 11px;
+  }
+
+  /* Popup: fit tiny screen */
+  .dv-popup-card {
+    padding: 20px 16px;
+    max-width: 100%;
+  }
+  .dv-popup-title {
+    font-size: 16px;
+  }
+  .dv-popup-text {
+    font-size: 13px;
+  }
+  .dv-popup-subtitle {
+    font-size: 11px;
+    margin-bottom: 16px;
+  }
+
+  /* Sidebar: full-width on tiny screens */
+  .dv-topbar {
+    width: 100%;
+  }
+  .dv-topbar-inner {
+    padding: 60px 12px 16px;
+  }
+  .dv-topbar-btn {
+    padding: 6px 10px;
+    font-size: 11px;
+  }
+
+  /* Features grid: single column, compact cards */
+  .dv-features-grid {
+    grid-template-columns: 1fr !important;
+    gap: 8px !important;
+  }
+  .dv-features-grid > div {
+    padding: 12px 10px;
+  }
+  .dv-features-grid h3 {
+    font-size: 12px !important;
+  }
+  .dv-features-grid p {
+    font-size: 11px !important;
+    line-height: 1.4 !important;
+  }
+
+  /* Hide marketing section on tiny screens — scroll is for the app, not marketing */
+  .dv-main > section:last-child {
+    display: none;
+  }
+
+  /* Error/info boxes: compact */
+  .dv-error {
+    padding: 8px 10px;
+    font-size: 12px;
+  }
+  .dv-info-box {
+    padding: 8px 10px;
+    font-size: 12px;
+  }
+
+  /* Shielded balance panel: fit screen */
+  .dv-shielded-balance,
+  [style*="position: fixed"][style*="right: 20px"] {
+    right: 8px !important;
+    left: 8px !important;
+    min-width: 0 !important;
+    max-width: calc(100vw - 16px) !important;
+    padding: 10px !important;
   }
 }
