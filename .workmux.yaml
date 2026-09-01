@@ -1,0 +1,29 @@
+# DataVaultz — workmux + aven integration
+# Based on raine's pattern: aven tasks + workmux worktrees
+
+agent: opencode
+
+files:
+  symlink:
+    - node_modules
+  copy:
+    - .env
+    - .env.example
+
+post_create:
+  - |
+    # Copy aven DB into worktree for isolated task view (optional, per raine pattern)
+    src="${AVEN_DB:-$HOME/.local/state/aven/db.sqlite}"
+    dest="$WM_WORKTREE_PATH/.aven/db.sqlite"
+    mkdir -p "$(dirname "$dest")"
+    if [ ! -e "$dest" ] && [ -e "$src" ]; then
+      sqlite3 "$src" ".backup '$dest'" 2>/dev/null || cp "$src" "$dest" 2>/dev/null || true
+      echo "[workmux] aven DB copied to $dest" >&2
+    fi
+  - |
+    # Ensure handler project path mapping still works
+    echo "[workmux] worktree $WM_HANDLE ready at $WM_WORKTREE_PATH" >&2
+
+panes:
+  - command: opencode
+    focus: true
