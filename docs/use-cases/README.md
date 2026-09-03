@@ -8,11 +8,11 @@ Traditional file sharing (email, Drive, Dropbox) leaks metadata: who sent what, 
 
 **DataVaultz solves this with:**
 
-- **Post-quantum encryption** (ML-KEM768 + AES-256-GCM) — data encrypted client-side before upload
-- **Anonymous payments** (ZK-proofs on Starknet) — buyer's identity hidden from seller and chain
+- **Post-quantum encryption** — data encrypted client-side before upload with NIST-standardized algorithms
+- **Anonymous payments** (ZK-proofs) — buyer's identity hidden from seller and chain
 - **Private key delivery** — decryption key auto-revealed to buyer via smart contract, never stored in plaintext
 - **No public listings** — seller shares CID directly; no searchable catalog exists
-- **Immutable storage** (Filecoin) — encrypted data persists without a central server
+- **Immutable storage** — encrypted data persists on decentralized infrastructure with no central server
 
 ## Use Cases
 

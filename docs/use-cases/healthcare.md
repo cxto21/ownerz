@@ -30,7 +30,7 @@ For patients with sensitive diagnoses (HIV, oncology, mental health, genetic con
 
 | Alternative | Limitation | DataVaultz advantage |
 |-------------|-----------|---------------------|
-| Email (encrypted or not) | Metadata visible; PHI in transit | No metadata; encrypted at rest on Filecoin |
+| Email (encrypted or not) | Metadata visible; PHI in transit | No metadata; encrypted at rest on decentralized storage |
 | Patient portal | Centralized; clinic controls access | Decentralized; key delivered by smart contract |
 | Secure messaging (Signal, WhatsApp) | Requires both parties online; no audit trail | Asynchronous; CID + payment on-chain |
 | USB / physical media | Loss risk; no delivery proof | Immutable storage; CID as delivery receipt |
@@ -41,9 +41,9 @@ For patients with sensitive diagnoses (HIV, oncology, mental health, genetic con
 
 ```
 1. Clinic generates report (PDF, HL7 FHIR bundle)
-2. Clinic encrypts locally with ML-KEM768 + AES-256-GCM
-3. Clinic uploads encrypted file to Fil One (Filecoin)
-4. Clinic registers CID + price in STRK20 contract (no public listing)
+2. Clinic encrypts locally with post-quantum encryption
+3. Clinic uploads encrypted file to decentralized storage
+4. Clinic registers CID + price in smart contract (no public listing)
 5. Clinic shares CID privately with patient (QR code at visit, encrypted email)
 6. Patient pays via ZK-proof (anonymous — clinic sees payment, not identity)
 7. Smart contract delivers decryption key to patient's wallet
@@ -62,6 +62,6 @@ For patients with sensitive diagnoses (HIV, oncology, mental health, genetic con
 |--------|----------------------|-----------|
 | Metadata exposure risk | High (email headers, portal logs) | None (no sender/receiver on-chain) |
 | Breach blast radius | All patients (centralized DB) | Single file (client-side encryption) |
-| Data longevity | Depends on clinic's server | Permanent (Filecoin) |
+| Data longevity | Depends on clinic's server | Permanent (decentralized storage) |
 | Delivery proof | Email receipt (spoofable) | CID on-chain (immutable) |
-| Post-quantum readiness | None | ML-KEM768 + AES-256-GCM |
+| Post-quantum readiness | None | NIST post-quantum encryption |
