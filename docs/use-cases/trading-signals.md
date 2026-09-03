@@ -39,9 +39,9 @@ For institutional signal providers selling to hedge funds, the problem is differ
 
 ```
 1. Signal provider generates signal (JSON, PDF, spreadsheet)
-2. Provider encrypts locally with ML-KEM768 + AES-256-GCM
-3. Provider uploads encrypted signal to Fil One (Filecoin)
-4. Provider registers CID + price in STRK20 contract (no public listing)
+2. Provider encrypts locally with post-quantum encryption
+3. Provider uploads encrypted signal to decentralized storage
+4. Provider registers CID + price in smart contract (no public listing)
 5. Provider shares CID with buyer (direct message, no group broadcast)
 6. Buyer pays via ZK-proof (anonymous — provider sees payment, not identity)
 7. Smart contract delivers decryption key to buyer's wallet
@@ -61,5 +61,5 @@ For institutional signal providers selling to hedge funds, the problem is differ
 | Recipient metadata exposure | High (group members, timestamps) | None (per-buyer CID) |
 | Alpha decay from leakage | Significant (group members front-run) | Minimal (isolated delivery) |
 | Counterparty identification | Possible (subscription records) | Impossible (anonymous payment) |
-| Delivery speed | Seconds (Telegram) but with leakage risk | Seconds (Fil upload + CID share) |
-| Post-quantum readiness | None | ML-KEM768 + AES-256-GCM |
+| Delivery speed | Seconds (Telegram) but with leakage risk | Seconds (upload + CID share) |
+| Post-quantum readiness | None | NIST post-quantum encryption |

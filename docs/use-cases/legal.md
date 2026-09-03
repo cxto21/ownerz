@@ -41,9 +41,9 @@ For whistleblower attorneys, the risk is higher: delivering a report about corpo
 
 ```
 1. Attorney prepares report (PDF, Word, evidence archive)
-2. Attorney encrypts locally with ML-KEM768 + AES-256-GCM
-3. Attorney uploads encrypted file to Fil One (Filecoin)
-4. Attorney registers CID + price in STRK20 contract (no public listing)
+2. Attorney encrypts locally with post-quantum encryption
+3. Attorney uploads encrypted file to decentralized storage
+4. Attorney registers CID + price in smart contract (no public listing)
 5. Attorney shares CID with client via secure channel (phone, in-person, Signal)
 6. Client pays via ZK-proof (anonymous — attorney sees payment, not identity)
 7. Smart contract delivers decryption key to client's wallet
@@ -63,5 +63,5 @@ For whistleblower attorneys, the risk is higher: delivering a report about corpo
 | Metadata exposure | Email logs, timestamps, subject lines | None (no on-chain metadata) |
 | Privilege breach risk | High (provider subpoena) | Low (no intermediary with records) |
 | Delivery proof | Email receipt (mutable) | CID on-chain (immutable) |
-| Jurisdictional flexibility | Depends on provider's data residency | Filecoin (global, jurisdiction-agnostic) |
-| Post-quantum readiness | None | ML-KEM768 + AES-256-GCM |
+| Jurisdictional flexibility | Depends on provider's data residency | Decentralized (global, jurisdiction-agnostic) |
+| Post-quantum readiness | None | NIST post-quantum encryption |

@@ -43,8 +43,8 @@ For incident response firms delivering forensic reports after a breach, the stak
 ```
 1. Security firm completes pentest / IR analysis
 2. Firm encrypts report locally (PDF, markdown, PoC repo zip)
-3. Firm uploads encrypted file to Fil One (Filecoin)
-4. Firm registers CID + price in STRK20 contract (no public listing)
+3. Firm uploads encrypted file to decentralized storage
+4. Firm registers CID + price in smart contract (no public listing)
 5. Firm shares CID with client via Signal, encrypted email, or in-person
 6. Client's SOC lead pays via ZK-proof (anonymous — firm sees payment, not wallet identity)
 7. Smart contract delivers decryption key to buyer's wallet
@@ -65,4 +65,4 @@ For incident response firms delivering forensic reports after a breach, the stak
 | Breach of delivery channel | Entire report exposed | Encrypted; useless without key |
 | Delivery proof | Email receipt | CID on-chain (immutable audit trail) |
 | Time to delivery | Minutes (email) but with friction (PGP) | Minutes (single upload + CID share) |
-| Post-quantum readiness | None | ML-KEM768 + AES-256-GCM |
+| Post-quantum readiness | None | NIST post-quantum encryption |
