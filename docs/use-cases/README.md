@@ -1,12 +1,12 @@
-# DataVaultz — Use Cases
+# Ownerz — Use Cases
 
 Real-world markets where privacy-first data delivery solves a concrete problem.
 
-## Why DataVaultz?
+## Why Ownerz?
 
 Traditional file sharing (email, Drive, Dropbox) leaks metadata: who sent what, to whom, when. For industries handling sensitive data, that exposure creates legal, competitive, and reputational risk.
 
-**DataVaultz solves this with:**
+**Ownerz solves this with:**
 
 - **Post-quantum encryption** — data encrypted client-side before upload with NIST-standardized algorithms
 - **Anonymous payments** (ZK-proofs) — buyer's identity hidden from seller and chain
@@ -34,16 +34,16 @@ Each use case was evaluated on:
 
 ## Ethical Boundaries
 
-DataVaultz is designed for **lawful privacy**. Every use case above involves:
+Ownerz is designed for **lawful privacy**. Every use case above involves:
 
 - Data the seller is legally entitled to share
 - Data the buyer is legally entitled to receive
 - No circumvention of lawful discovery, regulation, or oversight
 
-DataVaultz **does not enable** tax evasion, sanctions circumvention, illicit trade, or any activity where privacy would facilitate harm. The platform encrypts data; it does not judge legality — that responsibility remains with the participants.
+Ownerz **does not enable** tax evasion, sanctions circumvention, illicit trade, or any activity where privacy would facilitate harm. The platform encrypts data; it does not judge legality — that responsibility remains with the participants.
 
 ## Next Steps
 
 - Validate each use case with 2-3 potential buyers per market
 - Measure willingness-to-pay vs. existing alternatives (encrypted email, secure portals)
-- Identify regulatory requirements (HIPAA, SOC 2, attorney-client privilege) that DataVaultz naturally satisfies
+- Identify regulatory requirements (HIPAA, SOC 2, attorney-client privilege) that Ownerz naturally satisfies

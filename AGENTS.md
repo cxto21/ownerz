@@ -1,4 +1,4 @@
-# DataVaultz AGENTS
+# Ownerz AGENTS
 
 Project-specific instructions for this repo. See also global `~/.config/opencode/AGENTS.md` for persona and Engram protocol.
 
@@ -63,7 +63,7 @@ Mobile browsers cannot install the Ready/Argent X desktop extensions, so the leg
   - `package.json` updated.
 - **Created** `lib/starknet-kit.js` (~80 lines) — thin wrapper, no STRK20 logic:
   - Dynamic `import('starknetkit')`, `import('starknetkit/injected')`, `import('starknetkit/argentMobile')` inside functions (SSR-safe, avoids 2.5 MB server bundle).
-  - `export async function connectViaKit({ modalMode="alwaysAsk", modalTheme="system" })` → builds connectors `[ ArgentMobileConnector.init({ dappName:"Ownerz DataVaultz", url: window.location.hostname, chainId:"SN_SEPOLIA", rpcUrl: NEXT_PUBLIC_STARKNET_RPC, projectId: NEXT_PUBLIC_WC_PROJECT_ID }), new InjectedConnector({id:"argentX"}), new InjectedConnector({id:"braavos"}) ]` and calls `skConnect`. Returns `wallet` (`StarknetWindowObject`) or `null`.
+  - `export async function connectViaKit({ modalMode="alwaysAsk", modalTheme="system" })` → builds connectors `[ ArgentMobileConnector.init({ dappName:"Ownerz", url: window.location.hostname, chainId:"SN_SEPOLIA", rpcUrl: NEXT_PUBLIC_STARKNET_RPC, projectId: NEXT_PUBLIC_WC_PROJECT_ID }), new InjectedConnector({id:"argentX"}), new InjectedConnector({id:"braavos"}) ]` and calls `skConnect`. Returns `wallet` (`StarknetWindowObject`) or `null`.
   - `export async function isInReadyAppBrowser()` (tries `starknetkit/argentMobile` helper, falls back to UA sniff) + `export function isMobileBrowser()` (sync `/Mobi|Android/` + `matchMedia`).
   - No top-level `window` access; guards with `typeof window`.
 - **Updated** `pages/index.js`:

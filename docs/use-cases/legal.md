@@ -26,9 +26,9 @@ For whistleblower attorneys, the risk is higher: delivering a report about corpo
 
 **Sensitivity:** Attorney-client privilege. In most jurisdictions, the privilege survives the attorney-client relationship indefinitely. Breach of privilege can result in malpractice liability, case dismissal, or sanctions.
 
-## Why DataVaultz
+## Why Ownerz
 
-| Alternative | Limitation | DataVaultz advantage |
+| Alternative | Limitation | Ownerz advantage |
 |-------------|-----------|---------------------|
 | Email (even encrypted) | Metadata (who, when, subject) visible | No sender/receiver on-chain |
 | Firm's secure portal | Centralized; firm controls access | Decentralized; key in smart contract |
@@ -52,13 +52,13 @@ For whistleblower attorneys, the risk is higher: delivering a report about corpo
 
 ## Ethics & Compliance
 
-- **Legitimate:** Attorney is ethically obligated to protect privileged communications. DataVaultz strengthens that obligation by removing metadata exposure.
+- **Legitimate:** Attorney is ethically obligated to protect privileged communications. Ownerz strengthens that obligation by removing metadata exposure.
 - **Attorney-client privilege:** No privileged content is stored on-chain. The CID is an opaque hash; the payment is anonymous. Neither reveals the nature of the communication.
-- **Boundary:** Attorneys must still comply with discovery obligations and court orders. DataVaultz does not enable spoliation or concealment of evidence that a court has ordered produced. Privilege is not a shield for ongoing fraud.
+- **Boundary:** Attorneys must still comply with discovery obligations and court orders. Ownerz does not enable spoliation or concealment of evidence that a court has ordered produced. Privilege is not a shield for ongoing fraud.
 
 ## Value Metrics
 
-| Metric | Current (email/portal) | DataVaultz |
+| Metric | Current (email/portal) | Ownerz |
 |--------|----------------------|-----------|
 | Metadata exposure | Email logs, timestamps, subject lines | None (no on-chain metadata) |
 | Privilege breach risk | High (provider subpoena) | Low (no intermediary with records) |

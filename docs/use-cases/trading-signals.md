@@ -24,9 +24,9 @@ For institutional signal providers selling to hedge funds, the problem is differ
 
 **Sensitivity:** Commercially valuable information with a short half-life. The value is directly proportional to how few people know about it at the time of execution.
 
-## Why DataVaultz
+## Why Ownerz
 
-| Alternative | Limitation | DataVaultz advantage |
+| Alternative | Limitation | Ownerz advantage |
 |-------------|-----------|---------------------|
 | Telegram / Discord | Group visibility; no delivery isolation | Per-buyer CID; no group metadata |
 | Email blast | Recipient list visible to provider; timestamp leak | Anonymous payment; no recipient list |
@@ -51,12 +51,12 @@ For institutional signal providers selling to hedge funds, the problem is differ
 ## Ethics & Compliance
 
 - **Legitimate:** Signal providers sell proprietary analysis. Buyers pay for information they are legally entitled to receive. No market manipulation is involved.
-- **No front-running facilitation:** DataVaultz delivers the signal; it does not execute trades. The buyer's broker and exchange handle execution. Front-running is a broker/exchange problem, not a delivery channel problem.
+- **No front-running facilitation:** Ownerz delivers the signal; it does not execute trades. The buyer's broker and exchange handle execution. Front-running is a broker/exchange problem, not a delivery channel problem.
 - **Boundary:** This does not enable insider trading. The signal is the provider's own analysis, not material non-public information from a public company. If the signal is based on MNPI, the illegality is in the sourcing, not the delivery.
 
 ## Value Metrics
 
-| Metric | Current (Telegram/email) | DataVaultz |
+| Metric | Current (Telegram/email) | Ownerz |
 |--------|------------------------|-----------|
 | Recipient metadata exposure | High (group members, timestamps) | None (per-buyer CID) |
 | Alpha decay from leakage | Significant (group members front-run) | Minimal (isolated delivery) |

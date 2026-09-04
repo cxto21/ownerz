@@ -27,9 +27,9 @@ For incident response firms delivering forensic reports after a breach, the stak
 
 **Sensitivity:** Weaponizable. If a vulnerability report leaks before the client patches, it becomes a roadmap for attackers.
 
-## Why DataVaultz
+## Why Ownerz
 
-| Alternative | Limitation | DataVaultz advantage |
+| Alternative | Limitation | Ownerz advantage |
 |-------------|-----------|---------------------|
 | Email + PGP | Metadata visible; key exchange friction | No metadata; key auto-delivered |
 | Secure portal (HackerOne, etc.) | Platform sees the report; centralized | No intermediary; encrypted at rest |
@@ -55,11 +55,11 @@ For incident response firms delivering forensic reports after a breach, the stak
 
 - **Legitimate:** Security firm is contracted to deliver findings to the client. Report belongs to the client.
 - **No evasion:** This replaces the delivery channel, not the obligation to disclose. Clients still file regulatory reports (GDPR 72-hour, SEC disclosure) as required.
-- **Boundary:** DataVaultz does not facilitate selling zero-days to attackers. The flow assumes a pre-existing business relationship (pentest contract, IR retainer). No public marketplace listing exists.
+- **Boundary:** Ownerz does not facilitate selling zero-days to attackers. The flow assumes a pre-existing business relationship (pentest contract, IR retainer). No public marketplace listing exists.
 
 ## Value Metrics
 
-| Metric | Current (email/portal) | DataVaultz |
+| Metric | Current (email/portal) | Ownerz |
 |--------|----------------------|-----------|
 | Metadata signal to attacker | High (subject, sender, timestamp) | None (no on-chain metadata) |
 | Breach of delivery channel | Entire report exposed | Encrypted; useless without key |

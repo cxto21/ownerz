@@ -26,9 +26,9 @@ For patients with sensitive diagnoses (HIV, oncology, mental health, genetic con
 
 **Sensitivity:** Protected Health Information (PHI) under HIPAA (US), RGPD (EU), or local equivalents. Retention requirements: 5-20 years depending on jurisdiction.
 
-## Why DataVaultz
+## Why Ownerz
 
-| Alternative | Limitation | DataVaultz advantage |
+| Alternative | Limitation | Ownerz advantage |
 |-------------|-----------|---------------------|
 | Email (encrypted or not) | Metadata visible; PHI in transit | No metadata; encrypted at rest on decentralized storage |
 | Patient portal | Centralized; clinic controls access | Decentralized; key delivered by smart contract |
@@ -54,11 +54,11 @@ For patients with sensitive diagnoses (HIV, oncology, mental health, genetic con
 
 - **Legitimate:** Clinic is legally authorized to share PHI with the patient. Patient has right to access their own data.
 - **HIPAA alignment:** No PHI stored on-chain. Payment is anonymous but amount is visible (ERC-20 legs). Key delivery is private.
-- **Boundary:** Clinic must still maintain its own HIPAA-compliant records for regulatory audits. DataVaultz replaces the delivery channel, not the clinic's internal storage.
+- **Boundary:** Clinic must still maintain its own HIPAA-compliant records for regulatory audits. Ownerz replaces the delivery channel, not the clinic's internal storage.
 
 ## Value Metrics
 
-| Metric | Current (email/portal) | DataVaultz |
+| Metric | Current (email/portal) | Ownerz |
 |--------|----------------------|-----------|
 | Metadata exposure risk | High (email headers, portal logs) | None (no sender/receiver on-chain) |
 | Breach blast radius | All patients (centralized DB) | Single file (client-side encryption) |
