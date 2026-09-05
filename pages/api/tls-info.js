@@ -1,16 +1,25 @@
-export const runtime = 'edge'
+export const runtime = 'edge';
 
-import { getRequestContext } from '@cloudflare/next-on-pages'
+import { getRequestContext } from '@cloudflare/next-on-pages';
 
 export default async function handler() {
-  let tlsVersion = ''
+  let tlsVersion = '';
   try {
-    tlsVersion = getRequestContext().cf?.tlsVersion || ''
+    tlsVersion = getRequestContext().cf?.tlsVersion || '';
   } catch {
-    tlsVersion = ''
+    tlsVersion = '';
   }
   return new Response(
-    JSON.stringify({ tlsVersion: tlsVersion || 'unknown', tls13: tlsVersion === 'TLSv1.3' }),
-    { status: 200, headers: { 'content-type': 'application/json', 'cache-control': 'no-store' } }
-  )
+    JSON.stringify({
+      tlsVersion: tlsVersion || 'unknown',
+      tls13: tlsVersion === 'TLSv1.3',
+    }),
+    {
+      status: 200,
+      headers: {
+        'content-type': 'application/json',
+        'cache-control': 'no-store',
+      },
+    }
+  );
 }

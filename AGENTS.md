@@ -5,11 +5,13 @@ Project-specific instructions for this repo. See also global `~/.config/opencode
 ## Local Dev Setup (reproducible)
 
 ### Prerequisites
+
 - Node.js `>=18` (tested with `v22.23.2`)
 - npm `>=9`
 - Starknet wallet: [Ready extension](https://ready.app/) (desktop) or mobile via StarknetKit QR
 
 ### First-time setup
+
 ```bash
 # Clone and install
 git clone <repo-url> && cd DataVaultz
@@ -30,14 +32,16 @@ npm run dev    # → http://localhost:3001
 ```
 
 ### Port and scripts
-| Script | Command | Port |
-|---|---|---|
-| `npm run dev` | `next dev -p 3001` | 3001 |
-| `npm run build` | `next build` | — |
-| `npm run pages:build` | `npx @cloudflare/next-on-pages` | — |
-| `npm run pages:deploy` | `npx wrangler pages deploy .vercel/output/static` | — |
+
+| Script                 | Command                                           | Port |
+| ---------------------- | ------------------------------------------------- | ---- |
+| `npm run dev`          | `next dev -p 3001`                                | 3001 |
+| `npm run build`        | `next build`                                      | —    |
+| `npm run pages:build`  | `npx @cloudflare/next-on-pages`                   | —    |
+| `npm run pages:deploy` | `npx wrangler pages deploy .vercel/output/static` | —    |
 
 ### Troubleshooting local dev
+
 - **`next: not found`** — run `npm install --legacy-peer-deps` again
 - **`Cannot find module '@swc/helpers'`** — `rm -rf node_modules && npm install --legacy-peer-deps`
 - **Port 3001 in use** — `lsof -i :3001 -t | xargs kill -9` then `npm run dev`
@@ -45,6 +49,7 @@ npm run dev    # → http://localhost:3001
 - **WalletConnect QR fails** — ensure `NEXT_PUBLIC_WC_PROJECT_ID` is set in `.env`
 
 ### Dependency notes
+
 - `starknetkit@3.4.3` peer expects `starknet@^8.0.0` but we use `starknet@10.7.0` — use `--legacy-peer-deps` on every install
 - `@starknet-io/get-starknet-discovery` is a direct import in `lib/starknet.js:15` — do not remove
 - `@starknet-io/types-js` and `@starknet-io/get-starknet-wallet-standard` are NOT top-level deps — they are transitive via `starknetkit` and `get-starknet-discovery`
@@ -56,9 +61,11 @@ npm run dev    # → http://localhost:3001
 > **Status:** Implemented locally, NOT pushed to `main` — awaiting user review. Run `git status` / `git diff` to inspect before pushing.
 
 ### Why
+
 Mobile browsers cannot install the Ready/Argent X desktop extensions, so the legacy `getAvailableWallets() → "Install Ready"` flow was a dead-end on phones. StarknetKit + WalletConnect (QR / deeplink) lets iOS Safari / Android Chrome connect to Ready/Argent mobile apps.
 
 ### What was changed
+
 - **Installed** `starknetkit@3.4.3` with `--legacy-peer-deps` (peer expects `starknet@^8.0.0`, we keep `starknet@10.7.0` for `WalletAccountV6`).
   - `package.json` updated.
 - **Created** `lib/starknet-kit.js` (~80 lines) — thin wrapper, no STRK20 logic:
@@ -77,17 +84,21 @@ Mobile browsers cannot install the Ready/Argent X desktop extensions, so the leg
 - **Kept** `lib/starknet.js` untouched as transaction layer (still exports `getAvailableWallets`, `waitForWallets`, `onWalletInjected`, `connectWallet`, `resolvePrivacyWallet`, `strk20InvokeViaWalletApi`, etc.).
 
 ### Env required
+
 ```bash
 NEXT_PUBLIC_WC_PROJECT_ID=YOUR_WALLETCONNECT_PROJECT_ID
 # create at https://cloud.walletconnect.com — StarknetKit's ReadyConnector (= ArgentMobileConnector) pulls @walletconnect/sign-client
 ```
+
 Without it QR/WalletConnect still opens but pairing will fail; desktop injected flow unaffected. Add to `.env` (ignored by git) — `.env.example` now documents placeholder.
 
 ### How to test (client-only)
+
 ```bash
 npm run build   # must pass — verifies SSR guard (starknetkit is dynamically imported)
 npm run dev     # then open http://localhost:3001
 ```
+
 - **Desktop Chrome + Ready X**: click CONNECT → should still use injected wallet (no modal). If no wallet, modal shows Ready/ArgentX/Braavos.
 - **iOS Safari**: open dev URL → after 15 s should see "No wallet detected" + **Connect via QR** → tap → StarknetKit modal with QR → scan with Ready mobile app → WalletConnect pairs → STRK20 flow unchanged (`lib/starknet.js` `WalletAccountV6`).
 - **Android Chrome / in-app (Ready mobile)**: `isInReadyAppBrowser()` path; CONNECT should deeplink/QR to Ready; `Open in Ready App` button opens `ready.co/app?url=…`.
@@ -95,11 +106,13 @@ npm run dev     # then open http://localhost:3001
 - **Cairo**: `scarb build` / `snforge test` still pass (unrelated, no contract changes).
 
 ### Constraints respected
+
 - No `git push` to remote `main` (local changes only).
 - No `~/ownerz-desktop` touched.
 - `.env` stays ignored; only `.env.example` committed with placeholder.
 
 ### Gotchas
+
 - `starknetkit` peer `starknet@^8` vs our `starknet@10.7.0`: use `--legacy-peer-deps` on installs; do not downgrade.
 - Kit modal is client-only — never import `starknetkit` at top level without `typeof window` guard; current wrapper uses dynamic import.
 
@@ -108,6 +121,7 @@ npm run dev     # then open http://localhost:3001
 > **Status:** Proposal written in `openspec/changes/wallet-data-linking/proposal.md`. Not yet implemented.
 
 ### Stack
+
 - **Storage:** Cloudflare R2 (primary, 0 egress, PQ via edge) + IPFS/Filecoin (cold, CIDv1 content-addressed)
 - **Database:** Cloudflare D1 (users, nonces, vaults_meta, api_keys)
 - **Auth:** SIWS (Sign-In With Starknet) JWT via Cloudflare Workers + D1
@@ -115,17 +129,18 @@ npm run dev     # then open http://localhost:3001
 - **Agents (roadmap):** OpenSea Tools listing — private payments + TEE compute for IA agents
 
 ### Key files
-| File | Purpose |
-|---|---|
-| `pages/index.js` | Main UI (SellFlow/BuyFlow tabs) |
-| `lib/starknet.js` | Wallet connection + STRK20 payments |
-| `lib/starknet-kit.js` | Mobile QR connect (StarknetKit) |
-| `lib/s3.js` | S3 client (currently Fil One, planned: R2) |
-| `lib/storage/index.js` | Storage port (upload/download key seeds + files) |
-| `lib/crypto/index.js` | ML-KEM768 + AES-256-GCM (post-quantum encryption) |
-| `lib/filevault.js` | FileVault contract interaction |
-| `lib/key-onchain/` | Key exchange + commitment layer |
-| `pages/api/upload.js` | Edge upload handler (runtime: edge) |
-| `pages/api/download.js` | Edge download handler (runtime: edge) |
-| `contracts/src/filevault.cairo` | Cairo smart contract |
-| `openspec/changes/wallet-data-linking/proposal.md` | Step 1 proposal (wallet-to-data linking) |
+
+| File                                               | Purpose                                           |
+| -------------------------------------------------- | ------------------------------------------------- |
+| `pages/index.js`                                   | Main UI (SellFlow/BuyFlow tabs)                   |
+| `lib/starknet.js`                                  | Wallet connection + STRK20 payments               |
+| `lib/starknet-kit.js`                              | Mobile QR connect (StarknetKit)                   |
+| `lib/s3.js`                                        | S3 client (currently Fil One, planned: R2)        |
+| `lib/storage/index.js`                             | Storage port (upload/download key seeds + files)  |
+| `lib/crypto/index.js`                              | ML-KEM768 + AES-256-GCM (post-quantum encryption) |
+| `lib/filevault.js`                                 | FileVault contract interaction                    |
+| `lib/key-onchain/`                                 | Key exchange + commitment layer                   |
+| `pages/api/upload.js`                              | Edge upload handler (runtime: edge)               |
+| `pages/api/download.js`                            | Edge download handler (runtime: edge)             |
+| `contracts/src/filevault.cairo`                    | Cairo smart contract                              |
+| `openspec/changes/wallet-data-linking/proposal.md` | Step 1 proposal (wallet-to-data linking)          |

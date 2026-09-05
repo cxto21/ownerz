@@ -5,7 +5,8 @@ const nextConfig = {
     return [
       {
         source: '/api/rpc/:path*',
-        destination: 'https://starknet-sepolia.g.alchemy.com/starknet/version/rpc/v0_8/:path*',
+        destination:
+          'https://starknet-sepolia.g.alchemy.com/starknet/version/rpc/v0_8/:path*',
       },
     ];
   },

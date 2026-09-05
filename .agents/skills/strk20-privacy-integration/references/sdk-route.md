@@ -2,7 +2,7 @@
 
 The low-level route for teams that control their own account, prover, and viewing-key setup and want to interact with the pool directly instead of through a user's wallet.
 
-**Who it's for**: wallets adding STRK20 support; backends that manage their own Starknet accounts *and can store the viewing key safely*; apps that want their own prover + account to send private transactions without a third-party wallet.
+**Who it's for**: wallets adding STRK20 support; backends that manage their own Starknet accounts _and can store the viewing key safely_; apps that want their own prover + account to send private transactions without a third-party wallet.
 
 **Who it's not for**: normal end-user dapps. A dapp must never receive a user's viewing key — those integrate via the Wallet API route. If the interview reveals the "backend" actually acts on end-user funds with end-user consent through their wallets, that's the Wallet API route, not this one.
 

@@ -2,69 +2,69 @@
 
 :root {
   /* OWNERZ Tokens — brand palette */
-  --canvas: #02040A;
+  --canvas: #02040a;
   --raised: #050812;
-  --raised-higher: #0C1220;
-  --bg-raised: #080D19;
+  --raised-higher: #0c1220;
+  --bg-raised: #080d19;
   --bg-deep: #050812;
-  --hairline: rgba(91,112,168,.30);
-  --line: rgba(91,112,168,.30);
-  --line-subtle: rgba(91,112,168,.10);
-  --text-primary: #EEF3FF;
-  --text-secondary: rgba(210,221,247,0.68);
-  --text-muted: #7180A2;
-  --accent: rgba(153,176,255,.9);
-  --accent-pressed: #C84D25;
-  --accent-glow: rgba(112,145,255,.34);
-  --blue-glow: rgba(112,145,255,.34);
-  --violet-glow: rgba(153,112,255,.24);
-  --warm-glow: rgba(112,145,255,.34);
-  --selection-bg: rgba(112,145,255,.30);
-  --selection-text: #EEF3FF;
+  --hairline: rgba(91, 112, 168, 0.3);
+  --line: rgba(91, 112, 168, 0.3);
+  --line-subtle: rgba(91, 112, 168, 0.1);
+  --text-primary: #eef3ff;
+  --text-secondary: rgba(210, 221, 247, 0.68);
+  --text-muted: #7180a2;
+  --accent: rgba(153, 176, 255, 0.9);
+  --accent-pressed: #c84d25;
+  --accent-glow: rgba(112, 145, 255, 0.34);
+  --blue-glow: rgba(112, 145, 255, 0.34);
+  --violet-glow: rgba(153, 112, 255, 0.24);
+  --warm-glow: rgba(112, 145, 255, 0.34);
+  --selection-bg: rgba(112, 145, 255, 0.3);
+  --selection-text: #eef3ff;
 
   /* Legacy aliases for component compat */
-  --primary: rgba(153,176,255,.9);
-  --primary-container: rgba(112,145,255,.15);
+  --primary: rgba(153, 176, 255, 0.9);
+  --primary-container: rgba(112, 145, 255, 0.15);
   --on-primary: #ffffff;
   --on-primary-container: #ffffff;
-  --secondary: #EEF3FF;
-  --secondary-container: rgba(112,145,255,.10);
-  --on-secondary: #08030A;
+  --secondary: #eef3ff;
+  --secondary-container: rgba(112, 145, 255, 0.1);
+  --on-secondary: #08030a;
   --on-secondary-container: #ffffff;
-  --surface: #02040A;
+  --surface: #02040a;
   --surface-container: #050812;
   --surface-container-low: #050812;
-  --surface-container-lowest: #02040A;
-  --surface-container-high: #0C1220;
-  --surface-container-highest: #0C1220;
-  --surface-dim: #02040A;
-  --surface-bright: rgba(91,112,168,.30);
-  --surface-variant: #0C1220;
-  --surface-tint: rgba(112,145,255,.10);
-  --on-surface: #EEF3FF;
-  --on-surface-variant: rgba(210,221,247,0.68);
-  --on-background: #EEF3FF;
-  --outline: #7180A2;
-  --outline-variant: rgba(91,112,168,.30);
+  --surface-container-lowest: #02040a;
+  --surface-container-high: #0c1220;
+  --surface-container-highest: #0c1220;
+  --surface-dim: #02040a;
+  --surface-bright: rgba(91, 112, 168, 0.3);
+  --surface-variant: #0c1220;
+  --surface-tint: rgba(112, 145, 255, 0.1);
+  --on-surface: #eef3ff;
+  --on-surface-variant: rgba(210, 221, 247, 0.68);
+  --on-background: #eef3ff;
+  --outline: #7180a2;
+  --outline-variant: rgba(91, 112, 168, 0.3);
   --error: #ffb4ab;
   --error-container: #93000a;
   --on-error: #690005;
   --on-error-container: #ffdad6;
-  --glow-orange: rgba(112,145,255,.34);
-  --input-bg: rgba(5,8,18,0.5);
-  --dim: rgba(210,221,247,0.68);
-  --faint: #7180A2;
-  --warm: rgba(153,176,255,.9);
-  --warm-d: #C84D25;
+  --glow-orange: rgba(112, 145, 255, 0.34);
+  --input-bg: rgba(5, 8, 18, 0.5);
+  --dim: rgba(210, 221, 247, 0.68);
+  --faint: #7180a2;
+  --warm: rgba(153, 176, 255, 0.9);
+  --warm-d: #c84d25;
 
   /* Fonts */
-  --display: "Orbitron","Rajdhani","Arial Narrow",sans-serif;
-  --body: "Inter","Helvetica Neue",Arial,sans-serif;
-  --mono: "IBM Plex Mono","Space Mono",ui-monospace,monospace;
-  --font-display: "Orbitron","Rajdhani","Arial Narrow",sans-serif;
-  --font-body: "Inter","Helvetica Neue",Arial,sans-serif;
-  --font-mono: "IBM Plex Mono","Space Mono",ui-monospace,monospace;
-  --gut: clamp(20px,5vw,72px);
+  --display: 'Orbitron', 'Rajdhani', 'Arial Narrow', sans-serif;
+  --body: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+  --mono: 'IBM Plex Mono', 'Space Mono', ui-monospace, monospace;
+  --font-display: 'Orbitron', 'Rajdhani', 'Arial Narrow', sans-serif;
+  --font-body: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: 'IBM Plex Mono', 'Space Mono', ui-monospace, monospace;
+  --gut: clamp(20px, 5vw, 72px);
 }
 
 * {
@@ -73,7 +73,8 @@
   box-sizing: border-box;
 }
 
-html, body {
+html,
+body {
   overflow-y: auto;
   scrollbar-width: none;
 }
@@ -114,7 +115,11 @@ body::after {
   pointer-events: none;
   opacity: 0.35;
   mix-blend-mode: multiply;
-  background: repeating-linear-gradient(0deg, transparent 0 3px, rgba(0, 0, 0, 0.18) 3px 4px);
+  background: repeating-linear-gradient(
+    0deg,
+    transparent 0 3px,
+    rgba(0, 0, 0, 0.18) 3px 4px
+  );
 }
 
 /* Layout */
@@ -136,7 +141,10 @@ body::after {
   top: 0;
   width: 100%;
   z-index: 100;
-  transition: background 0.25s ease, backdrop-filter 0.25s ease, border-color 0.25s ease;
+  transition:
+    background 0.25s ease,
+    backdrop-filter 0.25s ease,
+    border-color 0.25s ease;
   border-bottom: 1px solid transparent;
 }
 
@@ -233,8 +241,8 @@ body::after {
   letter-spacing: 0.22em;
 }
 .dv-badge-ok {
-  background: rgba(112,145,255,0.15);
-  color: rgba(153,176,255,.9);
+  background: rgba(112, 145, 255, 0.15);
+  color: rgba(153, 176, 255, 0.9);
 }
 .dv-badge-err {
   background: rgba(255, 180, 171, 0.2);
@@ -471,10 +479,10 @@ body::after {
   width: 100%;
   max-width: 400px;
   min-height: auto;
-  background: rgba(5,8,18,.45);
-  border: 1px solid rgba(91,112,168,.25);
+  background: rgba(5, 8, 18, 0.45);
+  border: 1px solid rgba(91, 112, 168, 0.25);
   border-radius: 0;
-  box-shadow: 0 0 40px rgba(112,145,255,.08);
+  box-shadow: 0 0 40px rgba(112, 145, 255, 0.08);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
 }
@@ -543,17 +551,17 @@ body::after {
 
 /* Upload Zone */
 .dv-upload {
-  border: 1px dashed rgba(91,112,168,.30);
+  border: 1px dashed rgba(91, 112, 168, 0.3);
   padding: 24px;
   text-align: center;
   cursor: pointer;
   transition: all 0.3s;
-  background: rgba(0,0,0,0.3);
+  background: rgba(0, 0, 0, 0.3);
 }
 
 .dv-upload:hover {
-  border-color: rgba(112,145,255,.40);
-  background: rgba(112,145,255,.03);
+  border-color: rgba(112, 145, 255, 0.4);
+  background: rgba(112, 145, 255, 0.03);
 }
 
 /* File Info */
@@ -600,7 +608,7 @@ body::after {
 .dv-input-group select {
   width: 100%;
   padding: 10px 12px;
-  background: rgba(0,0,0,0.5);
+  background: rgba(0, 0, 0, 0.5);
   border: 1px solid var(--hairline);
   color: var(--text-primary);
   font-family: var(--font-mono);
@@ -633,8 +641,12 @@ body::after {
 .dv-btn-primary {
   width: 100%;
   padding: 10px 20px;
-  background: linear-gradient(180deg, rgba(112,145,255,0.12) 0%, rgba(112,145,255,0.04) 100%);
-  border: 1px solid rgba(91,112,168,.40);
+  background: linear-gradient(
+    180deg,
+    rgba(112, 145, 255, 0.12) 0%,
+    rgba(112, 145, 255, 0.04) 100%
+  );
+  border: 1px solid rgba(91, 112, 168, 0.4);
   color: var(--text-primary);
   font-family: var(--font-mono);
   font-size: 13px;
@@ -647,8 +659,12 @@ body::after {
 }
 
 .dv-btn-primary:hover:not(:disabled) {
-  background: linear-gradient(180deg, rgba(112,145,255,0.20) 0%, rgba(112,145,255,0.08) 100%);
-  box-shadow: 0 0 24px rgba(112,145,255,.15);
+  background: linear-gradient(
+    180deg,
+    rgba(112, 145, 255, 0.2) 0%,
+    rgba(112, 145, 255, 0.08) 100%
+  );
+  box-shadow: 0 0 24px rgba(112, 145, 255, 0.15);
   transform: translateY(-1px);
 }
 
@@ -674,7 +690,7 @@ body::after {
 }
 
 .dv-btn-secondary:hover {
-  border-color: rgba(91,112,168,.40);
+  border-color: rgba(91, 112, 168, 0.4);
   color: var(--text-primary);
 }
 
@@ -699,26 +715,26 @@ body::after {
 }
 
 .dv-btn-download:hover {
-  box-shadow: 0 0 28px rgba(112,145,255,.20);
+  box-shadow: 0 0 28px rgba(112, 145, 255, 0.2);
 }
 
 /* Info/Success Boxes */
 .dv-info-box {
   padding: 16px 20px;
-  background: rgba(112,145,255,0.08);
-  border-left: 4px solid rgba(112,145,255,.50);
+  background: rgba(112, 145, 255, 0.08);
+  border-left: 4px solid rgba(112, 145, 255, 0.5);
   font-size: 14px;
   line-height: 24px;
 }
 
 .dv-success-box {
   padding: 24px;
-  background: rgba(112,145,255,0.08);
-  border-left: 4px solid rgba(112,145,255,.50);
+  background: rgba(112, 145, 255, 0.08);
+  border-left: 4px solid rgba(112, 145, 255, 0.5);
 }
 
 .dv-success-box h3 {
-  color: rgba(153,176,255,.9);
+  color: rgba(153, 176, 255, 0.9);
   font-family: var(--font-display);
   font-size: 18px;
   margin-bottom: 16px;
@@ -811,7 +827,9 @@ body::after {
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .dv-loading p {
@@ -842,8 +860,8 @@ body::after {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(112,145,255,0.15);
-  color: rgba(153,176,255,.9);
+  background: rgba(112, 145, 255, 0.15);
+  color: rgba(153, 176, 255, 0.9);
   font-family: var(--font-mono);
   font-size: 13px;
   font-weight: 700;
@@ -882,13 +900,23 @@ body::after {
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes slideUp {
-  from { opacity: 0; transform: translateY(24px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .dv-popup-card {
@@ -985,9 +1013,9 @@ body::after {
 
 /* Drag and Drop Zone */
 .dv-upload.dragging {
-  border-color: rgba(112,145,255,.50);
-  background: rgba(112,145,255,.04);
-  box-shadow: inset 0 0 40px rgba(112,145,255,.04);
+  border-color: rgba(112, 145, 255, 0.5);
+  background: rgba(112, 145, 255, 0.04);
+  box-shadow: inset 0 0 40px rgba(112, 145, 255, 0.04);
 }
 
 .dv-upload-icon {
@@ -1004,8 +1032,8 @@ body::after {
 
 /* File Info Card */
 .dv-file-card {
-  background: rgba(112,145,255,.05);
-  border: 1px solid rgba(91,112,168,.20);
+  background: rgba(112, 145, 255, 0.05);
+  border: 1px solid rgba(91, 112, 168, 0.2);
   border-radius: 0;
   padding: 16px;
   animation: slideUp 0.2s ease-out;
@@ -1013,8 +1041,8 @@ body::after {
 
 /* BuyFlow Metadata Card */
 .dv-metadata-card {
-  background: rgba(112,145,255,.05);
-  border: 1px solid rgba(91,112,168,.20);
+  background: rgba(112, 145, 255, 0.05);
+  border: 1px solid rgba(91, 112, 168, 0.2);
   border-radius: 0;
   padding: 16px;
   margin-bottom: 16px;
@@ -1059,8 +1087,8 @@ body::after {
 
 /* Warning Box */
 .dv-warning-box {
-  background: rgba(255,180,171,.08);
-  border: 1px solid rgba(255,180,171,.20);
+  background: rgba(255, 180, 171, 0.08);
+  border: 1px solid rgba(255, 180, 171, 0.2);
   border-radius: 0;
   padding: 12px;
   margin-bottom: 16px;
@@ -1081,8 +1109,8 @@ body::after {
 
 /* Info Tip Box */
 .dv-info-tip {
-  background: rgba(112,145,255,.06);
-  border: 1px solid rgba(91,112,168,.20);
+  background: rgba(112, 145, 255, 0.06);
+  border: 1px solid rgba(91, 112, 168, 0.2);
   border-radius: 0;
   padding: 12px;
   margin-top: 12px;
@@ -1097,15 +1125,15 @@ body::after {
 /* Fee Display */
 .dv-fee-display {
   padding: 16px;
-  background: rgba(112,145,255,.06);
-  border: 1px solid rgba(91,112,168,.20);
+  background: rgba(112, 145, 255, 0.06);
+  border: 1px solid rgba(91, 112, 168, 0.2);
   border-radius: 0;
 }
 
 .dv-fee-label {
   font-family: var(--font-mono);
   font-size: 13px;
-  color: rgba(153,176,255,.9);
+  color: rgba(153, 176, 255, 0.9);
   margin-bottom: 8px;
   text-transform: uppercase;
   letter-spacing: 0.22em;
@@ -1203,29 +1231,29 @@ body::after {
     flex: 1;
     min-height: 0;
   }
-  
+
   .dv-tabs {
     flex-direction: row;
   }
-  
+
   .dv-tab {
     padding: 12px 8px;
     font-size: 13px;
     letter-spacing: 0.1em;
   }
-  
+
   .dv-title {
     font-size: 20px;
     line-height: 26px;
   }
-  
+
   .dv-input-group input,
   .dv-input-group textarea,
   .dv-input-group select {
     padding: 12px;
     font-size: 13px;
   }
-  
+
   .dv-btn-primary {
     padding: 12px;
     font-size: 13px;
@@ -1236,7 +1264,7 @@ body::after {
     font-size: 13px;
     display: none !important;
   }
-  
+
   .dv-popup-card {
     padding: 28px 44px 28px 20px;
     border-radius: 0;
@@ -1247,30 +1275,48 @@ body::after {
 
 /* Reveal on scroll */
 @keyframes reveal {
-  from { opacity: 0; transform: translateY(18px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .reveal {
-  animation: reveal .7s cubic-bezier(.2,.7,.2,1) both;
+  animation: reveal 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) both;
 }
-.reveal-d1 { animation-delay: .05s; }
-.reveal-d2 { animation-delay: .10s; }
-.reveal-d3 { animation-delay: .15s; }
-.reveal-d4 { animation-delay: .20s; }
+.reveal-d1 {
+  animation-delay: 0.05s;
+}
+.reveal-d2 {
+  animation-delay: 0.1s;
+}
+.reveal-d3 {
+  animation-delay: 0.15s;
+}
+.reveal-d4 {
+  animation-delay: 0.2s;
+}
 
 /* Hover lift */
 .hover-lift {
-  transition: transform .15s, box-shadow .2s;
+  transition:
+    transform 0.15s,
+    box-shadow 0.2s;
 }
 .hover-lift:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 24px rgba(112,145,255,.12);
+  box-shadow: 0 4px 24px rgba(112, 145, 255, 0.12);
 }
 
 /* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
+  *,
+  *::before,
+  *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
@@ -1446,7 +1492,7 @@ body::after {
 
   /* Shielded balance panel: fit screen */
   .dv-shielded-balance,
-  [style*="position: fixed"][style*="right: 20px"] {
+  [style*='position: fixed'][style*='right: 20px'] {
     right: 8px !important;
     left: 8px !important;
     min-width: 0 !important;

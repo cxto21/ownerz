@@ -18,16 +18,16 @@ Confidential transfers and private DeFi on any ERC-20, built on the wallets and 
 
 Every plan must include a version of this table, adapted to the app's flows:
 
-| Private (inside the pool) | Public (visible onchain) |
-|---|---|
+| Private (inside the pool)                 | Public (visible onchain)                                |
+| ----------------------------------------- | ------------------------------------------------------- |
 | Sender and receiver of a private transfer | Deposit and withdrawal amounts (the public ERC-20 legs) |
-| Transfer amounts and token type | The fact that an address interacted with the pool |
-| Which notes were spent | Timing of pool interactions |
+| Transfer amounts and token type           | The fact that an address interacted with the pool       |
+| Which notes were spent                    | Timing of pool interactions                             |
 
 A paymaster can decouple the submitting address from the transaction — see "The transaction sender is not the user" below for what that means when reading activity back off the chain. Additionally, per route:
 
-- **Anonymizer contracts** hide the *user's address* in a DeFi action; the amounts and the app activity itself may still be public.
-- **Private sub-accounts** (upcoming) hide the *public onchain link* between a user's main wallet and the account acting; the dapp action and amounts at the dapp may still be public.
+- **Anonymizer contracts** hide the _user's address_ in a DeFi action; the amounts and the app activity itself may still be public.
+- **Private sub-accounts** (upcoming) hide the _public onchain link_ between a user's main wallet and the account acting; the dapp action and amounts at the dapp may still be public.
 
 Never let a plan imply more privacy than the route actually delivers.
 
@@ -82,7 +82,7 @@ the team is choosing rather than assuming.
 
 ## The golden rule
 
-**A dapp must never touch the user's viewing key.** The Privacy SDK expects the viewing key (a secret) in the clear, and a wallet will never provide it. The wallet holds keys, runs the SDK internally, manages notes, and does the proving. The dapp only *asks* the wallet to act, via starknet.js. Everything in the route table follows from this rule. If a plan step would require the dapp to see keys, notes, balances-by-key, or proofs, the route is wrong.
+**A dapp must never touch the user's viewing key.** The Privacy SDK expects the viewing key (a secret) in the clear, and a wallet will never provide it. The wallet holds keys, runs the SDK internally, manages notes, and does the proving. The dapp only _asks_ the wallet to act, via starknet.js. Everything in the route table follows from this rule. If a plan step would require the dapp to see keys, notes, balances-by-key, or proofs, the route is wrong.
 
 Practical consequence for UX planning: a dapp cannot read a user's shielded balances itself (it has no viewing key). Design UI around actions the wallet performs, and verify against the current WalletAccount guide / Wallet API spec what state, if any, the wallet exposes to dapps.
 

@@ -16,12 +16,12 @@ Traditional file sharing (email, Drive, Dropbox) leaks metadata: who sent what, 
 
 ## Use Cases
 
-| Market | Buyer | Seller | Sensitivity | File |
-|--------|-------|--------|-------------|------|
-| Healthcare | Patient, insurer | Clinic, lab | Medical records, PHI | [healthcare.md](./healthcare.md) |
-| Cybersecurity | SOC team, auditor | Security firm | Vuln reports, incident data | [cybersecurity.md](./cybersecurity.md) |
-| Legal | Client, opposing counsel | Attorney | Privileged documents | [legal.md](./legal.md) |
-| Trading Signals | Fund, retail trader | Signal provider | Proprietary strategies | [trading-signals.md](./trading-signals.md) |
+| Market          | Buyer                    | Seller          | Sensitivity                 | File                                       |
+| --------------- | ------------------------ | --------------- | --------------------------- | ------------------------------------------ |
+| Healthcare      | Patient, insurer         | Clinic, lab     | Medical records, PHI        | [healthcare.md](./healthcare.md)           |
+| Cybersecurity   | SOC team, auditor        | Security firm   | Vuln reports, incident data | [cybersecurity.md](./cybersecurity.md)     |
+| Legal           | Client, opposing counsel | Attorney        | Privileged documents        | [legal.md](./legal.md)                     |
+| Trading Signals | Fund, retail trader      | Signal provider | Proprietary strategies      | [trading-signals.md](./trading-signals.md) |
 
 ## Selection Criteria
 

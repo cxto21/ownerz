@@ -10,10 +10,10 @@ For institutional signal providers selling to hedge funds, the problem is differ
 
 ## Who Buys, Who Sells
 
-| Role | Actor |
-|------|-------|
-| **Seller** | Signal provider, quantitative research firm, proprietary analyst |
-| **Buyer** | Retail trader (individual), hedge fund (institutional), family office |
+| Role       | Actor                                                                 |
+| ---------- | --------------------------------------------------------------------- |
+| **Seller** | Signal provider, quantitative research firm, proprietary analyst      |
+| **Buyer**  | Retail trader (individual), hedge fund (institutional), family office |
 
 ## What's Shared
 
@@ -26,12 +26,12 @@ For institutional signal providers selling to hedge funds, the problem is differ
 
 ## Why Ownerz
 
-| Alternative | Limitation | Ownerz advantage |
-|-------------|-----------|---------------------|
-| Telegram / Discord | Group visibility; no delivery isolation | Per-buyer CID; no group metadata |
-| Email blast | Recipient list visible to provider; timestamp leak | Anonymous payment; no recipient list |
-| Encrypted email | Same metadata problem; PGP key exchange friction | Single-channel delivery; no PGP |
-| Secure portal | Centralized; provider sees who downloads when | Decentralized; key in smart contract |
+| Alternative        | Limitation                                         | Ownerz advantage                     |
+| ------------------ | -------------------------------------------------- | ------------------------------------ |
+| Telegram / Discord | Group visibility; no delivery isolation            | Per-buyer CID; no group metadata     |
+| Email blast        | Recipient list visible to provider; timestamp leak | Anonymous payment; no recipient list |
+| Encrypted email    | Same metadata problem; PGP key exchange friction   | Single-channel delivery; no PGP      |
+| Secure portal      | Centralized; provider sees who downloads when      | Decentralized; key in smart contract |
 
 **Post-quantum angle:** Quantitative strategies may remain proprietary for years. A factor model published today should not be reverse-engineered from encrypted archives in 2035.
 
@@ -56,10 +56,10 @@ For institutional signal providers selling to hedge funds, the problem is differ
 
 ## Value Metrics
 
-| Metric | Current (Telegram/email) | Ownerz |
-|--------|------------------------|-----------|
-| Recipient metadata exposure | High (group members, timestamps) | None (per-buyer CID) |
-| Alpha decay from leakage | Significant (group members front-run) | Minimal (isolated delivery) |
-| Counterparty identification | Possible (subscription records) | Impossible (anonymous payment) |
-| Delivery speed | Seconds (Telegram) but with leakage risk | Seconds (upload + CID share) |
-| Post-quantum readiness | None | NIST post-quantum encryption |
+| Metric                      | Current (Telegram/email)                 | Ownerz                         |
+| --------------------------- | ---------------------------------------- | ------------------------------ |
+| Recipient metadata exposure | High (group members, timestamps)         | None (per-buyer CID)           |
+| Alpha decay from leakage    | Significant (group members front-run)    | Minimal (isolated delivery)    |
+| Counterparty identification | Possible (subscription records)          | Impossible (anonymous payment) |
+| Delivery speed              | Seconds (Telegram) but with leakage risk | Seconds (upload + CID share)   |
+| Post-quantum readiness      | None                                     | NIST post-quantum encryption   |

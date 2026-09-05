@@ -18,11 +18,11 @@ You enter this file only after the developer has approved `STRK20_INTEGRATION_PL
 
 Detect the package manager from the lockfile (`package-lock.json` → npm, `pnpm-lock.yaml` → pnpm, `yarn.lock` → yarn) and use it consistently.
 
-| Repo shape | Clean means |
-|---|---|
+| Repo shape                 | Clean means                                                                                                                      |
+| -------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
 | Vite / Next / CRA frontend | install exits 0 · typecheck passes (`tsc --noEmit` or the repo's script) · production build passes · existing test script passes |
-| Plain TS/Node backend | install exits 0 · typecheck passes · the repo's test command passes |
-| Monorepo | the above, scoped to the affected workspace(s) |
+| Plain TS/Node backend      | install exits 0 · typecheck passes · the repo's test command passes                                                              |
+| Monorepo                   | the above, scoped to the affected workspace(s)                                                                                   |
 
 Add tests only where the repo already has a test setup — match its framework and file layout; never introduce a new test framework during an integration.
 

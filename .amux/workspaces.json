@@ -1,0 +1,8 @@
+{
+  "setup-workspace": [
+    "npm install --legacy-peer-deps",
+    "cp $ROOT_WORKSPACE_PATH/.env $AMUX_WORKSPACE_ROOT/.env 2>/dev/null || cp $ROOT_WORKSPACE_PATH/.env.example $AMUX_WORKSPACE_ROOT/.env 2>/dev/null || true"
+  ],
+  "run": "npm run dev",
+  "archive": "echo 'Archiving workspace...'"
+}

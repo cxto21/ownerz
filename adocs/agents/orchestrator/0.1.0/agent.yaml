@@ -1,0 +1,26 @@
+spec_version: '0.1.0'
+name: orchestrator
+version: 0.1.0
+description: 'SDD orchestrator agent for DataVaultz — coordinates planning, review, and delivery'
+author: ownerz
+license: MIT
+skills:
+  - sdd-workflow
+  - gentle-ai-review
+  - aven-task-management
+  - engram-persistent-memory
+capabilities:
+  - read
+  - write
+  - search
+  - memory
+  - claim
+  - delegate
+  - review
+  - sdd-phase-routing
+  - task-lifecycle
+  - agent-coordination
+project_context: datavaultz
+session_id: 'ses_f919296bbffeETZ4byHaVpf3WK'
+agent_id: 'aa-orchestrator-b96ccf72'
+registered_at: '2026-09-04T21:58:16Z'

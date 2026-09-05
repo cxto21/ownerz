@@ -10,10 +10,10 @@ For whistleblower attorneys, the risk is higher: delivering a report about corpo
 
 ## Who Buys, Who Sells
 
-| Role | Actor |
-|------|-------|
-| **Seller** | Attorney, law firm, legal consultant, expert witness |
-| **Buyer** | Client, co-counsel, opposing counsel (settlement), regulator (authorized disclosure) |
+| Role       | Actor                                                                                |
+| ---------- | ------------------------------------------------------------------------------------ |
+| **Seller** | Attorney, law firm, legal consultant, expert witness                                 |
+| **Buyer**  | Client, co-counsel, opposing counsel (settlement), regulator (authorized disclosure) |
 
 ## What's Shared
 
@@ -28,12 +28,12 @@ For whistleblower attorneys, the risk is higher: delivering a report about corpo
 
 ## Why Ownerz
 
-| Alternative | Limitation | Ownerz advantage |
-|-------------|-----------|---------------------|
-| Email (even encrypted) | Metadata (who, when, subject) visible | No sender/receiver on-chain |
-| Firm's secure portal | Centralized; firm controls access | Decentralized; key in smart contract |
-| Physical courier | Delivery receipt reveals recipient | CID is delivery proof without identity |
-| Secure messaging | Requires synchronous presence | Async; buyer pays when ready |
+| Alternative            | Limitation                            | Ownerz advantage                       |
+| ---------------------- | ------------------------------------- | -------------------------------------- |
+| Email (even encrypted) | Metadata (who, when, subject) visible | No sender/receiver on-chain            |
+| Firm's secure portal   | Centralized; firm controls access     | Decentralized; key in smart contract   |
+| Physical courier       | Delivery receipt reveals recipient    | CID is delivery proof without identity |
+| Secure messaging       | Requires synchronous presence         | Async; buyer pays when ready           |
 
 **Post-quantum angle:** Privileged documents must remain confidential for decades. A case decided in 2026 may be appealed in 2035; the strategy memo must not be decryptable by then.
 
@@ -58,10 +58,10 @@ For whistleblower attorneys, the risk is higher: delivering a report about corpo
 
 ## Value Metrics
 
-| Metric | Current (email/portal) | Ownerz |
-|--------|----------------------|-----------|
-| Metadata exposure | Email logs, timestamps, subject lines | None (no on-chain metadata) |
-| Privilege breach risk | High (provider subpoena) | Low (no intermediary with records) |
-| Delivery proof | Email receipt (mutable) | CID on-chain (immutable) |
-| Jurisdictional flexibility | Depends on provider's data residency | Decentralized (global, jurisdiction-agnostic) |
-| Post-quantum readiness | None | NIST post-quantum encryption |
+| Metric                     | Current (email/portal)                | Ownerz                                        |
+| -------------------------- | ------------------------------------- | --------------------------------------------- |
+| Metadata exposure          | Email logs, timestamps, subject lines | None (no on-chain metadata)                   |
+| Privilege breach risk      | High (provider subpoena)              | Low (no intermediary with records)            |
+| Delivery proof             | Email receipt (mutable)               | CID on-chain (immutable)                      |
+| Jurisdictional flexibility | Depends on provider's data residency  | Decentralized (global, jurisdiction-agnostic) |
+| Post-quantum readiness     | None                                  | NIST post-quantum encryption                  |

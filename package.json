@@ -2,6 +2,7 @@
   "name": "ownerz",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "next dev -p 3001",
     "build": "next build",
@@ -12,7 +13,11 @@
     "test": "npx playwright test",
     "test:ui": "npx playwright test --ui",
     "test:debug": "npx playwright test --debug",
-    "test:report": "npx playwright show-report"
+    "test:report": "npx playwright show-report",
+    "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
+    "lint:fix": "eslint . --ext .js,.jsx,.ts,.tsx --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1111.0",
@@ -26,14 +31,38 @@
   },
   "devDependencies": {
     "@cloudflare/next-on-pages": "^1.13.16",
+    "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.62.1",
     "@types/node": "^20.0.0",
     "@types/react": "^18.2.0",
+    "eslint": "^10.10.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.6",
     "playwright": "^1.62.1",
+    "prettier": "^3.9.6",
     "typescript": "^5.0.0",
+    "typescript-eslint": "^8.69.0",
     "wrangler": "^4.123.0"
   },
   "optionalDependencies": {
     "@next/swc-linux-x64-gnu": "^14.2.33"
-  }
+  },
+  "description": "A marketplace where anyone can monetize private data on blockchain with anonymous transactions, no intermediaries, no hidden costs.",
+  "main": "next.config.js",
+  "directories": {
+    "doc": "docs",
+    "lib": "lib",
+    "test": "tests"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cxto21/ownerz.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/cxto21/ownerz/issues"
+  },
+  "homepage": "https://github.com/cxto21/ownerz#readme"
 }

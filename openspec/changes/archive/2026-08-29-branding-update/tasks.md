@@ -2,14 +2,14 @@
 
 ## Review Workload Forecast
 
-| Field | Value |
-|-------|-------|
-| Estimated changed lines | 250–320 |
-| 400-line budget risk | Low |
-| Chained PRs recommended | No |
-| Suggested split | Single PR |
-| Delivery strategy | single-pr |
-| Chain strategy | size-exception |
+| Field                   | Value          |
+| ----------------------- | -------------- |
+| Estimated changed lines | 250–320        |
+| 400-line budget risk    | Low            |
+| Chained PRs recommended | No             |
+| Suggested split         | Single PR      |
+| Delivery strategy       | single-pr      |
+| Chain strategy          | size-exception |
 
 Decision needed before apply: Yes
 Chained PRs recommended: No
@@ -18,11 +18,11 @@ Chain strategy: size-exception
 
 ### Suggested Work Units
 
-| Unit | Goal | Likely PR | Focused test command | Runtime harness | Rollback boundary |
-|------|------|-----------|----------------------|-----------------|-------------------|
-| 1 | Token remap + fonts + assets | PR 1 | `npm run build` | `npm run dev` → visual check vs `index.html` | `globals.css` + `_app.js` + `public/images/` |
-| 2 | Shell + hero + popup + flows | PR 1 | `npm run build` + `grep -r "c53400\|197,52,0" components/` | Manual page load, upload/shield/connect flows | `index.js` + `SellFlow.js` + `BuyFlow.js` + `ShieldModal.js` |
-| 3 | Motion + polish + verification | PR 1 | `npm run build` + visual + `prefers-reduced-motion` check | Browser dev tools animation audit | CSS utilities only (reversible) |
+| Unit | Goal                           | Likely PR | Focused test command                                       | Runtime harness                               | Rollback boundary                                            |
+| ---- | ------------------------------ | --------- | ---------------------------------------------------------- | --------------------------------------------- | ------------------------------------------------------------ |
+| 1    | Token remap + fonts + assets   | PR 1      | `npm run build`                                            | `npm run dev` → visual check vs `index.html`  | `globals.css` + `_app.js` + `public/images/`                 |
+| 2    | Shell + hero + popup + flows   | PR 1      | `npm run build` + `grep -r "c53400\|197,52,0" components/` | Manual page load, upload/shield/connect flows | `index.js` + `SellFlow.js` + `BuyFlow.js` + `ShieldModal.js` |
+| 3    | Motion + polish + verification | PR 1      | `npm run build` + visual + `prefers-reduced-motion` check  | Browser dev tools animation audit             | CSS utilities only (reversible)                              |
 
 ## Phase 1: Token Foundation + App Shell (~80 lines)
 

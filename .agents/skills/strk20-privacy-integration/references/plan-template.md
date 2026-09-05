@@ -22,8 +22,8 @@ Generated <date> by the strk20-privacy-integration skill. Statuses below were cu
 
 ## 3. What this delivers — hidden vs visible
 
-| Private | Public |
-|---|---|
+| Private                                        | Public                                                                                           |
+| ---------------------------------------------- | ------------------------------------------------------------------------------------------------ |
 | <adapted from concepts.md to this app's flows> | <deposit/withdrawal amounts, fact+timing of pool interaction, and any route-specific visibility> |
 
 <One honest sentence on limits, e.g.: "Vault deposits will hide the depositor's address; amounts and the vault activity itself remain public.">

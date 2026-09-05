@@ -1,65 +1,65 @@
 project: DataVaultz
 stack:
-  frontend: "Next.js 14 (App Router/Pages), React 18, TypeScript (dev), JavaScript (src)"
-  contracts: "Cairo 2.18.0, Scarb, OpenZeppelin, snforge_std 0.61.0"
-  deploy: "Cloudflare Pages (next-on-pages + wrangler), Starknet Sepolia"
-  auth: "SIWS (Sign-In With Starknet) JWT via Cloudflare Workers + D1"
-  privacy: "STRK20 via starknet.js v10.7.0 WalletAccountV6, get-starknet v6, starknetkit v3.4.3"
-  storage: "Cloudflare R2 (primary) + IPFS/Filecoin (cold), @aws-sdk/client-s3, post-quantum crypto (@noble/post-quantum)"
-  auth: "SIWS (Sign-In With Starknet) JWT via Cloudflare Workers + D1"
-persistence: "openspec"
+  frontend: 'Next.js 14 (App Router/Pages), React 18, TypeScript (dev), JavaScript (src)'
+  contracts: 'Cairo 2.18.0, Scarb, OpenZeppelin, snforge_std 0.61.0'
+  deploy: 'Cloudflare Pages (next-on-pages + wrangler), Starknet Sepolia'
+  auth: 'SIWS (Sign-In With Starknet) JWT via Cloudflare Workers + D1'
+  privacy: 'STRK20 via starknet.js v10.7.0 WalletAccountV6, get-starknet v6, starknetkit v3.4.3'
+  storage: 'Cloudflare R2 (primary) + IPFS/Filecoin (cold), @aws-sdk/client-s3, post-quantum crypto (@noble/post-quantum)'
+  auth: 'SIWS (Sign-In With Starknet) JWT via Cloudflare Workers + D1'
+persistence: 'openspec'
 strict_tdd: false
-reason: "Frontend has no test runner configured; contracts have snforge but frontend is primary app surface. Add vitest/jest + testing-library + playwright to enable strict TDD."
+reason: 'Frontend has no test runner configured; contracts have snforge but frontend is primary app surface. Add vitest/jest + testing-library + playwright to enable strict TDD.'
 testing:
   runner:
-    command: "scarb test"
-    framework: "snforge 0.61"
-    scope: "contracts only"
+    command: 'scarb test'
+    framework: 'snforge 0.61'
+    scope: 'contracts only'
   layers:
     unit:
       available: true
-      tool: "snforge (contracts), — (frontend)"
+      tool: 'snforge (contracts), — (frontend)'
     integration:
       available: false
-      tool: "—"
+      tool: '—'
     e2e:
       available: false
-      tool: "—"
+      tool: '—'
   coverage:
     available: false
-    command: "—"
+    command: '—'
   quality:
     linter:
       available: false
-      command: "—"
+      command: '—'
     type_checker:
       available: true
-      command: "tsc --noEmit"
+      command: 'tsc --noEmit'
     formatter:
       available: false
-      command: "—"
+      command: '—'
 phase_rules:
   proposal:
-    require: ["intent", "scope", "approach"]
-    template: "sdd/proposal-template.md"
+    require: ['intent', 'scope', 'approach']
+    template: 'sdd/proposal-template.md'
   spec:
-    require: ["requirements", "scenarios"]
-    template: "sdd/spec-template.md"
+    require: ['requirements', 'scenarios']
+    template: 'sdd/spec-template.md'
   design:
-    require: ["architecture", "components", "data_flow"]
-    template: "sdd/design-template.md"
+    require: ['architecture', 'components', 'data_flow']
+    template: 'sdd/design-template.md'
   tasks:
-    require: ["breakdown", "acceptance"]
-    template: "sdd/tasks-template.md"
+    require: ['breakdown', 'acceptance']
+    template: 'sdd/tasks-template.md'
   apply:
-    require: ["implementation", "tests"]
+    require: ['implementation', 'tests']
     verify_on_complete: true
   verify:
-    require: ["test_results", "coverage", "lint"]
-    gates: ["all_tests_pass", "types_check"]
+    require: ['test_results', 'coverage', 'lint']
+    gates: ['all_tests_pass', 'types_check']
   archive:
-    require: ["delta_specs", "changelog"]
-    sync_mode: "incremental"
+    require: ['delta_specs', 'changelog']
+    sync_mode: 'incremental'
 context: |
   DataVaultz is a privacy-preserving file marketplace on Starknet Sepolia.
   - SellFlow: Upload files, encrypt with PQC, store on R2/IPFS, list on-chain via FileVault contract

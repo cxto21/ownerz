@@ -12,10 +12,10 @@ For incident response firms delivering forensic reports after a breach, the stak
 
 ## Who Buys, Who Sells
 
-| Role | Actor |
-|------|-------|
+| Role       | Actor                                                                                      |
+| ---------- | ------------------------------------------------------------------------------------------ |
 | **Seller** | Cybersecurity consultancy, pen-testing firm, incident response team, threat intel provider |
-| **Buyer** | Client's SOC/CISO, insurance underwriter (post-incident), auditor (compliance) |
+| **Buyer**  | Client's SOC/CISO, insurance underwriter (post-incident), auditor (compliance)             |
 
 ## What's Shared
 
@@ -29,12 +29,12 @@ For incident response firms delivering forensic reports after a breach, the stak
 
 ## Why Ownerz
 
-| Alternative | Limitation | Ownerz advantage |
-|-------------|-----------|---------------------|
-| Email + PGP | Metadata visible; key exchange friction | No metadata; key auto-delivered |
-| Secure portal (HackerOne, etc.) | Platform sees the report; centralized | No intermediary; encrypted at rest |
-| Encrypted ZIP + email | Password in separate channel; metadata leak | Single-channel delivery |
-| SecureDrop / air-gap | Slow; operational overhead | Async + blockchain proof of delivery |
+| Alternative                     | Limitation                                  | Ownerz advantage                     |
+| ------------------------------- | ------------------------------------------- | ------------------------------------ |
+| Email + PGP                     | Metadata visible; key exchange friction     | No metadata; key auto-delivered      |
+| Secure portal (HackerOne, etc.) | Platform sees the report; centralized       | No intermediary; encrypted at rest   |
+| Encrypted ZIP + email           | Password in separate channel; metadata leak | Single-channel delivery              |
+| SecureDrop / air-gap            | Slow; operational overhead                  | Async + blockchain proof of delivery |
 
 **Post-quantum angle:** Vulnerability data has a long shelf life. An unpatched system from 2024 might still be running in 2035. The exploit details must stay confidential until the end of life of the affected system.
 
@@ -59,10 +59,10 @@ For incident response firms delivering forensic reports after a breach, the stak
 
 ## Value Metrics
 
-| Metric | Current (email/portal) | Ownerz |
-|--------|----------------------|-----------|
-| Metadata signal to attacker | High (subject, sender, timestamp) | None (no on-chain metadata) |
-| Breach of delivery channel | Entire report exposed | Encrypted; useless without key |
-| Delivery proof | Email receipt | CID on-chain (immutable audit trail) |
-| Time to delivery | Minutes (email) but with friction (PGP) | Minutes (single upload + CID share) |
-| Post-quantum readiness | None | NIST post-quantum encryption |
+| Metric                      | Current (email/portal)                  | Ownerz                               |
+| --------------------------- | --------------------------------------- | ------------------------------------ |
+| Metadata signal to attacker | High (subject, sender, timestamp)       | None (no on-chain metadata)          |
+| Breach of delivery channel  | Entire report exposed                   | Encrypted; useless without key       |
+| Delivery proof              | Email receipt                           | CID on-chain (immutable audit trail) |
+| Time to delivery            | Minutes (email) but with friction (PGP) | Minutes (single upload + CID share)  |
+| Post-quantum readiness      | None                                    | NIST post-quantum encryption         |

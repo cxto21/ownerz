@@ -12,10 +12,10 @@ For patients with sensitive diagnoses (HIV, oncology, mental health, genetic con
 
 ## Who Buys, Who Sells
 
-| Role | Actor |
-|------|-------|
-| **Seller** | Private clinic, diagnostic lab, telemedicine platform |
-| **Buyer** | Patient (individual), insurance company (authorized), second-opinion physician |
+| Role       | Actor                                                                          |
+| ---------- | ------------------------------------------------------------------------------ |
+| **Seller** | Private clinic, diagnostic lab, telemedicine platform                          |
+| **Buyer**  | Patient (individual), insurance company (authorized), second-opinion physician |
 
 ## What's Shared
 
@@ -28,12 +28,12 @@ For patients with sensitive diagnoses (HIV, oncology, mental health, genetic con
 
 ## Why Ownerz
 
-| Alternative | Limitation | Ownerz advantage |
-|-------------|-----------|---------------------|
-| Email (encrypted or not) | Metadata visible; PHI in transit | No metadata; encrypted at rest on decentralized storage |
-| Patient portal | Centralized; clinic controls access | Decentralized; key delivered by smart contract |
-| Secure messaging (Signal, WhatsApp) | Requires both parties online; no audit trail | Asynchronous; CID + payment on-chain |
-| USB / physical media | Loss risk; no delivery proof | Immutable storage; CID as delivery receipt |
+| Alternative                         | Limitation                                   | Ownerz advantage                                        |
+| ----------------------------------- | -------------------------------------------- | ------------------------------------------------------- |
+| Email (encrypted or not)            | Metadata visible; PHI in transit             | No metadata; encrypted at rest on decentralized storage |
+| Patient portal                      | Centralized; clinic controls access          | Decentralized; key delivered by smart contract          |
+| Secure messaging (Signal, WhatsApp) | Requires both parties online; no audit trail | Asynchronous; CID + payment on-chain                    |
+| USB / physical media                | Loss risk; no delivery proof                 | Immutable storage; CID as delivery receipt              |
 
 **Post-quantum angle:** Medical records must remain confidential for decades. A diagnosis made today should not be decryptable by a quantum computer in 2040.
 
@@ -58,10 +58,10 @@ For patients with sensitive diagnoses (HIV, oncology, mental health, genetic con
 
 ## Value Metrics
 
-| Metric | Current (email/portal) | Ownerz |
-|--------|----------------------|-----------|
-| Metadata exposure risk | High (email headers, portal logs) | None (no sender/receiver on-chain) |
-| Breach blast radius | All patients (centralized DB) | Single file (client-side encryption) |
-| Data longevity | Depends on clinic's server | Permanent (decentralized storage) |
-| Delivery proof | Email receipt (spoofable) | CID on-chain (immutable) |
-| Post-quantum readiness | None | NIST post-quantum encryption |
+| Metric                 | Current (email/portal)            | Ownerz                               |
+| ---------------------- | --------------------------------- | ------------------------------------ |
+| Metadata exposure risk | High (email headers, portal logs) | None (no sender/receiver on-chain)   |
+| Breach blast radius    | All patients (centralized DB)     | Single file (client-side encryption) |
+| Data longevity         | Depends on clinic's server        | Permanent (decentralized storage)    |
+| Delivery proof         | Email receipt (spoofable)         | CID on-chain (immutable)             |
+| Post-quantum readiness | None                              | NIST post-quantum encryption         |

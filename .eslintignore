@@ -1,0 +1,7 @@
+node_modules/
+.next/
+public/
+playwright-report/
+dist/
+build/
+test-s3.js

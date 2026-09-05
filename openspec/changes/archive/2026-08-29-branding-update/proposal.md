@@ -7,6 +7,7 @@ Rebrand the DataVaultz frontend from brutalist black/orange to the OWNERZ cinema
 ## Scope
 
 ### In Scope
+
 - `styles/globals.css`: remap palette/glow/font tokens; add chamfer `clip-path`, hairline + luminous-rule utilities, reveal motion + `prefers-reduced-motion`
 - Assets → `public/`: `ownerz_logotype.png`, `ownerz-background-1.jpg`, `background.svg`; convert JPEG-as-ico favicon into a valid one
 - `pages/index.js`: header/nav (hairline frame, mono labels, chamfered CONNECT), hero (background + logotype, eyebrow, gradient headline), entrance popup → brand modal
@@ -14,6 +15,7 @@ Rebrand the DataVaultz frontend from brutalist black/orange to the OWNERZ cinema
 - ShieldModal + shielded-balance panel; `_app.js` font/favicon refs
 
 ### Out of Scope
+
 - No wallet/STRK20/S3/contract logic; `lib/*`, `pages/api/*`, contracts untouched
 - No new landing sections (features grid, metrics bar); no Tailwind/TS/refactor; DeploySection.js unchanged
 - Old `brand-asset-orange.png` kept until verified
@@ -21,9 +23,11 @@ Rebrand the DataVaultz frontend from brutalist black/orange to the OWNERZ cinema
 ## Capabilities
 
 ### New Capabilities
+
 - `frontend-branding`: OWNERZ tokens, typography, chamfer/hairline styles, brand assets, motion for the DataVaultz frontend
 
 ### Modified Capabilities
+
 - None (`openspec/specs/` empty)
 
 ## Approach
@@ -32,12 +36,12 @@ Token-first: remap `:root` (most `dv-` components rebrand automatically) → cop
 
 ## Risks
 
-| Risk | Likelihood | Mitigation |
-|------|------------|------------|
-| clip-path + backdrop-filter break | Med | Mirror reference; test Chrome/Safari/Firefox |
-| Missed hardcoded inline oranges | Med | Grep `c53400` / `197,52,0` after change |
-| Fonts `@import` render-block | Low | Keep `@import` + preconnect |
-| 400-line PR budget | Med | Change values, not class names; chained slice if high |
+| Risk                              | Likelihood | Mitigation                                            |
+| --------------------------------- | ---------- | ----------------------------------------------------- |
+| clip-path + backdrop-filter break | Med        | Mirror reference; test Chrome/Safari/Firefox          |
+| Missed hardcoded inline oranges   | Med        | Grep `c53400` / `197,52,0` after change               |
+| Fonts `@import` render-block      | Low        | Keep `@import` + preconnect                           |
+| 400-line PR budget                | Med        | Change values, not class names; chained slice if high |
 
 ## Rollback Plan
 

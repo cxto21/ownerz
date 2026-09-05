@@ -17,11 +17,11 @@ Normal dapp route — users connect their own privacy-enabled wallet (Ready exte
 
 ## 3. What this delivers — hidden vs visible
 
-| Private (inside the pool) | Public (onchain) |
-|---|---|
-| Buyer's identity in the payment | Deposit/withdrawal amounts (ERC-20 legs) |
+| Private (inside the pool)               | Public (onchain)                              |
+| --------------------------------------- | --------------------------------------------- |
+| Buyer's identity in the payment         | Deposit/withdrawal amounts (ERC-20 legs)      |
 | Payment amount between buyer and seller | Fact that an address interacted with the pool |
-| Which notes were spent | Timing of pool interactions |
+| Which notes were spent                  | Timing of pool interactions                   |
 
 **Limits:** Deposit and withdrawal amounts remain public (they're the ERC-20 legs). The pool interaction itself is visible — only the participants and amounts inside the pool are hidden.
 
