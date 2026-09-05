@@ -376,11 +376,11 @@ body::after {
   z-index: 10;
 }
 
-/* Desktop: prevent unnecessary scroll — hero fits viewport */
+/* Desktop: allow natural scroll; hero content flows with the page */
 @media (min-width: 769px) {
   .dv {
-    height: 100vh;
-    overflow: hidden;
+    min-height: 100vh;
+    overflow-y: auto;
   }
   .dv-main {
     overflow-y: auto;
