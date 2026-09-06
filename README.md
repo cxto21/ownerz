@@ -1,6 +1,6 @@
 # Ownerz
 
-> Post-quantum privacy infrastructure for payments and services.
+> Post-quantum encrypted computing resources. Storage and payments, both quantum-resistant.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Starknet](https://img.shields.io/badge/Built%20on-Starknet-purple)](https://starknet.io)
@@ -10,15 +10,13 @@
 
 ## What is Ownerz?
 
-Ownerz is a **post-quantum privacy infrastructure platform** that enables anonymous payments and private services on Starknet.
+Ownerz is a **post-quantum privacy infrastructure for computing resources**. We offer storage and compute services where both the **data** and the **payments** are encrypted with quantum-resistant cryptography.
 
-We combine:
-- **STARKs** — quantum-resistant proof system (no trusted setup, hash-based cryptography)
-- **STRK20** — Starknet's native privacy standard for ERC-20 tokens (shielded balances, private transfers, compliant by design)
-- **Privacy Pool** — note-based anonymous payment pool with ZK-STARK proofs
-- **Cloudflare** — edge compute and storage with automatic post-quantum TLS
+You store files → encrypted with post-quantum crypto.
+You pay for storage → encrypted with post-quantum crypto.
+Your identity → protected by privacy pools.
 
-**The result:** Post-quantum anonymity in both payments and services — the first platform where your data and transactions remain private against both current and future quantum adversaries.
+**The result:** A computing platform where neither your data nor your financial activity can be intercepted — not now, not by future quantum computers.
 
 ---
 
@@ -35,78 +33,85 @@ Ownerz starts from a quantum-safe foundation. No migration needed. No technical 
 
 ---
 
-## What is STRK20?
+## Core Services
 
-**STRK20 is not a token — it's a privacy-native token standard for Starknet.**
+### 1. Encrypted Storage
 
-> "STRK20 is Starknet's native privacy standard for ERC-20 tokens: any asset can move through an encrypted pool, prove its own validity with a zero-knowledge proof, and settle without broadcasting who sent what to whom."
-> — [strk20.starknet.io](https://strk20.starknet.io)
-
-### How It Works
-
-| Concept | Description |
-|---------|-------------|
-| **Token Framework** | Embeds shielding directly into any ERC-20 token's transaction flow |
-| **Privacy by Default** | Balances and transfers are hidden by default — no wrapping, no external mixer |
-| **Note-Based Pool** | UTXO model (not a mixer) — deposit notes, prove validity, withdraw to fresh address |
-| **ZK-STARK Proofs** | Quantum-resistant by design (hash-based, no elliptic curve assumptions) |
-| **Compliance** | Viewing keys enable selective disclosure for regulators |
-| **DeFi Composable** | Private swaps (AVNU, Ekubo), lending (Vesu), staking (Endur) |
-
-### Key Dates
-
-- **March 10, 2026:** STRK20 announced with Starknet v0.14.2 ("The Privacy Engine")
-- **May 12, 2026:** strkBTC — first live STRK20 asset
-- **June 9, 2026:** STRK20 framework live on mainnet
-- **June 25, 2026:** USDC added as second STRK20 asset
-
-### Two Integration Routes
-
-| Route | Target | What You Touch |
-|-------|--------|----------------|
-| **Wallet API** | Dapps (like Ownerz) | App asks wallet to shield/transfer/unshield. Wallet handles proving, notes, keys. |
-| **Privacy SDK** | Wallets & advanced integrators | Direct control over note discovery, registration, proving. |
-
-**Ownerz uses the Wallet API route** — the app never touches viewing keys; the user's Ready/Xverse wallet handles that.
-
----
-
-## Core Products
-
-### 1. Anonymous Payments
-
-Privacy Pool on Starknet with STARK proofs:
+Post-quantum encrypted file storage on Cloudflare R2 + IPFS:
 
 ```
-Deposit → Pool (STARK proof) → Withdraw to fresh address
-```
-
-- **Zero-knowledge:** Proves funds are clean without revealing sender, receiver, or amount
-- **Quantum-resistant:** STARK proofs use hash functions, not elliptic curves
-- **Compliance-ready:** Threshold disclosure for regulators (viewing keys)
-- **Multi-asset:** Single pool for STRK, USDC, and other tokens
-
-### 2. Private Data Marketplace
-
-Buy and sell encrypted data with anonymous payments:
-
-```
-Seller: Encrypt → Upload → Set price → Register CID
-Buyer: Pay privately → Auto-receive decryption key → Download
+Upload → Encrypt (ML-KEM768 + AES-256-GCM) → Store on R2
+Download → Decrypt client-side → Access your data
 ```
 
 - **End-to-end encryption:** ML-KEM768 + AES-256-GCM (post-quantum)
-- **No intermediaries:** Direct peer-to-peer transactions
-- **Auto key delivery:** Smart contract reveals decryption key on payment
-- **Decentralized storage:** Cloudflare R2 + IPFS backup
+- **Zero egress:** Cloudflare R2 with no download fees
+- **Decentralized backup:** IPFS for content-addressed redundancy
+- **Client-side decryption:** Data never decrypted on servers
 
-### 3. Private Computation
+### 2. Encrypted Payments
 
-STARK-proven smart contracts that execute logic without revealing inputs:
+Payments for storage services via STRK20 Privacy Pool:
 
-- Payroll processing (prove salary without revealing amounts)
-- Auctions (prove bid validity without revealing bid)
-- Competitive bidding (prove compliance without revealing offer)
+```
+Pay → STRK20 Privacy Pool (STARK proof) → Service unlocked
+```
+
+- **Post-quantum proofs:** STARK-based (hash-based, quantum-resistant)
+- **Anonymous:** Payment details hidden via zero-knowledge proofs
+- **Compliant:** Viewing keys for regulatory disclosure when required
+- **Multi-asset:** Pay with STRK, USDC, or other supported tokens
+
+### 3. Compute Resources (Coming Soon)
+
+Private computation on encrypted data:
+
+- Process data without revealing contents
+- STARK-proven computation correctness
+- Edge execution via Cloudflare Workers
+
+---
+
+## How It Works
+
+### For Users
+
+1. **Connect** your Starknet wallet (Ready extension)
+2. **Upload** files — encrypted client-side with post-quantum crypto
+3. **Pay** for storage — payment encrypted via STRK20 Privacy Pool
+4. **Access** your data — decrypt locally, never exposed to servers
+
+### For Developers
+
+```javascript
+import { Ownerz } from '@ownerz/sdk';
+
+const ownerz = new Ownerz({ wallet: '0x...' });
+
+// Upload (post-quantum encrypted)
+await ownerz.store(file);
+
+// Download (client-side decryption)
+const data = await ownerz.retrieve('file-key');
+
+// Pay (anonymous via STRK20)
+await ownerz.pay({ amount: '1000000', token: 'USDC' });
+```
+
+---
+
+## What Makes This Different
+
+| Feature | Ownerz | Traditional Cloud | Other Web3 Storage |
+|---------|--------|-------------------|-------------------|
+| Data encryption | ✅ Post-quantum (ML-KEM768) | ❌ Server-side | ⚠️ Varies |
+| Payment privacy | ✅ STRK20 Privacy Pool | ❌ Exposed | ❌ Exposed |
+| Egress fees | ✅ Zero (R2) | ❌ High | ⚠️ Varies |
+| Quantum-resistant | ✅ Both data + payments | ❌ No | ❌ No |
+| Decentralized backup | ✅ IPFS | ❌ No | ✅ Yes |
+| Compliance | ✅ Viewing keys | ✅ Full access | ❌ Limited |
+
+**The moat:** Ownerz is the only platform where both your DATA and your PAYMENTS are post-quantum encrypted. Not one or the other — both.
 
 ---
 
@@ -115,11 +120,10 @@ STARK-proven smart contracts that execute logic without revealing inputs:
 | Layer | Technology | Purpose |
 |-------|-----------|---------|
 | **Blockchain** | Starknet | L2 with STARK proofs (quantum-resistant) |
-| **Smart Contracts** | Cairo | Provable computation |
-| **Privacy Standard** | STRK20 | Privacy-native token framework for ERC-20 |
+| **Privacy Standard** | STRK20 | Anonymous payments for services |
 | **Storage** | Cloudflare R2 + IPFS | Encrypted data (zero egress) |
 | **Compute** | Cloudflare Workers | Edge API with PQ TLS |
-| **Database** | Cloudflare D1 | User metadata, transaction logs |
+| **Database** | Cloudflare D1 | User metadata, file index |
 | **Encryption** | ML-KEM768 + AES-256-GCM | Post-quantum client-side encryption |
 | **Frontend** | Next.js + starknet.js | Web interface |
 
@@ -141,17 +145,16 @@ STARK-proven smart contracts that execute logic without revealing inputs:
 └──────────────────────┬──────────────────────────────┘
                        │
 ┌──────────────────────▼──────────────────────────────┐
-│              SETTLEMENT LAYER (Starknet L2)          │
-│  ┌─────────────────────────────────────────────┐    │
-│  │ STARK Proof System (quantum-resistant)       │    │
-│  └─────────────────────────────────────────────┘    │
-│  STRK20 Privacy Pool  │  Cairo Contracts           │
+│              PRIVACY LAYER (Starknet)                │
+│  STRK20 Privacy Pool — anonymous payments           │
+│  STARK proofs — quantum-resistant verification      │
+│  Cairo contracts — service logic                    │
 └──────────────────────┬──────────────────────────────┘
                        │
 ┌──────────────────────▼──────────────────────────────┐
-│              COMPLIANCE LAYER                        │
-│  Association Set Provider  │  Viewing Key Service   │
-│  ZK Compliance Proofs (FATF Travel Rule compatible) │
+│              ENCRYPTION LAYER                        │
+│  ML-KEM768 + AES-256-GCM — post-quantum encryption  │
+│  Client-side — data never decrypted on servers      │
 └─────────────────────────────────────────────────────┘
 ```
 
@@ -183,71 +186,42 @@ Open [http://localhost:3000](http://localhost:3000)
 
 ---
 
-## How Privacy Works
-
-### For Sellers
-
-1. Encrypt your file locally (ML-KEM768 + AES-256-GCM)
-2. Upload to Cloudflare R2 (encrypted at rest)
-3. Set price in STRK
-4. Register CID in smart contract (no public listing)
-5. Share CID privately with buyer
-
-### For Buyers
-
-1. Receive CID from seller (private channel)
-2. Connect Starknet wallet
-3. Click "Pay Privately"
-4. Wallet generates STARK proof (quantum-resistant)
-5. Auto-receive decryption key via smart contract
-6. Download and decrypt file
-
-### For Regulators
-
-- **Viewing keys:** Selective disclosure for compliance audits
-- **Association Set Provider:** Proves fund cleanliness without identity
-- **Threshold disclosure:** Prove transaction properties without full reveal
-
----
-
 ## Roadmap
 
-### Phase 1: Foundation (Weeks 1-4)
-- [ ] Integrate STRK20 Wallet API
-- [ ] Deploy Cairo contracts to Sepolia
-- [ ] End-to-end flow: shield → pay → key reveal → decrypt
+### Phase 1: Storage MVP (Weeks 1-4)
+- [ ] Post-quantum encrypted storage on Cloudflare R2
+- [ ] STRK20 payment integration
+- [ ] End-to-end flow: upload → encrypt → pay → store
 - [ ] Apply for Starknet Seed Grant ($25K)
 
 ### Phase 2: Marketplace (Weeks 5-8)
-- [ ] Seller flow: upload → price → register CID
-- [ ] Buyer flow: CID → pay → auto-reveal key
+- [ ] Seller flow: upload → set price → register CID
+- [ ] Buyer flow: pay → auto-reveal decryption key
 - [ ] Balance toggle (public / shielded / total)
 - [ ] Mobile-responsive privacy UX
 
 ### Phase 3: Scale (Weeks 9-12)
-- [ ] Migrate storage to Cloudflare R2
 - [ ] SIWS authentication via Workers
 - [ ] Private swaps via AVNU integration
 - [ ] Mainnet deployment
+- [ ] SDK release for developers
 
 ### Phase 4: Startup (Months 4-6)
-- [ ] Enterprise API for private data marketplace
+- [ ] Enterprise API for private data storage
 - [ ] Compliance dashboard for threshold disclosure
-- [ ] Cross-chain privacy via LayerZero
+- [ ] Compute resources (private processing)
 - [ ] Fundraise preparation
 
 ---
 
-## Comparison
+## STRK20 — How Payments Work
 
-| Feature | Ownerz | Zcash | Tornado Cash | Aztec |
-|---------|--------|-------|--------------|-------|
-| Post-quantum | ✅ STARKs | 🔄 Migration needed | ❌ SNARKs | ❌ SNARKs |
-| Compliance | ✅ Threshold disclosure | ✅ Viewing keys only | ❌ Sanctioned | 🔄 Building |
-| DeFi composability | ✅ AVNU/Ekubo | ❌ Isolated | ❌ Mixer only | 🔄 Alpha |
-| Multi-asset | ✅ STRK20 single pool | ❌ ZEC only | 🔄 Limited | ❌ App-specific |
-| Storage integration | ✅ R2 + IPFS | ❌ N/A | ❌ N/A | ❌ N/A |
-| Edge infrastructure | ✅ Cloudflare PQ | ❌ Self-hosted | ❌ Self-hosted | ❌ Self-hosted |
+**STRK20 is not a token — it's a privacy-native token standard for Starknet.**
+
+> "STRK20 is Starknet's native privacy standard for ERC-20 tokens: any asset can move through an encrypted pool, prove its own validity with a zero-knowledge proof, and settle without broadcasting who sent what to whom."
+> — [strk20.starknet.io](https://strk20.starknet.io)
+
+Ownerz uses STRK20 to accept anonymous payments for storage services. The user's wallet handles the privacy flow — Ownerz never touches viewing keys or payment details.
 
 ---
 
