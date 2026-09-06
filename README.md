@@ -1,6 +1,6 @@
 # Ownerz
 
-> Post-quantum encrypted computing resources. Storage and payments, both quantum-resistant.
+> Post-quantum data infrastructure. End-to-end encrypted storage, private payments.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Starknet](https://img.shields.io/badge/Built%20on-Starknet-purple)](https://starknet.io)
@@ -10,13 +10,14 @@
 
 ## What is Ownerz?
 
-Ownerz is a **post-quantum privacy infrastructure for computing resources**. We offer storage and compute services where both the **data** and the **payments** are encrypted with quantum-resistant cryptography.
+Ownerz is a **post-quantum data infrastructure provider**. We offer encrypted storage and compute services where both the **data** and the **payments** are protected with quantum-resistant cryptography.
 
-You store files → encrypted with post-quantum crypto.
-You pay for storage → encrypted with post-quantum crypto.
-Your identity → protected by privacy pools.
+**What we do:**
+- Store and process data with **end-to-end post-quantum TLS 1.3**
+- Accept payments via **post-quantum private payment technology** (STRK20 on Starknet)
+- Protect data in transit and at rest with **ML-KEM768 + AES-256-GCM**
 
-**The result:** A computing platform where neither your data nor your financial activity can be intercepted — not now, not by future quantum computers.
+**The result:** A data infrastructure platform where neither your data nor your financial activity can be intercepted — not now, not by future quantum computers.
 
 ---
 
@@ -45,13 +46,14 @@ Download → Decrypt client-side → Access your data
 ```
 
 - **End-to-end encryption:** ML-KEM768 + AES-256-GCM (post-quantum)
+- **Post-quantum TLS 1.3:** Data encrypted in transit with quantum-resistant key exchange
 - **Zero egress:** Cloudflare R2 with no download fees
 - **Decentralized backup:** IPFS for content-addressed redundancy
 - **Client-side decryption:** Data never decrypted on servers
 
-### 2. Encrypted Payments
+### 2. Private Payments
 
-Payments for storage services via STRK20 Privacy Pool:
+Payments for infrastructure services via STRK20 Privacy Pool:
 
 ```
 Pay → STRK20 Privacy Pool (STARK proof) → Service unlocked
@@ -77,8 +79,8 @@ Private computation on encrypted data:
 ### For Users
 
 1. **Connect** your Starknet wallet (Ready extension)
-2. **Upload** files — encrypted client-side with post-quantum crypto
-3. **Pay** for storage — payment encrypted via STRK20 Privacy Pool
+2. **Upload** files — encrypted end-to-end with post-quantum TLS 1.3
+3. **Pay** for storage — payment protected via STRK20 Privacy Pool
 4. **Access** your data — decrypt locally, never exposed to servers
 
 ### For Developers
@@ -94,7 +96,7 @@ await ownerz.store(file);
 // Download (client-side decryption)
 const data = await ownerz.retrieve('file-key');
 
-// Pay (anonymous via STRK20)
+// Pay (private via STRK20)
 await ownerz.pay({ amount: '1000000', token: 'USDC' });
 ```
 
@@ -105,13 +107,14 @@ await ownerz.pay({ amount: '1000000', token: 'USDC' });
 | Feature | Ownerz | Traditional Cloud | Other Web3 Storage |
 |---------|--------|-------------------|-------------------|
 | Data encryption | ✅ Post-quantum (ML-KEM768) | ❌ Server-side | ⚠️ Varies |
+| TLS | ✅ Post-quantum TLS 1.3 | ❌ Classical | ❌ Classical |
 | Payment privacy | ✅ STRK20 Privacy Pool | ❌ Exposed | ❌ Exposed |
 | Egress fees | ✅ Zero (R2) | ❌ High | ⚠️ Varies |
-| Quantum-resistant | ✅ Both data + payments | ❌ No | ❌ No |
+| Quantum-resistant | ✅ Data + Payments | ❌ No | ❌ No |
 | Decentralized backup | ✅ IPFS | ❌ No | ✅ Yes |
 | Compliance | ✅ Viewing keys | ✅ Full access | ❌ Limited |
 
-**The moat:** Ownerz is the only platform where both your DATA and your PAYMENTS are post-quantum encrypted. Not one or the other — both.
+**The moat:** Ownerz is the only data infrastructure where both your DATA (post-quantum TLS 1.3) and your PAYMENTS (STRK20 Privacy Pool) are quantum-resistant. Not one or the other — both.
 
 ---
 
@@ -120,11 +123,12 @@ await ownerz.pay({ amount: '1000000', token: 'USDC' });
 | Layer | Technology | Purpose |
 |-------|-----------|---------|
 | **Blockchain** | Starknet | L2 with STARK proofs (quantum-resistant) |
-| **Privacy Standard** | STRK20 | Anonymous payments for services |
+| **Payment Privacy** | STRK20 | Anonymous payments for services |
 | **Storage** | Cloudflare R2 + IPFS | Encrypted data (zero egress) |
+| **Transport** | Post-quantum TLS 1.3 | End-to-end encryption in transit |
+| **Encryption** | ML-KEM768 + AES-256-GCM | Post-quantum encryption at rest |
 | **Compute** | Cloudflare Workers | Edge API with PQ TLS |
 | **Database** | Cloudflare D1 | User metadata, file index |
-| **Encryption** | ML-KEM768 + AES-256-GCM | Post-quantum client-side encryption |
 | **Frontend** | Next.js + starknet.js | Web interface |
 
 ---
@@ -135,7 +139,7 @@ await ownerz.pay({ amount: '1000000', token: 'USDC' });
 ┌─────────────────────────────────────────────────────┐
 │                    USER LAYER                        │
 │  Web App / Mobile / API                             │
-│  (Cloudflare Workers — PQ TLS by default)           │
+│  (Cloudflare Workers — PQ TLS 1.3)                 │
 └──────────────────────┬──────────────────────────────┘
                        │
 ┌──────────────────────▼──────────────────────────────┐
@@ -153,7 +157,8 @@ await ownerz.pay({ amount: '1000000', token: 'USDC' });
                        │
 ┌──────────────────────▼──────────────────────────────┐
 │              ENCRYPTION LAYER                        │
-│  ML-KEM768 + AES-256-GCM — post-quantum encryption  │
+│  ML-KEM768 + AES-256-GCM — post-quantum at rest    │
+│  Post-quantum TLS 1.3 — post-quantum in transit    │
 │  Client-side — data never decrypted on servers      │
 └─────────────────────────────────────────────────────┘
 ```
@@ -190,6 +195,7 @@ Open [http://localhost:3000](http://localhost:3000)
 
 ### Phase 1: Storage MVP (Weeks 1-4)
 - [ ] Post-quantum encrypted storage on Cloudflare R2
+- [ ] Post-quantum TLS 1.3 transport layer
 - [ ] STRK20 payment integration
 - [ ] End-to-end flow: upload → encrypt → pay → store
 - [ ] Apply for Starknet Seed Grant ($25K)
@@ -207,7 +213,7 @@ Open [http://localhost:3000](http://localhost:3000)
 - [ ] SDK release for developers
 
 ### Phase 4: Startup (Months 4-6)
-- [ ] Enterprise API for private data storage
+- [ ] Enterprise API for private data infrastructure
 - [ ] Compliance dashboard for threshold disclosure
 - [ ] Compute resources (private processing)
 - [ ] Fundraise preparation
@@ -221,7 +227,7 @@ Open [http://localhost:3000](http://localhost:3000)
 > "STRK20 is Starknet's native privacy standard for ERC-20 tokens: any asset can move through an encrypted pool, prove its own validity with a zero-knowledge proof, and settle without broadcasting who sent what to whom."
 > — [strk20.starknet.io](https://strk20.starknet.io)
 
-Ownerz uses STRK20 to accept anonymous payments for storage services. The user's wallet handles the privacy flow — Ownerz never touches viewing keys or payment details.
+Ownerz uses STRK20 to accept anonymous payments for infrastructure services. The user's wallet handles the privacy flow — Ownerz never touches viewing keys or payment details.
 
 ---
 
