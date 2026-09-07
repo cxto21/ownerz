@@ -47,3 +47,4 @@ lib/crypto/target/
 lib/storage/target/
 lib/ownerz/target/
 
+.starknet/

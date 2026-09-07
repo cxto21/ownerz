@@ -1,6 +1,29 @@
 {
-  "transactions": [],
-  "contracts": [],
-  "demo_video": "",
-  "demo_url": ""
+  "demo_video": "https://vimeo.com/1224749868",
+  "demo_url": "https://vimeo.com/1224749868",
+  "network": "SN_MAIN",
+  "contracts": {
+    "strk20_pool": "0x040337b1af3c663e86e333bab5a4b28da8d4652a15a69beee2b677776ffe812a",
+    "strk_token": "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+    "filevault": "pending_deploy",
+    "key_exchange_mockup": "pending_deploy"
+  },
+  "wallets": {
+    "deployer": "0x027b2241f711e315a6abbd7bc40efb73d300e249025b523937d22149e3bab14a",
+    "platform_fee_recipient": "0x02eAA076636635Fa983094D7a8e367293973C3263c2310586A2579C1D4FE8b71"
+  },
+  "transactions": {
+    "deployer_account_funded_eth": {
+      "address": "0x027b2241f711e315a6abbd7bc40efb73d300e249025b523937d22149e3bab14a",
+      "asset": "ETH",
+      "amount": "0.00032",
+      "note": "Funded for deployer account deployment gas"
+    },
+    "deployer_account_funded_strk": {
+      "address": "0x027b2241f711e315a6abbd7bc40efb73d300e249025b523937d22149e3bab14a",
+      "asset": "STRK",
+      "amount": "5.0",
+      "note": "ERC20 STRK for platform operations"
+    }
+  }
 }
