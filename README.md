@@ -198,7 +198,6 @@ Open [http://localhost:3000](http://localhost:3000)
 - [ ] Post-quantum TLS 1.3 transport layer
 - [ ] STRK20 payment integration
 - [ ] End-to-end flow: upload → encrypt → pay → store
-- [ ] Apply for Starknet Seed Grant ($25K)
 
 ### Phase 2: Marketplace (Weeks 5-8)
 - [ ] Seller flow: upload → set price → register CID
