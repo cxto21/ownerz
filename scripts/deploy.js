@@ -1,35 +1,35 @@
 #!/usr/bin/env node
 /**
- * scripts/deploy.js — FileVault v2 Dual-Contract Sepolia Deploy
+ * scripts/deploy.js — FileVault v2 Dual-Contract Deploy (Sepolia or Mainnet)
  *
  * Deploys KeyExchangeMockup FIRST, captures its address, then deploys FileVault
  * with (platform_wallet, platform_fee, strk_token, key_exchange_address).
  *
  * Usage:
- *   node scripts/deploy.js                 # uses env vars + Alchemy Sepolia default
+ *   node scripts/deploy.js                           # Sepolia (default)
+ *   node scripts/deploy.js --network mainnet          # Mainnet
+ *   node scripts/deploy.js --network sepolia          # Sepolia (explicit)
  *   node scripts/deploy.js --rpc <url> --private-key <key> --account <addr>
  *
  * Required env (or CLI flags):
  *   STARKNET_PRIVATE_KEY  — deployer private key (hex 0x...)
  *   STARKNET_ACCOUNT_ADDRESS — deployer account address (hex 0x...)
- *   STARKNET_RPC — optional, defaults to Alchemy Sepolia:
- *                  https://starknet-sepolia.g.alchemy.com/v2/alch_rjRG2UrZXootnmaX8FVj0
+ *   STARKNET_RPC — optional, defaults based on --network:
+ *                  Sepolia: https://starknet-sepolia.g.alchemy.com/v2/alch_rjRG2UrZXootnmaX8FVj0
+ *                  Mainnet: https://starknet-mainnet.public.blastapi.io/rpc/v0_8
  *
  * Optional:
  *   PLATFORM_WALLET — fee recipient (default: 0x056180cC00A2F2094cc3AaA3a364C6000481E8Ecd8DED195a58bd99B30d737CF)
  *   PLATFORM_FEE    — fee in STRK wei as decimal string (default: 500000000000000000 = 0.5 STRK)
- *   STRK_TOKEN      — STRK ERC20 address (default Sepolia: 0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d)
+ *   STRK_TOKEN      — STRK ERC20 address (default: same on both networks)
  *
  * Steps (mirrors sncast flow):
+ *   0. Verify chainId matches requested network
  *   1. declare KeyExchangeMockup (if not already declared) -> classHash
  *   2. deploy KeyExchangeMockup (constructor: no args) -> kexAddress
  *   3. declare FileVault
  *   4. deploy FileVault(platform_wallet, platform_fee:u256, strk_token, kex_address)
- *   5. print addresses for .env:
- *        NEXT_PUBLIC_FILEVAULT_ADDRESS=<fv>
- *        NEXT_PUBLIC_KEY_EXCHANGE_MOCKUP_ADDRESS=<kex>
- *        NEXT_PUBLIC_PLATFORM_WALLET=<wallet>
- *        NEXT_PUBLIC_STRK_TOKEN=<strk>
+ *   5. print addresses for .env + write deployment JSON
  *
  * After deploy, update .env and lib/filevault-abi.json is already correct for v2.
  * Verify with:
@@ -48,18 +48,28 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const ROOT = path.resolve(__dirname, '..');
 
-// --- Config defaults (Sepolia) ---
-const DEFAULTS = {
-  rpc:
-    process.env.STARKNET_RPC ||
-    'https://starknet-sepolia.g.alchemy.com/v2/alch_rjRG2UrZXootnmaX8FVj0',
-  strkToken:
-    process.env.STRK_TOKEN ||
-    '0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d',
-  platformWallet:
-    process.env.PLATFORM_WALLET ||
-    '0x056180cC00A2F2094cc3AaA3a364C6000481E8Ecd8DED195a58bd99B30d737CF',
-  platformFee: process.env.PLATFORM_FEE || '500000000000000000',
+// --- Network presets ---
+const NETWORK_PRESETS = {
+  sepolia: {
+    chainIdHex: '5345504f4c4941',
+    label: 'Sepolia',
+    rpc: 'https://starknet-sepolia.g.alchemy.com/v2/alch_rjRG2UrZXootnmaX8FVj0',
+    strkToken:
+      '0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d',
+    platformWallet:
+      '0x056180cC00A2F2094cc3AaA3a364C6000481E8Ecd8DED195a58bd99B30d737CF',
+    platformFee: '500000000000000000',
+  },
+  mainnet: {
+    chainIdHex: '534e5f4d41494e',
+    label: 'Mainnet',
+    rpc: 'https://starknet-mainnet.public.blastapi.io/rpc/v0_8',
+    strkToken:
+      '0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d',
+    platformWallet:
+      '0x056180cC00A2F2094cc3AaA3a364C6000481E8Ecd8DED195a58bd99B30d737CF',
+    platformFee: '500000000000000000',
+  },
 };
 
 // --- CLI args ---
@@ -67,7 +77,8 @@ function parseArgs() {
   const args = process.argv.slice(2);
   const out = {};
   for (let i = 0; i < args.length; i++) {
-    if (args[i] === '--rpc' && args[i + 1]) out.rpc = args[++i];
+    if (args[i] === '--network' && args[i + 1]) out.network = args[++i];
+    else if (args[i] === '--rpc' && args[i + 1]) out.rpc = args[++i];
     else if (args[i] === '--private-key' && args[i + 1])
       out.privateKey = args[++i];
     else if (args[i] === '--account' && args[i + 1])
@@ -77,10 +88,16 @@ function parseArgs() {
 Usage: node scripts/deploy.js [options]
 
 Options:
-  --rpc <url>           Starknet RPC URL (default Alchemy Sepolia)
-  --private-key <key>   Deployer private key
-  --account <address>   Deployer account address
-  --help, -h            Show help
+  --network <name>       Target network: sepolia (default) or mainnet
+  --rpc <url>            Starknet RPC URL (overrides network default)
+  --private-key <key>    Deployer private key
+  --account <address>    Deployer account address
+  --help, -h             Show help
+
+Networks:
+  sepolia   Starknet Sepolia testnet (default)
+  mainnet   Starknet Mainnet
+
 Env fallback: STARKNET_PRIVATE_KEY, STARKNET_ACCOUNT_ADDRESS, STARKNET_RPC
 `);
       process.exit(0);
@@ -90,7 +107,25 @@ Env fallback: STARKNET_PRIVATE_KEY, STARKNET_ACCOUNT_ADDRESS, STARKNET_RPC
 }
 
 const cli = parseArgs();
-const RPC_URL = cli.rpc || DEFAULTS.rpc;
+
+// --- Resolve network ---
+const networkName = (cli.network || 'sepolia').toLowerCase();
+if (!NETWORK_PRESETS[networkName]) {
+  console.error(
+    `Unknown network "${networkName}". Valid options: sepolia, mainnet`
+  );
+  process.exit(1);
+}
+const preset = NETWORK_PRESETS[networkName];
+
+// Defaults from preset; CLI flags and env vars override
+const DEFAULTS = {
+  rpc: cli.rpc || process.env.STARKNET_RPC || preset.rpc,
+  strkToken: process.env.STRK_TOKEN || preset.strkToken,
+  platformWallet: process.env.PLATFORM_WALLET || preset.platformWallet,
+  platformFee: process.env.PLATFORM_FEE || preset.platformFee,
+};
+const RPC_URL = DEFAULTS.rpc;
 const PRIVATE_KEY = cli.privateKey || process.env.STARKNET_PRIVATE_KEY;
 const ACCOUNT_ADDRESS =
   cli.accountAddress || process.env.STARKNET_ACCOUNT_ADDRESS;
@@ -160,7 +195,8 @@ try {
 }
 
 async function main() {
-  console.log('=== FileVault v2 Deploy (Sepolia) ===');
+  console.log(`=== FileVault v2 Deploy (${preset.label}) ===`);
+  console.log('Network:', networkName, '(' + preset.chainIdHex + ')');
   console.log('RPC:', RPC_URL);
   console.log('Account:', ACCOUNT_ADDRESS);
   console.log('Platform wallet:', DEFAULTS.platformWallet);
@@ -169,6 +205,24 @@ async function main() {
   console.log('');
 
   const provider = new RpcProvider({ nodeUrl: RPC_URL });
+
+  // --- ChainId verification ---
+  try {
+    const chainId = await provider.getChainId();
+    if (!chainId.includes(preset.chainIdHex)) {
+      console.error(
+        `RPC chainId mismatch: expected ${preset.label} (${preset.chainIdHex}), got ${chainId}`
+      );
+      console.error('Aborting deploy to prevent deploying to wrong network.');
+      process.exit(1);
+    }
+    console.log('[chain] verified:', chainId);
+  } catch (e) {
+    console.error('[chain] failed to fetch chainId:', e.message?.slice(0, 200));
+    console.error('Cannot verify network — aborting for safety.');
+    process.exit(1);
+  }
+
   const signer = new Signer(PRIVATE_KEY);
   const account = new Account({ provider, address: ACCOUNT_ADDRESS, signer });
 
@@ -298,10 +352,12 @@ async function main() {
   // --- Done ---
   console.log('');
   console.log('=== Deploy Complete ===');
+  console.log('Network:', networkName);
   console.log('KeyExchangeMockup:', kexAddress);
   console.log('FileVault:        ', fvAddress);
   console.log('');
   console.log('Add to .env:');
+  console.log(`NEXT_PUBLIC_NETWORK=${networkName === 'mainnet' ? 'SN_MAIN' : 'SN_SEPOLIA'}`);
   console.log(`NEXT_PUBLIC_FILEVAULT_ADDRESS=${fvAddress}`);
   console.log(`NEXT_PUBLIC_KEY_EXCHANGE_MOCKUP_ADDRESS=${kexAddress}`);
   console.log(`NEXT_PUBLIC_PLATFORM_WALLET=${DEFAULTS.platformWallet}`);
@@ -313,14 +369,19 @@ async function main() {
   console.log(`  starkli call ${kexAddress} read_lock 0x123`);
   console.log('');
   // Also write to deployment file
-  const outPath = path.join(ROOT, 'contracts', 'deployments', 'sepolia.json');
+  const outPath = path.join(
+    ROOT,
+    'contracts',
+    'deployments',
+    `${networkName}.json`
+  );
   try {
     fs.mkdirSync(path.dirname(outPath), { recursive: true });
     fs.writeFileSync(
       outPath,
       JSON.stringify(
         {
-          network: 'sepolia',
+          network: networkName,
           rpc: RPC_URL,
           strkToken: DEFAULTS.strkToken,
           platformWallet: DEFAULTS.platformWallet,
