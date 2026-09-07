@@ -11,6 +11,7 @@ import SellFlow from '../components/SellFlow';
 import BuyFlow from '../components/BuyFlow';
 import DeploySection from '../components/DeploySection';
 import ShieldModal from '../components/ShieldModal';
+import { getNetworkConfig } from '../lib/network-config.js';
 
 export default function Ownerz() {
   const [mode, setMode] = useState('sell');
@@ -83,16 +84,15 @@ export default function Ownerz() {
     if (!walletState.connected) return;
     const checkNetwork = async () => {
       try {
+        const net = getNetworkConfig();
         const provider = new RpcProvider({
-          nodeUrl:
-            process.env.NEXT_PUBLIC_STARKNET_RPC ||
-            'https://starknet-sepolia.public.blastapi.io/rpc/v0_8',
+          nodeUrl: net.rpcFallback,
         });
         const chainId = await provider.getChainId();
-        if (!chainId.includes('5345504f4c4941')) {
+        if (!chainId.includes(net.chainIdHex)) {
           setWalletState((prev) => ({
             ...prev,
-            error: 'Please switch to Starknet Sepolia testnet',
+            error: `Please switch to ${net.chainLabel}`,
           }));
         }
       } catch (e) {

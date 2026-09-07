@@ -31,14 +31,14 @@ Chain strategy: pending
 
 ## Phase 2: Consumer Code Updates
 
-- [ ] 2.1 `lib/starknet.js` lines 24-26: import `getNetworkConfig`, replace hardcoded RPC_URL fallback with `{ rpcFallback: RPC_URL }`.
-- [ ] 2.2 `lib/filevault.js` lines 20-22: same pattern — import and destructure `rpcFallback`.
-- [ ] 2.3 `lib/strk20-payments.js` lines 14-20 + 475: replace hardcoded pool/STRK addresses with `_net.strk20PoolAddress` / `_net.strkTokenAddress`; line 475 replace `sepolia.voyager.online` with `getNetworkConfig().explorerBase`.
-- [ ] 2.4 `lib/starknet-kit.js` lines 92, 102: import config, replace `process.env.NEXT_PUBLIC_STARKNET_RPC || undefined` with `rpcFallback`, replace `'SN_SEPOLIA'` with `kitChainId`.
-- [ ] 2.5 `pages/index.js` lines 86-96: import config, replace hardcoded provider URL + chainId hex `5345504f4c4941` + error msg with dynamic `net.chainIdHex` / `net.chainLabel`.
-- [ ] 2.6 `lib/ownerz/key-onchain-config.js` lines 11-13: replace hardcoded RPC_URL fallback with `getNetworkConfig().rpcFallback`.
-- [ ] 2.7 `lib/key-onchain/mockup/deploy.js` lines 14-16: same RPC fallback replacement.
-- [ ] 2.8 `lib/key-onchain/mockup/key-exchange-provider.js` lines 21-23: replace `DEFAULT_RPC` with `getNetworkConfig().rpcFallback`.
+- [x] 2.1 `lib/starknet.js` lines 24-26: import `getNetworkConfig`, replace hardcoded RPC_URL fallback with `{ rpcFallback: RPC_URL }`.
+- [x] 2.2 `lib/filevault.js` lines 20-22: same pattern — import and destructure `rpcFallback`.
+- [x] 2.3 `lib/strk20-payments.js` lines 14-20 + 475: replace hardcoded pool/STRK addresses with `_net.strk20PoolAddress` / `_net.strkTokenAddress`; line 475 replace `sepolia.voyager.online` with `getNetworkConfig().explorerBase`.
+- [x] 2.4 `lib/starknet-kit.js` lines 92, 102: import config, replace `process.env.NEXT_PUBLIC_STARKNET_RPC || undefined` with `rpcFallback`, replace `'SN_SEPOLIA'` with `kitChainId`.
+- [x] 2.5 `pages/index.js` lines 86-96: import config, replace hardcoded provider URL + chainId hex `5345504f4c4941` + error msg with dynamic `net.chainIdHex` / `net.chainLabel`.
+- [x] 2.6 `lib/ownerz/key-onchain-config.js` lines 11-13: replace hardcoded RPC_URL fallback with `getNetworkConfig().rpcFallback`.
+- [x] 2.7 `lib/key-onchain/mockup/deploy.js` lines 14-16: same RPC fallback replacement.
+- [x] 2.8 `lib/key-onchain/mockup/key-exchange-provider.js` lines 21-23: replace `DEFAULT_RPC` with `getNetworkConfig().rpcFallback`.
 
 ## Phase 3: Tooling Updates
 
